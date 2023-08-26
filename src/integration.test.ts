@@ -37,7 +37,7 @@ describe("should execute function", () => {
     try {
       await fn();
       throw new Error("should not reach here");
-    } catch (e) {
+    } catch (e: any) {
       expect(e.message).toEqual("fail");
       expect(e.stack).toContain("integration.test.ts");
     }

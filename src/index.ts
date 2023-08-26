@@ -1,9 +1,9 @@
 import { initClient } from "@ts-rest/core";
 import { contract } from "./contract";
 import { unpack, pack } from "./serialize";
-import { serializeError, deserializeError } from "./errors";
+const { serializeError, deserializeError } = require("./errors");
 
-const cyrb53 = (str, seed = 0) => {
+const cyrb53 = (str: string, seed = 0) => {
   let h1 = 0xdeadbeef ^ seed,
     h2 = 0x41c6ce57 ^ seed;
   for (let i = 0, ch; i < str.length; i++) {
