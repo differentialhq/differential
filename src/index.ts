@@ -1,7 +1,16 @@
 import { initClient } from "@ts-rest/core";
 import { contract } from "./contract";
 import { unpack, pack } from "./serialize";
+
 const { serializeError, deserializeError } = require("./errors");
+
+type AssertPromiseReturnType<T extends (...args: any[]) => any> = T extends (
+  ...args: any[]
+) => infer R
+  ? R extends Promise<any>
+    ? T
+    : "Any function that is passed to fn must return a Promise. Fix this by making the inner function async."
+  : "Any function that is passed to fn must return a Promise. Fix this by making the inner function async.";
 
 const cyrb53 = (str: string, seed = 0) => {
   let h1 = 0xdeadbeef ^ seed,
@@ -259,12 +268,16 @@ export const Differential = (params: {
       }
     },
     fn: <T extends (...args: Parameters<T>) => ReturnType<T>>(
-      f: T,
+      f: AssertPromiseReturnType<T>,
       options?: {
         name?: string;
         klass?: string;
       }
     ): T => {
+      if (typeof f !== "function") {
+        throw new DifferentialError("fn must be a function");
+      }
+
       const name = options?.name || f.name || cyrb53(f.toString()).toString();
 
       console.debug(`Registering function`, {
