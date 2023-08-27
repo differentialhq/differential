@@ -35,6 +35,7 @@ export const contract = c.router({
       environmentId: z.string(),
     }),
     query: z.object({
+      machineTypes: z.string().optional(),
       limit: z.coerce.number().default(1),
     }),
     responses: {
@@ -57,6 +58,7 @@ export const contract = c.router({
     body: z.object({
       targetFn: z.string(),
       targetArgs: z.string(),
+      machineType: z.string().optional(),
     }),
   },
   getJobStatus: {

@@ -139,7 +139,10 @@ const executeFn = async (fn: Function, args: unknown[]): Promise<Result> => {
   }
 };
 
-export const pollForNextJob = async (authHeader: string) => {
+export const pollForNextJob = async (
+  authHeader: string,
+  machineTypes?: string[]
+) => {
   if (pollState.concurrency <= pollState.current) {
     console.debug("Max concurrency reached");
     return;
@@ -152,6 +155,7 @@ export const pollForNextJob = async (authHeader: string) => {
       },
       query: {
         limit: Math.ceil((pollState.concurrency - pollState.current) / 2),
+        machineTypes: machineTypes?.join(","),
       },
       headers: {
         authorization: authHeader,
@@ -238,6 +242,7 @@ export const Differential = (params: {
   apiKey: string;
   apiSecret: string;
   environmentId: string;
+  machineTypes?: string[];
   encyptionKeys?: string[];
 }) => {
   const authCredentials = `${params.apiKey}:${params.apiSecret}`;
@@ -248,7 +253,7 @@ export const Differential = (params: {
   return {
     init: () => {
       timer = setInterval(async () => {
-        await pollForNextJob(authHeader);
+        await pollForNextJob(authHeader, params.machineTypes);
       }, 1000);
     },
     quit: async (): Promise<void> => {
@@ -271,7 +276,7 @@ export const Differential = (params: {
       f: AssertPromiseReturnType<T>,
       options?: {
         name?: string;
-        klass?: string;
+        machineType?: string;
       }
     ): T => {
       if (typeof f !== "function") {
@@ -297,6 +302,7 @@ export const Differential = (params: {
             body: {
               targetFn: name,
               targetArgs: pack(args),
+              machineType: options?.machineType,
             },
             params: {
               environmentId: params.environmentId,

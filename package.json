@@ -1,12 +1,12 @@
 {
   "name": "@differential-dev/sdk",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Javascript SDK for Diff8",
   "main": "bin/index.js",
   "scripts": {
     "test": "jest ./src",
-    "build": "tsc",
-    "prepublish": "npm run test && npm run build"
+    "build": "make fetch-contract && tsc",
+    "prepublish": "make fetch-contract && npm run test && npm run build"
   },
   "author": "",
   "license": "ISC",
