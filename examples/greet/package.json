@@ -1,9 +1,10 @@
 {
   "dependencies": {
-    "@differential-dev/sdk": "^0.0.8",
+    "@differential-dev/sdk": "^0.0.9",
     "ts-node": "latest"
   },
   "scripts": {
-    "start": "ts-node index.ts"
+    "greeter": "ts-node greeter.ts",
+    "counter": "ts-node counter.ts"
   }
 }
