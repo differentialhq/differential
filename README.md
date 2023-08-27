@@ -22,27 +22,24 @@ export const d = Differential({
   apiKey: "123",
   apiSecret: "456",
   environmentId: "dev-1",
-  machineType: process.env.MACHINE_TYPE,
+  machineType: process.env.MACHINE_TYPE === "worker" ? "worker" : "primary",
 });
 
-let greetingCounts = 0;
+// initialize the SDK. this starts listening for incoming function calls
+d.init();
 
-// define any function
-const greet = (name: string) => {
-  console.log(`Hello ${name} from pid ${process.pid}!`);
-}
+// define any function and wrap it with d.fn to run it in a distributed manner
+const helloWorld = d.fn((pid) => {
+  return `Hello from pid ${process.pid}!`;
+}, {
+  machineType: "worker", // this function will only run on workers
+})
 
-// count greetings
-const countGreets = d.fn(() => {
-  greetingCounts++;
-  console.log(`Greeted ${greetingCounts} times!`);
-}, { machineType: "counter"})
-
-if (process.env.MACHINE_TYPE === "greeter") {
-  // run the function
-  greet("World")
-} else {
-  // keep the process alive so we can count greets
-  process.stdin.resume();
-}
+// call the function as if it were a normal function in the same process
+// the SDK will handle the distribution logic
+helloWorld(process.pid).then((result) => {
+  console.log(result);
+  process.exit(0);
+  d.quit();
+});
 ```
