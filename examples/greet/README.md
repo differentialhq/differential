@@ -2,6 +2,14 @@
 
 This is a simple hello world that demonstrates how to use Differential from within two independented isolated Node.js processes.
 
+## Setup
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
 ## Usage
 
 ### 1. Start the counter
