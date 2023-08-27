@@ -1,12 +1,13 @@
 {
   "name": "@differential-dev/sdk",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Javascript SDK for differential.dev",
   "main": "bin/index.js",
   "scripts": {
     "test": "jest ./src",
     "build": "make fetch-contract && tsc",
-    "prepare": "make fetch-contract && npm run build && cp src/*.js bin/"
+    "clean": "rm -rf ./bin",
+    "prepare": "npm run clean && make fetch-contract && npm run build"
   },
   "author": "",
   "license": "ISC",
