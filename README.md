@@ -15,20 +15,34 @@ npm install @differential-dev/sdk
 ## Quick Start
 
 ```ts
+import process from 'process';
 import { Differential } from "@differential-dev/sdk";
 
 export const d = Differential({
   apiKey: "123",
   apiSecret: "456",
   environmentId: "dev-1",
+  machineType: process.env.MACHINE_TYPE,
 });
 
+let greetingCounts = 0;
+
 // define any function
-const greet = (name: string) => `Hello, ${name}!`;
+const greet = (name: string) => {
+  console.log(`Hello ${name} from pid ${process.pid}!`);
+}
 
-// wrap it with the SDK's d.fn
-const greetD = d.fn(greet);
+// count greetings
+const countGreets = d.fn(() => {
+  greetingCounts++;
+  console.log(`Greeted ${greetingCounts} times!`);
+}, { machineType: "counter"})
 
-// call it like normal
-greetD("World").then(console.log);
+if (process.env.MACHINE_TYPE === "greeter") {
+  // run the function
+  greet("World")
+} else {
+  // keep the process alive so we can count greets
+  process.stdin.resume();
+}
 ```

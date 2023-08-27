@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@differential-dev/sdk": "^0.0.5",
+    "ts-node": "latest"
+  },
+  "scripts": {
+    "start": "npm i && ts-node index.ts"
+  }
+}
