@@ -1,6 +1,9 @@
 import { initClient } from "@ts-rest/core";
 import { contract } from "./contract";
 import { unpack, pack } from "./serialize";
+import debug from "debug";
+
+const log = debug("differential:client");
 
 const { serializeError, deserializeError } = require("./errors");
 
@@ -144,7 +147,7 @@ export const pollForNextJob = async (
   machineTypes?: string[]
 ) => {
   if (pollState.concurrency <= pollState.current) {
-    console.debug("Max concurrency reached");
+    log("Max concurrency reached");
     return;
   }
 
@@ -162,7 +165,7 @@ export const pollForNextJob = async (
       },
     })
     .catch((e) => {
-      console.debug(`Failed to poll for next job: ${e.message}`);
+      log(`Failed to poll for next job: ${e.message}`);
 
       return {
         status: -1,
@@ -170,10 +173,7 @@ export const pollForNextJob = async (
     });
 
   if (pollResult.status === 400) {
-    console.debug(
-      "Error polling for next job",
-      JSON.stringify(pollResult.body)
-    );
+    log("Error polling for next job", JSON.stringify(pollResult.body));
   }
 
   if (pollResult.status === 200) {
@@ -185,7 +185,7 @@ export const pollForNextJob = async (
       jobs.map(async (job) => {
         const fn = functionRegistry[job.targetFn];
 
-        console.log("Executing job", fn);
+        log("Executing job", job.id, job.targetFn);
 
         let result: Result;
 
@@ -219,7 +219,7 @@ export const pollForNextJob = async (
           })
           .then((res) => {
             if (res.status === 204) {
-              console.debug("Completed job", job.id, job.targetFn);
+              log("Completed job", job.id, job.targetFn);
             } else {
               throw new DifferentialError(
                 `Failed to persist job: ${res.status}`,
@@ -262,9 +262,9 @@ export const Differential = (params: {
       if (pollState.polling) {
         return new Promise((resolve) => {
           let quitTimer: NodeJS.Timeout = setInterval(() => {
-            console.debug("Waiting for polling to finish");
+            log("Waiting for polling to finish");
             if (!pollState.polling) {
-              console.debug("Polling finished");
+              log("Polling finished");
               clearInterval(quitTimer);
               resolve();
             }
@@ -285,7 +285,7 @@ export const Differential = (params: {
 
       const name = options?.name || f.name || cyrb53(f.toString()).toString();
 
-      console.debug(`Registering function`, {
+      log(`Registering function`, {
         name,
       });
 
