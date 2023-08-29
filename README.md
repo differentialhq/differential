@@ -22,11 +22,12 @@ export const d = Differential({
   apiKey: "123",
   apiSecret: "456",
   environmentId: "dev-1",
-  machineType: process.env.MACHINE_TYPE === "worker" ? "worker" : "primary",
 });
 
-// initialize the SDK. this starts listening for incoming function calls
-d.init();
+// initialize the communication. this starts listening for incoming function calls
+d.listen({
+  machineTypes: ["worker"], // this listening process will only run worker functions
+});
 
 // define any function and wrap it with d.fn to run it in a distributed manner
 const helloWorld = d.fn((pid) => {
@@ -39,7 +40,10 @@ const helloWorld = d.fn((pid) => {
 // the SDK will handle the distribution logic
 helloWorld(process.pid).then((result) => {
   console.log(result);
-  process.exit(0);
+});
+
+// call d.quit() on process exit to gracefully shut down the SDK
+process.on("exit", () => {
   d.quit();
 });
 ```
