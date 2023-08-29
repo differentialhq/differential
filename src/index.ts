@@ -242,7 +242,6 @@ export const Differential = (params: {
   apiKey: string;
   apiSecret: string;
   environmentId: string;
-  machineTypes?: string[];
   encyptionKeys?: string[];
 }) => {
   const authCredentials = `${params.apiKey}:${params.apiSecret}`;
@@ -251,9 +250,9 @@ export const Differential = (params: {
   let timer: NodeJS.Timeout;
 
   return {
-    init: () => {
+    listen: (listenParams?: { machineTypes?: string[] }) => {
       timer = setInterval(async () => {
-        await pollForNextJob(authHeader, params.machineTypes);
+        await pollForNextJob(authHeader, listenParams?.machineTypes);
       }, 1000);
     },
     quit: async (): Promise<void> => {
@@ -337,6 +336,58 @@ export const Differential = (params: {
           throw new DifferentialError("Unexpected result type");
         }
       }) as unknown as T;
+    },
+    background: <T extends (...args: Parameters<T>) => ReturnType<T>>(
+      f: AssertPromiseReturnType<T>,
+      options?: {
+        name?: string;
+        machineType?: string;
+      }
+    ): ((...args: Parameters<T>) => Promise<{ id: string }>) => {
+      if (typeof f !== "function") {
+        throw new DifferentialError("fn must be a function");
+      }
+
+      const name = options?.name || f.name || cyrb53(f.toString()).toString();
+
+      log(`Registering function`, {
+        name,
+      });
+
+      if (!name) {
+        throw new DifferentialError("Function must have a name");
+      }
+
+      functionRegistry[name] = f;
+
+      return async (...args: unknown[]) => {
+        // create a job
+        const id = await client
+          .createJob({
+            body: {
+              targetFn: name,
+              targetArgs: pack(args),
+              machineType: options?.machineType,
+            },
+            params: {
+              environmentId: params.environmentId,
+            },
+            headers: {
+              authorization: authHeader,
+            },
+          })
+          .then((res) => {
+            if (res.status === 201) {
+              return res.body.id;
+            } else {
+              throw new DifferentialError(
+                `Failed to create job: ${res.status}`
+              );
+            }
+          });
+
+        return { id };
+      };
     },
   };
 };

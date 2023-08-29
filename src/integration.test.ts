@@ -1,5 +1,4 @@
 import { Differential } from ".";
-import assert from "assert";
 
 export const d = Differential({
   apiKey: "test",
@@ -11,7 +10,7 @@ describe("should execute function", () => {
   beforeAll(async () => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    await d.init();
+    await d.listen();
   });
 
   afterAll(() => {
@@ -20,10 +19,18 @@ describe("should execute function", () => {
 
   it("when success", async () => {
     const fn = d.fn(async () => {
-      return 1;
+      return "inline";
     });
 
-    expect(await fn()).toEqual(1);
+    expect(await fn()).toEqual("inline");
+  }, 10000);
+
+  it("when success in background", async () => {
+    const fn = d.background(async () => {
+      return "background";
+    });
+
+    expect((await fn()).id).toBeTruthy();
   }, 10000);
 
   it("when fail", async () => {
