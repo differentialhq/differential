@@ -2,7 +2,7 @@
   <img src="./assets/logo.png" width="200" style="border-radius: 10px" />
 </p>
 
-# Differential SDK JS
+# Differential SDK
 
 This is the official Differential SDK for JavaScript.
 
