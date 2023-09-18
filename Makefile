@@ -10,6 +10,7 @@ clean:
 publish:
 	npm version patch
 	npm publish
+	ggpush
 
 update-examples:
 	cd examples/1_greet && npm i @differential-dev/sdk@latest && cd ..
