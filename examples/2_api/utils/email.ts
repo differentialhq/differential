@@ -27,10 +27,18 @@ export const sendGreeting = d.background(
     };
 
     transporter.sendMail(message, (error, info) => {
-      if (error) {
-        return console.log(error);
+      console.log("Sending email to", to);
+
+      if (error.message.includes("ECONNREFUSED")) {
+        console.log(
+          "Mailhog is not running. If it was running, an email would have been sent to",
+          to
+        );
+      } else if (error) {
+        console.log("Error sending email to", to, error);
+      } else {
+        console.log("Message sent: %s", info.messageId);
       }
-      console.log("Message sent: %s", info.messageId);
     });
   },
   {

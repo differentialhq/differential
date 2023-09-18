@@ -11,4 +11,8 @@ publish:
 	npm version patch
 	npm publish
 
+update-examples:
+	cd examples/1_greet && npm i @differential-dev/sdk@latest && cd ..
+	cd examples/2_api && npm i @differential-dev/sdk@latest && cd ..
+
 .PHONY: all fetch clean

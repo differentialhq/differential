@@ -1,9 +1,6 @@
 import { Differential } from "@differential-dev/sdk";
 
-const params = {
-  apiKey: "123",
-  apiSecret: "456",
-  environmentId: "dev-1",
-};
-
-export const d = Differential(params);
+export const d = Differential({
+  apiSecret:
+    "sk_long_rain_92bacd8a886a76461b0a7ce76e3e10b87352efdf3c118368fe6c232bf97d2a22",
+});
