@@ -153,9 +153,6 @@ export const pollForNextJob = async (
 
   const pollResult = await client
     .getNextJobs({
-      params: {
-        environmentId: "dev",
-      },
       query: {
         limit: Math.ceil((pollState.concurrency - pollState.current) / 2),
         machineTypes: machineTypes?.join(","),
@@ -211,7 +208,6 @@ export const pollForNextJob = async (
             },
             params: {
               jobId: job.id,
-              environmentId: "dev",
             },
             headers: {
               authorization: authHeader,
@@ -239,13 +235,11 @@ export const pollForNextJob = async (
 };
 
 export const Differential = (params: {
-  apiKey: string;
   apiSecret: string;
-  environmentId: string;
   encyptionKeys?: string[];
 }) => {
-  const authCredentials = `${params.apiKey}:${params.apiSecret}`;
-  const authHeader = `Basic ${btoa(authCredentials)}`;
+  const authCredentials = params.apiSecret;
+  const authHeader = `Basic ${authCredentials}`;
 
   let timer: NodeJS.Timeout;
 
@@ -303,9 +297,6 @@ export const Differential = (params: {
               targetArgs: pack(args),
               machineType: options?.machineType,
             },
-            params: {
-              environmentId: params.environmentId,
-            },
             headers: {
               authorization: authHeader,
             },
@@ -313,7 +304,12 @@ export const Differential = (params: {
           .then((res) => {
             if (res.status === 201) {
               return res.body.id;
-            } else {
+            } else if (res.status === 401) {
+              throw new DifferentialError(
+                "Invalid API Key or API Secret. Make sure you are using the correct API Key and API Secret."
+              );
+            }
+            {
               throw new DifferentialError(
                 `Failed to create job: ${res.status}`
               );
@@ -368,9 +364,6 @@ export const Differential = (params: {
               targetFn: name,
               targetArgs: pack(args),
               machineType: options?.machineType,
-            },
-            params: {
-              environmentId: params.environmentId,
             },
             headers: {
               authorization: authHeader,

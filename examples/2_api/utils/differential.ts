@@ -1,5 +1,4 @@
 import { Differential } from "@differential-dev/sdk";
-import * as machine from "./machine";
 
 export const d = Differential({
   apiKey: "123",

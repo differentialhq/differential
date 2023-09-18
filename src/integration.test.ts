@@ -1,9 +1,8 @@
 import { Differential } from ".";
 
 export const d = Differential({
-  apiKey: "test",
-  apiSecret: "test",
-  environmentId: "test",
+  apiSecret:
+    "sk_long_rain_92bacd8a886a76461b0a7ce76e3e10b87352efdf3c118368fe6c232bf97d2a22",
 });
 
 describe("should execute function", () => {

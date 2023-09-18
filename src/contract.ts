@@ -10,29 +10,11 @@ const NextJobSchema = z.object({
 });
 
 export const contract = c.router({
-  ackMachine: {
-    method: "PUT",
-    path: "/environments/:environmentId/machines/:machineId",
-    pathParams: z.object({
-      environmentId: z.string(),
-      machineId: z.string(),
-    }),
-    responses: {
-      204: z.undefined(),
-    },
-    body: z.object({
-      description: z.string().nullable(),
-      class: z.string().nullable(),
-    }),
-  },
   getNextJobs: {
     method: "GET",
-    path: "/environments/:environmentId/next-job",
+    path: "/jobs",
     headers: z.object({
       authorization: z.string(),
-    }),
-    pathParams: z.object({
-      environmentId: z.string(),
     }),
     query: z.object({
       machineTypes: z.string().optional(),
@@ -45,7 +27,7 @@ export const contract = c.router({
   },
   createJob: {
     method: "POST",
-    path: "/environments/:environmentId/jobs",
+    path: "/jobs",
     headers: z.object({
       authorization: z.string(),
     }),
@@ -82,12 +64,11 @@ export const contract = c.router({
   },
   persistJobResult: {
     method: "POST",
-    path: "/environments/:environmentId/jobs/:jobId/result",
+    path: "/jobs/:jobId/result",
     headers: z.object({
       authorization: z.string(),
     }),
     pathParams: z.object({
-      environmentId: z.string(),
       jobId: z.string(),
     }),
     responses: {
@@ -116,6 +97,44 @@ export const contract = c.router({
         contract: z.string(),
       }),
     },
+  },
+  createCredential: {
+    method: "POST",
+    path: "/organizations/:organizationId/credentials",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      201: z.object({
+        apiSecret: z.string(),
+      }),
+      401: z.undefined(),
+    },
+    pathParams: z.object({
+      organizationId: z.string(),
+    }),
+    body: z.object({}),
+  },
+  getCredentials: {
+    method: "GET",
+    path: "/organizations/:organizationId/credentials",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.array(
+        z.object({
+          id: z.string(),
+          apiSecret: z.string(),
+          organizationId: z.string(),
+          createdAt: z.date(),
+        })
+      ),
+      401: z.undefined(),
+    },
+    pathParams: z.object({
+      organizationId: z.string(),
+    }),
   },
 });
 
