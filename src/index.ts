@@ -244,9 +244,9 @@ export const Differential = (params: {
   let timer: NodeJS.Timeout;
 
   return {
-    listen: (listenParams?: { machineTypes?: string[] }) => {
+    listen: (listenParams?: { asMachineTypes?: string[] }) => {
       timer = setInterval(async () => {
-        await pollForNextJob(authHeader, listenParams?.machineTypes);
+        await pollForNextJob(authHeader, listenParams?.asMachineTypes);
       }, 1000);
     },
     quit: async (): Promise<void> => {
@@ -269,7 +269,7 @@ export const Differential = (params: {
       f: AssertPromiseReturnType<T>,
       options?: {
         name?: string;
-        machineType?: string;
+        runOn?: string;
       }
     ): T => {
       if (typeof f !== "function") {
@@ -295,7 +295,7 @@ export const Differential = (params: {
             body: {
               targetFn: name,
               targetArgs: pack(args),
-              machineType: options?.machineType,
+              machineType: options?.runOn,
             },
             headers: {
               authorization: authHeader,
@@ -337,7 +337,7 @@ export const Differential = (params: {
       f: AssertPromiseReturnType<T>,
       options?: {
         name?: string;
-        machineType?: string;
+        runOn?: string;
       }
     ): ((...args: Parameters<T>) => Promise<{ id: string }>) => {
       if (typeof f !== "function") {
@@ -363,7 +363,7 @@ export const Differential = (params: {
             body: {
               targetFn: name,
               targetArgs: pack(args),
-              machineType: options?.machineType,
+              machineType: options?.runOn,
             },
             headers: {
               authorization: authHeader,
