@@ -100,7 +100,7 @@ export const contract = c.router({
   },
   createCredential: {
     method: "POST",
-    path: "/organizations/:organizationId/credentials",
+    path: "/organizations/:organizationId/clusters",
     headers: z.object({
       authorization: z.string(),
     }),
@@ -115,9 +115,9 @@ export const contract = c.router({
     }),
     body: z.object({}),
   },
-  getCredentials: {
+  getClusters: {
     method: "GET",
-    path: "/organizations/:organizationId/credentials",
+    path: "/organizations/:organizationId/clusters",
     headers: z.object({
       authorization: z.string(),
     }),
@@ -128,12 +128,44 @@ export const contract = c.router({
           apiSecret: z.string(),
           organizationId: z.string(),
           createdAt: z.date(),
+          machineCount: z.number(),
+          lastPingAt: z.date().nullable(),
         })
       ),
       401: z.undefined(),
     },
     pathParams: z.object({
       organizationId: z.string(),
+    }),
+  },
+  getClusterDetails: {
+    method: "GET",
+    path: "/organizations/:organizationId/clusters/:clusterId",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.object({
+        id: z.string(),
+        apiSecret: z.string(),
+        organizationId: z.string(),
+        createdAt: z.date(),
+        machines: z.array(
+          z.object({
+            id: z.string(),
+            description: z.string().nullable(),
+            machineType: z.string().nullable(),
+            lastPingAt: z.date().nullable(),
+            ip: z.string().nullable(),
+            organizationId: z.string(),
+          })
+        ),
+      }),
+      401: z.undefined(),
+    },
+    pathParams: z.object({
+      organizationId: z.string(),
+      clusterId: z.string(),
     }),
   },
 });
