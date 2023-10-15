@@ -42,6 +42,6 @@ export const sendGreeting = d.background(
     });
   },
   {
-    machineType: "worker", // only run on worker nodes
+    runOn: "worker", // only run on worker nodes
   }
 );

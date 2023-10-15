@@ -7,6 +7,6 @@ export const d = Differential({
 
 export const listen = (machineType: string) => {
   d.listen({
-    machineTypes: [machineType],
+    asMachineTypes: [machineType],
   });
 };

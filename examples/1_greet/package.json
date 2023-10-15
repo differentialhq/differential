@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@differential-dev/sdk": "^0.0.14",
+    "@differential-dev/sdk": "^0.0.19",
     "@types/node": "^20.5.7",
     "ts-node": "latest",
     "tsx": "^3.12.7",

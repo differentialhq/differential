@@ -13,7 +13,9 @@ export const greet = async (name: string) => {
 const countGreets = d.fn(
   async (pid: number) => {
     greetingCounts++;
-    console.log(`Greeted ${greetingCounts} times from ${pid}!`);
+    console.log(
+      `Greeted ${greetingCounts} times. Last greeting was from ${pid}!`
+    );
   },
-  { machineType: "counter" } // only run on counter machines
+  { runOn: "counter" } // only run on counter machines
 );
