@@ -31,10 +31,11 @@ const cyrb53 = (str: string, seed = 0) => {
   return 4294967296 * (2097151 & h2) + (h1 >>> 0);
 };
 
-export const client = initClient(contract, {
-  baseUrl: "https://api.differential.dev",
-  baseHeaders: {},
-});
+const createClient = (baseUrl: string) =>
+  initClient(contract, {
+    baseUrl,
+    baseHeaders: {},
+  });
 
 class DifferentialError extends Error {
   constructor(message: string, meta?: { [key: string]: unknown }) {
@@ -44,6 +45,7 @@ class DifferentialError extends Error {
 }
 
 const pollForJob = async (
+  client: ReturnType<typeof createClient>,
   params: { jobId: string },
   authHeader: string,
   attempt = 1
@@ -90,7 +92,7 @@ const pollForJob = async (
     }
 
     await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
-    return pollForJob(params, authHeader, attempt + 1);
+    return pollForJob(client, params, authHeader, attempt + 1);
   }
 
   throw new DifferentialError("Unexpected Error", {
@@ -143,6 +145,7 @@ const executeFn = async (fn: Function, args: unknown[]): Promise<Result> => {
 };
 
 export const pollForNextJob = async (
+  client: ReturnType<typeof createClient>,
   authHeader: string,
   machineTypes?: string[]
 ) => {
@@ -188,7 +191,9 @@ export const pollForNextJob = async (
 
         if (!fn) {
           const error = new DifferentialError(
-            `Function was not registered. name='${job.targetFn}'`
+            `Function was not registered. name='${
+              job.targetFn
+            }' registeredFunctions='${Object.keys(functionRegistry).join(",")}'`
           );
 
           result = {
@@ -237,16 +242,25 @@ export const pollForNextJob = async (
 export const Differential = (params: {
   apiSecret: string;
   encyptionKeys?: string[];
+  endpoint?: string;
 }) => {
   const authCredentials = params.apiSecret;
   const authHeader = `Basic ${authCredentials}`;
 
   let timer: NodeJS.Timeout;
 
+  const endpoint = params.endpoint ?? "https://api.differential.dev";
+
+  log("Initializing client", {
+    endpoint,
+  });
+
+  const client = createClient(endpoint);
+
   return {
     listen: (listenParams?: { asMachineTypes?: string[] }) => {
       timer = setInterval(async () => {
-        await pollForNextJob(authHeader, listenParams?.asMachineTypes);
+        await pollForNextJob(client, authHeader, listenParams?.asMachineTypes);
       }, 1000);
     },
     quit: async (): Promise<void> => {
@@ -318,7 +332,7 @@ export const Differential = (params: {
 
         // wait for the job to complete
         pollState.polling = true;
-        const result = await pollForJob({ jobId: id }, authHeader);
+        const result = await pollForJob(client, { jobId: id }, authHeader);
 
         if (result.type === "resolution") {
           // return the result
