@@ -31,10 +31,12 @@ const cyrb53 = (str: string, seed = 0) => {
   return 4294967296 * (2097151 & h2) + (h1 >>> 0);
 };
 
-const createClient = (baseUrl: string) =>
+const createClient = (baseUrl: string, machineId: string) =>
   initClient(contract, {
     baseUrl,
-    baseHeaders: {},
+    baseHeaders: {
+      "x-machine-id": machineId,
+    },
   });
 
 class DifferentialError extends Error {
@@ -243,6 +245,7 @@ export const Differential = (params: {
   apiSecret: string;
   encyptionKeys?: string[];
   endpoint?: string;
+  machineId?: string;
 }) => {
   const authCredentials = params.apiSecret;
   const authHeader = `Basic ${authCredentials}`;
@@ -251,11 +254,15 @@ export const Differential = (params: {
 
   const endpoint = params.endpoint ?? "https://api.differential.dev";
 
+  // random string
+  const machineId = params.machineId ?? Math.random().toString(36).substring(7);
+
   log("Initializing client", {
     endpoint,
+    machineId,
   });
 
-  const client = createClient(endpoint);
+  const client = createClient(endpoint, machineId);
 
   return {
     listen: (listenParams?: { asMachineTypes?: string[] }) => {
