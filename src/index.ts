@@ -151,6 +151,8 @@ export const pollForNextJob = async (
   authHeader: string,
   machineTypes?: string[]
 ) => {
+  log("Polling for next job");
+
   if (pollState.concurrency <= pollState.current) {
     log("Max concurrency reached");
     return;
@@ -179,6 +181,8 @@ export const pollForNextJob = async (
   }
 
   if (pollResult.status === 200) {
+    log("Received jobs", pollResult.body.length);
+
     pollState.current += pollResult.body.length;
 
     const jobs = pollResult.body;
@@ -329,8 +333,7 @@ export const Differential = (params: {
               throw new DifferentialError(
                 "Invalid API Key or API Secret. Make sure you are using the correct API Key and API Secret."
               );
-            }
-            {
+            } else {
               throw new DifferentialError(
                 `Failed to create job: ${res.status}`
               );
