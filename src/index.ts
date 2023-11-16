@@ -252,9 +252,9 @@ export const pollForNextJob = async (
             });
         })
       );
+    } else {
+      log("Error polling for next job", pollResult.status);
     }
-
-    log("Error polling for next job", pollResult.status);
   } finally {
     pollingForNextJob = false;
   }
