@@ -108,7 +108,7 @@ const functionRegistry: { [key: string]: Function } = {};
 const pollState = {
   current: 0,
   concurrency: 100,
-  polling: false,
+  polling: false, // this is the polling state for the currently executing job.
 };
 
 type Result<T = unknown> = {
@@ -146,102 +146,117 @@ const executeFn = async (fn: Function, args: unknown[]): Promise<Result> => {
   }
 };
 
+let pollingForNextJob = false;
+
 export const pollForNextJob = async (
   client: ReturnType<typeof createClient>,
   authHeader: string,
   machineTypes?: string[]
 ) => {
+  if (pollingForNextJob) {
+    return;
+  }
+
   log("Polling for next job");
+  pollingForNextJob = true;
 
   if (pollState.concurrency <= pollState.current) {
     log("Max concurrency reached");
     return;
   }
 
-  const pollResult = await client
-    .getNextJobs({
-      query: {
-        limit: Math.ceil((pollState.concurrency - pollState.current) / 2),
-        machineTypes: machineTypes?.join(","),
-      },
-      headers: {
-        authorization: authHeader,
-      },
-    })
-    .catch((e) => {
-      log(`Failed to poll for next job: ${e.message}`);
-
-      return {
-        status: -1,
-      } as const;
-    });
-
-  if (pollResult.status === 400) {
-    log("Error polling for next job", JSON.stringify(pollResult.body));
-  }
-
-  if (pollResult.status === 200) {
-    log("Received jobs", pollResult.body.length);
-
-    pollState.current += pollResult.body.length;
-
-    const jobs = pollResult.body;
-
-    await Promise.allSettled(
-      jobs.map(async (job) => {
-        const fn = functionRegistry[job.targetFn];
-
-        log("Executing job", job.id, job.targetFn);
-
-        let result: Result;
-
-        if (!fn) {
-          const error = new DifferentialError(
-            `Function was not registered. name='${
-              job.targetFn
-            }' registeredFunctions='${Object.keys(functionRegistry).join(",")}'`
-          );
-
-          result = {
-            content: serializeError(error),
-            type: "rejection",
-          };
-        } else {
-          const args = unpack(job.targetArgs);
-          result = await executeFn(fn, args);
-        }
-
-        await client
-          .persistJobResult({
-            body: {
-              result: pack(result.content),
-              resultType: result.type,
-            },
-            params: {
-              jobId: job.id,
-            },
-            headers: {
-              authorization: authHeader,
-            },
-          })
-          .then((res) => {
-            if (res.status === 204) {
-              log("Completed job", job.id, job.targetFn);
-            } else {
-              throw new DifferentialError(
-                `Failed to persist job: ${res.status}`,
-                {
-                  jobId: job.id,
-                  body: res.body,
-                }
-              );
-            }
-          })
-          .finally(() => {
-            pollState.current -= 1;
-          });
+  try {
+    const pollResult = await client
+      .getNextJobs({
+        query: {
+          limit: Math.ceil((pollState.concurrency - pollState.current) / 2),
+          machineTypes: machineTypes?.join(","),
+        },
+        headers: {
+          authorization: authHeader,
+        },
       })
-    );
+      .catch((e) => {
+        log(`Failed to poll for next job: ${e.message}`);
+
+        return {
+          status: -1,
+        } as const;
+      });
+
+    if (pollResult.status === 400) {
+      log("Error polling for next job", JSON.stringify(pollResult.body));
+    }
+
+    if (pollResult.status === 200) {
+      log("Received jobs", pollResult.body.length);
+
+      pollState.current += pollResult.body.length;
+
+      const jobs = pollResult.body;
+
+      await Promise.allSettled(
+        jobs.map(async (job) => {
+          const fn = functionRegistry[job.targetFn];
+
+          log("Executing job", job.id, job.targetFn);
+
+          let result: Result;
+
+          if (!fn) {
+            const error = new DifferentialError(
+              `Function was not registered. name='${
+                job.targetFn
+              }' registeredFunctions='${Object.keys(functionRegistry).join(
+                ","
+              )}'`
+            );
+
+            result = {
+              content: serializeError(error),
+              type: "rejection",
+            };
+          } else {
+            const args = unpack(job.targetArgs);
+            result = await executeFn(fn, args);
+          }
+
+          await client
+            .persistJobResult({
+              body: {
+                result: pack(result.content),
+                resultType: result.type,
+              },
+              params: {
+                jobId: job.id,
+              },
+              headers: {
+                authorization: authHeader,
+              },
+            })
+            .then((res) => {
+              if (res.status === 204) {
+                log("Completed job", job.id, job.targetFn);
+              } else {
+                throw new DifferentialError(
+                  `Failed to persist job: ${res.status}`,
+                  {
+                    jobId: job.id,
+                    body: res.body,
+                  }
+                );
+              }
+            })
+            .finally(() => {
+              pollState.current -= 1;
+            });
+        })
+      );
+    }
+
+    log("Error polling for next job", pollResult.status);
+  } finally {
+    pollingForNextJob = false;
   }
 };
 

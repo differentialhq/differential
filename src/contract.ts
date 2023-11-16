@@ -15,6 +15,7 @@ export const contract = c.router({
     path: "/jobs",
     headers: z.object({
       authorization: z.string(),
+      "x-machine-id": z.string(),
     }),
     query: z.object({
       machineTypes: z.string().optional(),
@@ -160,6 +161,14 @@ export const contract = c.router({
             organizationId: z.string(),
           })
         ),
+        jobs: z.array(
+          z.object({
+            id: z.string(),
+            targetFn: z.string(),
+            status: z.string(),
+            createdAt: z.date(),
+          })
+        ),
       }),
       401: z.undefined(),
     },
@@ -167,6 +176,13 @@ export const contract = c.router({
       organizationId: z.string(),
       clusterId: z.string(),
     }),
+  },
+  getTemporaryToken: {
+    method: "GET",
+    path: "/demo/token",
+    responses: {
+      201: z.string(),
+    },
   },
 });
 
