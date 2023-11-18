@@ -2,6 +2,7 @@ import { initClient } from "@ts-rest/core";
 import { contract } from "./contract";
 import { unpack, pack } from "./serialize";
 import debug from "debug";
+import { server } from "./server";
 
 const log = debug("differential:client");
 
@@ -293,9 +294,20 @@ export const Differential = (params: {
   const returnable = {
     listen: (listenParams?: {
       asMachineTypes?: string[];
-      quitWhenIdle: number; // quit when idle for this many milliseconds
+      ephemeral?: {
+        idleTimeout: number;
+        serverPort: number;
+      };
     }) => {
       let lastTimeWeHadJobs = Date.now();
+
+      if (listenParams?.ephemeral) {
+        log(
+          "Starting ephemeral server on port",
+          listenParams.ephemeral.serverPort
+        );
+        server(listenParams.ephemeral.serverPort);
+      }
 
       timer = setInterval(async () => {
         const result = await pollForNextJob(
@@ -304,10 +316,10 @@ export const Differential = (params: {
           listenParams?.asMachineTypes
         );
 
-        if (result?.jobCount === 0 && listenParams?.quitWhenIdle) {
+        if (result?.jobCount === 0 && listenParams?.ephemeral?.idleTimeout) {
           const timeSinceLastJob = Date.now() - lastTimeWeHadJobs;
 
-          if (timeSinceLastJob > listenParams?.quitWhenIdle) {
+          if (timeSinceLastJob > listenParams?.ephemeral?.idleTimeout) {
             log("Quitting due to inactivity");
             clearInterval(timer);
             await returnable.quit();
