@@ -152,7 +152,12 @@ export const pollForNextJob = async (
   client: ReturnType<typeof createClient>,
   authHeader: string,
   machineTypes?: string[]
-) => {
+): Promise<
+  | {
+      jobCount: number;
+    }
+  | undefined
+> => {
   if (pollingForNextJob) {
     return;
   }
@@ -186,9 +191,7 @@ export const pollForNextJob = async (
 
     if (pollResult.status === 400) {
       log("Error polling for next job", JSON.stringify(pollResult.body));
-    }
-
-    if (pollResult.status === 200) {
+    } else if (pollResult.status === 200) {
       log("Received jobs", pollResult.body.length);
 
       pollState.current += pollResult.body.length;
@@ -252,6 +255,10 @@ export const pollForNextJob = async (
             });
         })
       );
+
+      return {
+        jobCount: jobs.length,
+      };
     } else {
       log("Error polling for next job", pollResult.status);
     }
@@ -283,10 +290,34 @@ export const Differential = (params: {
 
   const client = createClient(endpoint, machineId);
 
-  return {
-    listen: (listenParams?: { asMachineTypes?: string[] }) => {
+  const returnable = {
+    listen: (listenParams?: {
+      asMachineTypes?: string[];
+      quitWhenIdle: number; // quit when idle for this many milliseconds
+    }) => {
+      let lastTimeWeHadJobs = Date.now();
+
       timer = setInterval(async () => {
-        await pollForNextJob(client, authHeader, listenParams?.asMachineTypes);
+        const result = await pollForNextJob(
+          client,
+          authHeader,
+          listenParams?.asMachineTypes
+        );
+
+        if (result?.jobCount === 0 && listenParams?.quitWhenIdle) {
+          const timeSinceLastJob = Date.now() - lastTimeWeHadJobs;
+
+          if (timeSinceLastJob > listenParams?.quitWhenIdle) {
+            log("Quitting due to inactivity");
+            clearInterval(timer);
+            await returnable.quit();
+
+            log("Exiting process");
+            process.exit(0);
+          }
+        } else {
+          lastTimeWeHadJobs = Date.now();
+        }
       }, 1000);
     },
     quit: async (): Promise<void> => {
@@ -422,4 +453,6 @@ export const Differential = (params: {
       };
     },
   };
+
+  return returnable;
 };
