@@ -294,20 +294,9 @@ export const Differential = (params: {
   const returnable = {
     listen: (listenParams?: {
       asMachineTypes?: string[];
-      ephemeral?: {
-        idleTimeout: number;
-        serverPort: number;
-      };
+      idleTimeout?: number;
     }) => {
       let lastTimeWeHadJobs = Date.now();
-
-      if (listenParams?.ephemeral) {
-        log(
-          "Starting ephemeral server on port",
-          listenParams.ephemeral.serverPort
-        );
-        server(listenParams.ephemeral.serverPort);
-      }
 
       timer = setInterval(async () => {
         const result = await pollForNextJob(
@@ -316,10 +305,10 @@ export const Differential = (params: {
           listenParams?.asMachineTypes
         );
 
-        if (result?.jobCount === 0 && listenParams?.ephemeral?.idleTimeout) {
+        if (result?.jobCount === 0 && listenParams?.idleTimeout) {
           const timeSinceLastJob = Date.now() - lastTimeWeHadJobs;
 
-          if (timeSinceLastJob > listenParams?.ephemeral?.idleTimeout) {
+          if (timeSinceLastJob > listenParams?.idleTimeout) {
             log("Quitting due to inactivity");
             clearInterval(timer);
             await returnable.quit();
