@@ -490,6 +490,9 @@ export const Differential = (initParams: {
       functionRegistry[name] = f;
 
       return async (...args: unknown[]) => {
+        // wake up machine
+        await wakeUpMachine(initParams.listenerConfig, options?.runOn);
+
         // create a job
         const id = await client
           .createJob({
