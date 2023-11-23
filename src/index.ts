@@ -268,21 +268,55 @@ export const pollForNextJob = async (
   }
 };
 
-export const Differential = (params: {
+/**
+ * waking up is done by sending a request to the health check url directly
+ * so that the network doesn't have to be configured to allow incoming requests.
+ * from the outside.
+ */
+const wakeUpMachine = async (
+  listenerConfig?: {
+    machineName: string;
+    idleTimeout?: number;
+    healthCheckUrl?: string;
+  }[],
+  runsOn?: string
+): Promise<void> => {
+  const configs = runsOn
+    ? listenerConfig?.filter((c) => c.machineName === runsOn)
+    : listenerConfig;
+
+  for (const config of configs ?? []) {
+    if (!config.healthCheckUrl) {
+      continue;
+    }
+
+    await fetch(config.healthCheckUrl).catch((e) => {
+      log("Failed to wake up machine", e.message);
+    });
+  }
+};
+
+export const Differential = (initParams: {
   apiSecret: string;
   encyptionKeys?: string[];
   endpoint?: string;
   machineId?: string;
+  listenerConfig?: Array<{
+    machineName: string;
+    idleTimeout?: number;
+    healthCheckUrl?: string;
+  }>;
 }) => {
-  const authCredentials = params.apiSecret;
+  const authCredentials = initParams.apiSecret;
   const authHeader = `Basic ${authCredentials}`;
 
   let timer: NodeJS.Timeout;
 
-  const endpoint = params.endpoint ?? "https://api.differential.dev";
+  const endpoint = initParams.endpoint ?? "https://api.differential.dev";
 
   // random string
-  const machineId = params.machineId ?? Math.random().toString(36).substring(7);
+  const machineId =
+    initParams.machineId ?? Math.random().toString(36).substring(7);
 
   log("Initializing client", {
     endpoint,
@@ -294,9 +328,36 @@ export const Differential = (params: {
   const returnable = {
     listen: (listenParams?: {
       asMachineTypes?: string[];
-      idleTimeout?: number;
+      healthCheckPort?: number;
     }) => {
+      if (listenParams?.healthCheckPort) {
+        // if a server port is given, start a server
+        // and listen wakeUp requests.
+        server(listenParams.healthCheckPort);
+      }
+
       let lastTimeWeHadJobs = Date.now();
+
+      const initMachineTypes = initParams.listenerConfig?.map(
+        (config) => config.machineName
+      );
+
+      for (const machineType of listenParams?.asMachineTypes ?? []) {
+        if (!initMachineTypes?.includes(machineType)) {
+          throw new DifferentialError(
+            `Machine type '${machineType}' is not configured in listenerConfig`
+          );
+        }
+      }
+
+      const maxIdleTimeout =
+        initParams.listenerConfig?.reduce((max, config) => {
+          if (listenParams?.asMachineTypes?.includes(config.machineName)) {
+            return Math.max(max, config.idleTimeout ?? 0);
+          }
+
+          return max;
+        }, 0) ?? 0;
 
       timer = setInterval(async () => {
         const result = await pollForNextJob(
@@ -305,10 +366,10 @@ export const Differential = (params: {
           listenParams?.asMachineTypes
         );
 
-        if (result?.jobCount === 0 && listenParams?.idleTimeout) {
+        if (result?.jobCount === 0 && maxIdleTimeout) {
           const timeSinceLastJob = Date.now() - lastTimeWeHadJobs;
 
-          if (timeSinceLastJob > listenParams?.idleTimeout) {
+          if (timeSinceLastJob > maxIdleTimeout) {
             log("Quitting due to inactivity");
             clearInterval(timer);
             await returnable.quit();
@@ -361,6 +422,9 @@ export const Differential = (params: {
       functionRegistry[name] = f;
 
       return (async (...args: unknown[]) => {
+        // wake up machine
+        await wakeUpMachine(initParams.listenerConfig, options?.runOn);
+
         // create a job
         const id = await client
           .createJob({
