@@ -268,17 +268,23 @@ export const pollForNextJob = async (
   }
 };
 
+type ListenerConfig = {
+  machineName: string;
+  idleTimeout?: number;
+  healthCheckUrl?: string;
+  healthCheckServer?: {
+    port: number;
+    host: string;
+  };
+};
+
 /**
  * waking up is done by sending a request to the health check url directly
  * so that the network doesn't have to be configured to allow incoming requests.
  * from the outside.
  */
 const wakeUpMachine = async (
-  listenerConfig?: {
-    machineName: string;
-    idleTimeout?: number;
-    healthCheckUrl?: string;
-  }[],
+  listenerConfig?: ListenerConfig[],
   runsOn?: string
 ): Promise<void> => {
   const configs = runsOn
@@ -301,11 +307,7 @@ export const Differential = (initParams: {
   encyptionKeys?: string[];
   endpoint?: string;
   machineId?: string;
-  listenerConfig?: Array<{
-    machineName: string;
-    idleTimeout?: number;
-    healthCheckUrl?: string;
-  }>;
+  listenerConfig?: ListenerConfig[];
 }) => {
   const authCredentials = initParams.apiSecret;
   const authHeader = `Basic ${authCredentials}`;
@@ -326,14 +328,15 @@ export const Differential = (initParams: {
   const client = createClient(endpoint, machineId);
 
   const returnable = {
-    listen: (listenParams?: {
-      asMachineTypes?: string[];
-      healthCheckPort?: number;
-    }) => {
-      if (listenParams?.healthCheckPort) {
+    listen: (listenParams?: { asMachineType?: string }) => {
+      const healthCheckConfig = initParams.listenerConfig?.find(
+        (config) => config.machineName === listenParams?.asMachineType
+      )?.healthCheckServer;
+
+      if (healthCheckConfig?.port) {
         // if a server port is given, start a server
         // and listen wakeUp requests.
-        server(listenParams.healthCheckPort);
+        server(healthCheckConfig.port, healthCheckConfig.host);
       }
 
       let lastTimeWeHadJobs = Date.now();
@@ -342,7 +345,7 @@ export const Differential = (initParams: {
         (config) => config.machineName
       );
 
-      for (const machineType of listenParams?.asMachineTypes ?? []) {
+      for (const machineType of listenParams?.asMachineType ?? []) {
         if (!initMachineTypes?.includes(machineType)) {
           throw new DifferentialError(
             `Machine type '${machineType}' is not configured in listenerConfig`
