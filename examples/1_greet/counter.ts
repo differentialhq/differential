@@ -5,5 +5,5 @@ import { d } from "./differential";
 
 // listen to work coming in
 d.listen({
-  asMachineTypes: ["counter"],
+  asMachineType: "counter",
 });

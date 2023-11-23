@@ -152,7 +152,7 @@ let pollingForNextJob = false;
 export const pollForNextJob = async (
   client: ReturnType<typeof createClient>,
   authHeader: string,
-  machineTypes?: string[]
+  machineType?: string
 ): Promise<
   | {
       jobCount: number;
@@ -176,7 +176,7 @@ export const pollForNextJob = async (
       .getNextJobs({
         query: {
           limit: Math.ceil((pollState.concurrency - pollState.current) / 2),
-          machineTypes: machineTypes?.join(","),
+          machineTypes: machineType, // TODO: machineTypes -> machineType
         },
         headers: {
           authorization: authHeader,
@@ -353,26 +353,21 @@ export const Differential = (initParams: {
         }
       }
 
-      const maxIdleTimeout =
-        initParams.listenerConfig?.reduce((max, config) => {
-          if (listenParams?.asMachineTypes?.includes(config.machineName)) {
-            return Math.max(max, config.idleTimeout ?? 0);
-          }
-
-          return max;
-        }, 0) ?? 0;
+      const idleTimeout = initParams.listenerConfig?.find(
+        (config) => config.machineName === listenParams?.asMachineType
+      )?.idleTimeout;
 
       timer = setInterval(async () => {
         const result = await pollForNextJob(
           client,
           authHeader,
-          listenParams?.asMachineTypes
+          listenParams?.asMachineType
         );
 
-        if (result?.jobCount === 0 && maxIdleTimeout) {
+        if (result?.jobCount === 0 && idleTimeout) {
           const timeSinceLastJob = Date.now() - lastTimeWeHadJobs;
 
-          if (timeSinceLastJob > maxIdleTimeout) {
+          if (timeSinceLastJob > idleTimeout) {
             log("Quitting due to inactivity");
             clearInterval(timer);
             await returnable.quit();

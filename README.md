@@ -32,7 +32,7 @@ export const d = Differential({
 
 // initialize the communication. this starts listening for queued function calls
 d.listen({
-  asMachineTypes: ["worker"], // this listening process will run as the "worker" machine type
+  asMachineType: "worker", // this listening process will run as the "worker" machine type
 });
 
 // define any function and wrap it with d.fn to run it in a distributed manner
