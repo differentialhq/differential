@@ -345,12 +345,13 @@ export const Differential = (initParams: {
         (config) => config.machineName
       );
 
-      for (const machineType of listenParams?.asMachineType ?? []) {
-        if (!initMachineTypes?.includes(machineType)) {
-          throw new DifferentialError(
-            `Machine type '${machineType}' is not configured in listenerConfig`
-          );
-        }
+      if (
+        listenParams?.asMachineType &&
+        !initMachineTypes?.includes(listenParams?.asMachineType)
+      ) {
+        throw new DifferentialError(
+          `Machine type '${listenParams?.asMachineType}' is not configured in listenerConfig`
+        );
       }
 
       const idleTimeout = initParams.listenerConfig?.find(
