@@ -271,11 +271,7 @@ export const pollForNextJob = async (
 type ListenerConfig = {
   machineName: string;
   idleTimeout?: number;
-  healthCheckUrl?: string;
-  healthCheckServer?: {
-    port: number;
-    host: string;
-  };
+  onWorkReceived?: () => void;
 };
 
 /**
@@ -292,13 +288,7 @@ const wakeUpMachine = async (
     : listenerConfig;
 
   for (const config of configs ?? []) {
-    if (!config.healthCheckUrl) {
-      continue;
-    }
-
-    await fetch(config.healthCheckUrl).catch((e) => {
-      log("Failed to wake up machine", e.message);
-    });
+    config.onWorkReceived?.();
   }
 };
 
@@ -329,16 +319,6 @@ export const Differential = (initParams: {
 
   const returnable = {
     listen: (listenParams?: { asMachineType?: string }) => {
-      const healthCheckConfig = initParams.listenerConfig?.find(
-        (config) => config.machineName === listenParams?.asMachineType
-      )?.healthCheckServer;
-
-      if (healthCheckConfig?.port) {
-        // if a server port is given, start a server
-        // and listen wakeUp requests.
-        server(healthCheckConfig.port, healthCheckConfig.host);
-      }
-
       let lastTimeWeHadJobs = Date.now();
 
       const initMachineTypes = initParams.listenerConfig?.map(
