@@ -1,8 +1,8 @@
 import { initClient } from "@ts-rest/core";
-import { contract } from "./contract";
-import { unpack, pack } from "./serialize";
 import debug from "debug";
-import * as compute from "./compute";
+import { compute } from "./compute";
+import { contract } from "./contract";
+import { pack, unpack } from "./serialize";
 
 const log = debug("differential:client");
 
@@ -501,4 +501,4 @@ const Differential = (initParams: {
   return returnable;
 };
 
-export { compute, Differential };
+export { Differential, compute };
