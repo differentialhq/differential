@@ -271,7 +271,8 @@ export const pollForNextJob = async (
 type ListenerConfig = {
   machineName: string;
   idleTimeout?: number;
-  onWorkReceived?: () => void;
+  onWork?: () => void;
+  onIdle?: () => void;
 };
 
 /**
@@ -288,7 +289,7 @@ const wakeUpMachine = async (
     : listenerConfig;
 
   for (const config of configs ?? []) {
-    config.onWorkReceived?.();
+    config.onWork?.();
   }
 };
 
@@ -302,7 +303,7 @@ export const Differential = (initParams: {
   const authCredentials = initParams.apiSecret;
   const authHeader = `Basic ${authCredentials}`;
 
-  let timer: NodeJS.Timeout;
+  let pollJobsTimer: NodeJS.Timeout;
 
   const endpoint = initParams.endpoint ?? "https://api.differential.dev";
 
@@ -334,27 +335,23 @@ export const Differential = (initParams: {
         );
       }
 
-      const idleTimeout = initParams.listenerConfig?.find(
+      const listenerConfig = initParams.listenerConfig?.find(
         (config) => config.machineName === listenParams?.asMachineType
-      )?.idleTimeout;
+      );
 
-      timer = setInterval(async () => {
+      pollJobsTimer = setInterval(async () => {
         const result = await pollForNextJob(
           client,
           authHeader,
           listenParams?.asMachineType
         );
 
-        if (result?.jobCount === 0 && idleTimeout) {
+        if (result?.jobCount === 0 && listenerConfig?.idleTimeout) {
           const timeSinceLastJob = Date.now() - lastTimeWeHadJobs;
 
-          if (timeSinceLastJob > idleTimeout) {
-            log("Quitting due to inactivity");
-            clearInterval(timer);
-            await returnable.quit();
-
-            log("Exiting process");
-            process.exit(0);
+          if (timeSinceLastJob > listenerConfig?.idleTimeout) {
+            log("Idle timeout reached");
+            listenerConfig?.onIdle?.();
           }
         } else {
           lastTimeWeHadJobs = Date.now();
@@ -362,7 +359,7 @@ export const Differential = (initParams: {
       }, 1000);
     },
     quit: async (): Promise<void> => {
-      clearInterval(timer);
+      clearInterval(pollJobsTimer);
 
       if (pollState.polling) {
         return new Promise((resolve) => {
