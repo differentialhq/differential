@@ -2,7 +2,7 @@ import { initClient } from "@ts-rest/core";
 import { contract } from "./contract";
 import { unpack, pack } from "./serialize";
 import debug from "debug";
-import { server } from "./server";
+import * as compute from "./compute";
 
 const log = debug("differential:client");
 
@@ -149,7 +149,7 @@ const executeFn = async (fn: Function, args: unknown[]): Promise<Result> => {
 
 let pollingForNextJob = false;
 
-export const pollForNextJob = async (
+const pollForNextJob = async (
   client: ReturnType<typeof createClient>,
   authHeader: string,
   machineType?: string
@@ -293,7 +293,7 @@ const wakeUpMachine = async (
   }
 };
 
-export const Differential = (initParams: {
+const Differential = (initParams: {
   apiSecret: string;
   encyptionKeys?: string[];
   endpoint?: string;
@@ -500,3 +500,5 @@ export const Differential = (initParams: {
 
   return returnable;
 };
+
+export { compute, Differential };
