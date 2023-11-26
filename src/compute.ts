@@ -50,7 +50,7 @@ const fly = (params: { appName: string; apiSecret: string }) => ({
       .then((res) =>
         res.filter(
           (machine: { id: string; name: string; state: string }) =>
-            machine.state !== "started"
+            machine.state !== "stopped"
         )
       );
 
