@@ -41,7 +41,7 @@ const fly = (params: {
         log(`Started machine ${machine.name} with id ${machine.id}`);
       });
     }
-  }, params.idleTimeout ?? 10_000),
+  }, params.idleTimeout ?? 10_000)[0] as () => Promise<void>,
   stop: async () => {
     const startedMachines = await fetch(
       `https://api.machines.dev/v1/apps/${params.appName}/machines`,
