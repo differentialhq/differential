@@ -1,9 +1,15 @@
 import debug from "debug";
+import { throttle } from "./util";
 
 const log = debug("differential:compute");
 
-const fly = (params: { appName: string; apiSecret: string }) => ({
-  start: async () => {
+const fly = (params: {
+  appName: string;
+  apiSecret: string;
+  idleTimeout?: number;
+}) => ({
+  // throttle to prevent starting the machines repeatedly
+  start: throttle(async () => {
     const nonStartedMachines = await fetch(
       `https://api.machines.dev/v1/apps/${params.appName}/machines`,
       {
@@ -35,7 +41,7 @@ const fly = (params: { appName: string; apiSecret: string }) => ({
         log(`Started machine ${machine.name} with id ${machine.id}`);
       });
     }
-  },
+  }, params.idleTimeout ?? 10_000),
   stop: async () => {
     const startedMachines = await fetch(
       `https://api.machines.dev/v1/apps/${params.appName}/machines`,
