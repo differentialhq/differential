@@ -3,7 +3,7 @@ export const throttle = <R, A extends any[]>(
   delay: number
 ): [(...args: A) => R | undefined, () => void] => {
   let wait = false;
-  let timeout: undefined | number;
+  let timeout: NodeJS.Timeout;
   let cancelled = false;
 
   return [
@@ -15,7 +15,7 @@ export const throttle = <R, A extends any[]>(
 
       wait = true;
 
-      timeout = window.setTimeout(() => {
+      timeout = setTimeout(() => {
         wait = false;
       }, delay);
 
