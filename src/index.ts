@@ -319,7 +319,15 @@ const Differential = (initParams: {
   const client = createClient(endpoint, machineId);
 
   const returnable = {
-    listen: (listenParams?: { asMachineType?: string }) => {
+    listen: (listenParams?: {
+      asMachineType?: string;
+      registerPaths?: string[];
+    }) => {
+      for (const path of listenParams?.registerPaths ?? []) {
+        log("Registering path for differential functions", path);
+        require(path);
+      }
+
       let lastTimeWeHadJobs = Date.now();
 
       const initMachineTypes = initParams.listenerConfig?.map(
