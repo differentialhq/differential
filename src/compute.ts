@@ -3,18 +3,42 @@ import { throttle } from "./util";
 
 const log = debug("differential:compute");
 
-const fly = (params: {
-  appName: string;
-  apiSecret: string;
-  idleTimeout?: number;
-}) => ({
-  // throttle to prevent starting the machines repeatedly
-  start: throttle(async () => {
+/**
+ * @beta
+ */
+export class FlyMachines {
+  /**
+   *
+   * @param params
+   * @param params.appName The name of the app you want to control. This must be the same as the name of the app you created on https://fly.io
+   * @param params.apiSecret The API secret to control your app. Usually you can obtain this by running `flyctl auth token`.
+   * @param params.idleTimeout The amount of time to wait before stopping a machined due to inactivity. Defaults to 10 seconds.
+   * @example
+   * ```ts
+   * const compute = new FlyMachines({
+   *  appName: "my-app",
+   *  apiSecret: "my-api-secret",
+   *  idleTimeout: 60_000 // 1 minute
+   * })
+   * ```
+   */
+  constructor(
+    private params: { appName: string; apiSecret: string; idleTimeout?: number }
+  ) {}
+
+  /**
+   * Starts all machines that are not already started.
+   */
+  async start() {
+    return this.startThrottled();
+  }
+
+  private startThrottled = throttle(async () => {
     const nonStartedMachines = await fetch(
-      `https://api.machines.dev/v1/apps/${params.appName}/machines`,
+      `https://api.machines.dev/v1/apps/${this.params.appName}/machines`,
       {
         headers: {
-          Authorization: `Bearer ${params.apiSecret}`,
+          Authorization: `Bearer ${this.params.apiSecret}`,
           "Content-Type": "application/json",
         },
       }
@@ -29,11 +53,11 @@ const fly = (params: {
 
     for (const machine of nonStartedMachines) {
       await fetch(
-        `https://api.machines.dev/v1/apps/${params.appName}/machines/${machine.id}/start`,
+        `https://api.machines.dev/v1/apps/${this.params.appName}/machines/${machine.id}/start`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${params.apiSecret}`,
+            Authorization: `Bearer ${this.params.apiSecret}`,
             "Content-Type": "application/json",
           },
         }
@@ -41,13 +65,17 @@ const fly = (params: {
         log(`Started machine ${machine.name} with id ${machine.id}`);
       });
     }
-  }, params.idleTimeout ?? 10_000)[0] as () => Promise<void>,
-  stop: async () => {
+  }, this.params.idleTimeout ?? 10_000)[0] as () => Promise<void>;
+
+  /**
+   * Stops all machines that are not already stopped.
+   */
+  async stop() {
     const startedMachines = await fetch(
-      `https://api.machines.dev/v1/apps/${params.appName}/machines`,
+      `https://api.machines.dev/v1/apps/${this.params.appName}/machines`,
       {
         headers: {
-          Authorization: `Bearer ${params.apiSecret}`,
+          Authorization: `Bearer ${this.params.apiSecret}`,
           "Content-Type": "application/json",
         },
       }
@@ -62,11 +90,11 @@ const fly = (params: {
 
     for (const machine of startedMachines) {
       await fetch(
-        `https://api.machines.dev/v1/apps/${params.appName}/machines/${machine.id}/stop`,
+        `https://api.machines.dev/v1/apps/${this.params.appName}/machines/${machine.id}/stop`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${params.apiSecret}`,
+            Authorization: `Bearer ${this.params.apiSecret}`,
             "Content-Type": "application/json",
           },
         }
@@ -74,9 +102,5 @@ const fly = (params: {
         log(`Stopped machine ${machine.name} with id ${machine.id}`);
       });
     }
-  },
-});
-
-export const compute = {
-  fly,
-};
+  }
+}
