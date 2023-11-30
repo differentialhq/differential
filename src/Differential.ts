@@ -294,11 +294,6 @@ export class Differential {
    * Initializes a new Differential instance.
    * @param apiSecret The API Secret for your Differential cluster. Obtain this from [your Differential dashboard](https://admin.differential.dev/dashboard).
    * @param listeners An array of listener configurations to use for listening for jobs. A listener listens for work and executes them in the host compute environment.
-   * @param params Parameters for initializing a new Differential instance.
-   * @param params.encryptionKeys An array of encryption keys to use for encrypting and decrypting your function arguments before being sent to Differential and after being received from Differential. This is useful for encrypting sensitive data, but does have a performance impact. If you do not provide any encryption keys, Differential will not encrypt your function arguments.
-   * @param params.endpoint The endpoint of your Differential cluster. Defaults to `https://api.differential.dev`.
-   * @param params.machineId A unique identifier for the process that runs this instance. Appears in the console logs of your Differential cluster. Defaults to a random string.
-   * @param params.listeners An array of listeners to use for listening for jobs.
    *
    * @example Basic usage
    * ```ts
@@ -326,19 +321,12 @@ export class Differential {
    * ]);
    * ```
    */
-  constructor(
-    private apiSecret: string,
-    private listeners?: ListenerConfig[],
-    params?: {
-      encryptionKeys?: string[];
-      endpoint?: string;
-      machineId?: string;
-    }
-  ) {
+  constructor(private apiSecret: string, private listeners?: ListenerConfig[]) {
     this.authHeader = `Basic ${this.apiSecret}`;
-    this.endpoint = params?.endpoint ?? "https://api.differential.dev";
-    this.machineId =
-      params?.machineId ?? Math.random().toString(36).substring(7);
+    this.endpoint =
+      process.env.DIFFERENTIAL_API_ENDPOINT_OVERRIDE ??
+      "https://api.differential.dev";
+    this.machineId = Math.random().toString(36).substring(7);
 
     log("Initializing client", {
       endpoint: this.endpoint,
