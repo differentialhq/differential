@@ -1,6 +1,6 @@
 {
   "name": "@differential-dev/sdk",
-  "version": "0.0.42",
+  "version": "1.0.0",
   "description": "Javascript SDK for differential.dev",
   "main": "bin/index.js",
   "scripts": {
