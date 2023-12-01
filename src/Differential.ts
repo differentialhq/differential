@@ -360,6 +360,8 @@ export class Differential {
       );
     }
 
+    let lastTimeWeHadJobs = Date.now();
+
     const initMachineTypes = this.listeners?.map(
       (listener) => listener.machineType
     );
