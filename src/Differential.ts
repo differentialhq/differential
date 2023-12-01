@@ -340,7 +340,6 @@ export class Differential {
    * Listens for jobs and executes them in the host compute environment. This method is non-blocking.
    * @param listenParams
    * @param listenParams.asMachineType The machine type to listen for jobs for. If not provided, all machine types will be listened for.
-   * @param listenParams.registerPaths An array of paths to register for differential functions. Differential functions are functions that are registered with d.fn() or d.background(). This function will scan these paths for functions that are wrapped and register them with Differential.
    *
    * @example Basic usage
    * ```ts
@@ -351,16 +350,15 @@ export class Differential {
    * ```ts
    * d.listen({
    *  asMachineType: "image-processor",
-   *  registerPaths: ["./modules/image-processor/index"]
    * });
+   * ```
    */
-  listen(listenParams?: { asMachineType?: string; registerPaths?: string[] }) {
-    for (const path of listenParams?.registerPaths ?? []) {
-      log("Registering path for differential functions", path);
-      require(path);
+  listen(listenParams?: { asMachineType?: string }) {
+    if (Object.keys(functionRegistry).length === 0) {
+      throw new Error(
+        "No functions were registered. Make sure you `import` or `require` the paths to your functions before calling `listen`."
+      );
     }
-
-    let lastTimeWeHadJobs = Date.now();
 
     const initMachineTypes = this.listeners?.map(
       (listener) => listener.machineType

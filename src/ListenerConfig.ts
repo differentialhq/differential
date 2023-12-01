@@ -20,6 +20,7 @@
  *     flyMachinesInstance.stop();
  *   },
  * });
+ * ```
  */
 export class ListenerConfig {
   private config: {

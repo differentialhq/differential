@@ -1,3 +1,5 @@
+@differential-dev/sdk / [Exports](modules.md)
+
 <p align="center">
   <img src="./assets/logo.png" width="200" style="border-radius: 10px" />
 </p>
