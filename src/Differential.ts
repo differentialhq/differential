@@ -106,12 +106,6 @@ const pollForJob = async (
 
 const functionRegistry: { [key: string]: Function } = {};
 
-const pollState = {
-  current: 0,
-  concurrency: 100,
-  polling: false, // this is the polling state for the currently executing job.
-};
-
 type Result<T = unknown> = {
   content: T;
   type: "resolution" | "rejection";
@@ -152,6 +146,11 @@ let pollingForNextJob = false;
 const pollForNextJob = async (
   client: ReturnType<typeof createClient>,
   authHeader: string,
+  pollState: {
+    current: number;
+    concurrency: number;
+    polling: boolean;
+  },
   machineType?: string
 ): Promise<
   | {
@@ -268,12 +267,49 @@ const pollForNextJob = async (
   }
 };
 
+/**
+ * The Differential client. Use this to register functions, and establish listeners to listen for function calls.
+ * For most use cases, you should only need one Differential instance per process.
+ *
+ * @example Basic usage
+ * ```ts
+ *  const d = new Differential("API_SECRET");
+ * ```
+ *
+ * @example With listeners
+ * ```ts
+ * const d = new Differential("API_SECRET", [
+ *   // background worker can keep running
+ *   new ListenerConfig({
+ *     machineType: "background-worker",
+ *   }),
+ *   // image processor should scale in and out when there's no work
+ *   // because it's expensive to keep running
+ *   new ListenerConfig({
+ *     machineType: "image-processor",
+ *     idleTimeout: 10_000,
+ *     onWork: () => {
+ *        flyMachinesInstance.start();
+ *     },
+ *     onIdle: () => {
+ *       flyMachinesInstance.stop();
+ *     },
+ *   }),
+ * ]);
+ * ```
+ */
 export class Differential {
   private authHeader: string;
   private pollJobsTimer: NodeJS.Timeout | undefined;
   private endpoint: string;
   private machineId: string;
   private client: ReturnType<typeof createClient>;
+
+  private pollState = {
+    current: 0,
+    concurrency: 100,
+    polling: false, // this is the polling state for the currently executing job.
+  };
 
   /**
    * waking up is done by sending a request to the health check url directly
@@ -294,32 +330,6 @@ export class Differential {
    * Initializes a new Differential instance.
    * @param apiSecret The API Secret for your Differential cluster. Obtain this from [your Differential dashboard](https://admin.differential.dev/dashboard).
    * @param listeners An array of listener configurations to use for listening for jobs. A listener listens for work and executes them in the host compute environment.
-   *
-   * @example Basic usage
-   * ```ts
-   *  const d = new Differential("API_SECRET", []);
-   * ```
-   * @example With listeners
-   * ```ts
-   * const d = new Differential("API_SECRET", [
-   *   // background worker can keep running
-   *   new ListenerConfig({
-   *     machineType: "background-worker",
-   *   }),
-   *   // image processor should scale in and out when there's no work
-   *   // because it's expensive to keep running
-   *   new ListenerConfig({
-   *     machineType: "image-processor",
-   *     idleTimeout: 10_000,
-   *     onWork: () => {
-   *        flyMachinesInstance.start();
-   *     },
-   *     onIdle: () => {
-   *       flyMachinesInstance.stop();
-   *     },
-   *   }),
-   * ]);
-   * ```
    */
   constructor(private apiSecret: string, private listeners?: ListenerConfig[]) {
     this.authHeader = `Basic ${this.apiSecret}`;
@@ -383,6 +393,7 @@ export class Differential {
       const result = await pollForNextJob(
         this.client,
         this.authHeader,
+        this.pollState,
         listenParams?.asMachineType
       );
 
@@ -415,10 +426,10 @@ export class Differential {
     clearInterval(this.pollJobsTimer);
 
     return new Promise((resolve) => {
-      if (pollState.polling) {
+      if (this.pollState.polling) {
         const quitTimer: NodeJS.Timeout = setInterval(() => {
           log("Waiting for polling to finish");
-          if (!pollState.polling) {
+          if (!this.pollState.polling) {
             log("Polling finished");
             clearInterval(quitTimer);
             resolve();
@@ -500,7 +511,7 @@ export class Differential {
         });
 
       // wait for the job to complete
-      pollState.polling = true;
+      this.pollState.polling = true;
       const result = await pollForJob(
         this.client,
         { jobId: id },
@@ -509,10 +520,10 @@ export class Differential {
 
       if (result.type === "resolution") {
         // return the result
-        pollState.polling = false;
+        this.pollState.polling = false;
         return result.content;
       } else if (result.type === "rejection") {
-        pollState.polling = false;
+        this.pollState.polling = false;
         const error = deserializeError(result.content);
         throw error;
       } else {
@@ -523,11 +534,6 @@ export class Differential {
 
   /**
    * Register a background function with Differential. The inner function will be executed asynchronously in the host compute environment. Good for set-and-forget functions.
-   * @param f The function to register with Differential. Can be any async function.
-   * @param options
-   * @param options.name The name of the function. Defaults to the name of the function passed in, or a hash of the function if it is anonymous. Differential does a good job of uniquely identifying the function across different runtimes, as long as the source code is the same. Specifying the function name would be helpful if the source code between your nodes is somehow different, and you'd like to ensure that the same function is being executed.
-   * @param options.runOn The machine type to run this function on. If not provided, the function will be run on any machine type.
-   * @returns A promise that resolves to the job ID of the job that was created.
    *
    * @example Basic usage
    * ```ts
@@ -537,6 +543,12 @@ export class Differential {
    *   runOn: "background-worker"
    * });
    * ```
+   *
+   * @param f The function to register with Differential. Can be any async function.
+   * @param options
+   * @param options.name The name of the function. Defaults to the name of the function passed in, or a hash of the function if it is anonymous. Differential does a good job of uniquely identifying the function across different runtimes, as long as the source code is the same. Specifying the function name would be helpful if the source code between your nodes is somehow different, and you'd like to ensure that the same function is being executed.
+   * @param options.runOn The machine type to run this function on. If not provided, the function will be run on any machine type.
+   * @returns A promise that resolves to the job ID of the job that was created.
    */
   background<T extends (...args: Parameters<T>) => ReturnType<T>>(
     f: AssertPromiseReturnType<T>,
@@ -587,5 +599,17 @@ export class Differential {
 
       return { id };
     };
+  }
+
+  /**
+   * Sets the maximum number of function calls to execute concurrently.
+   * @param concurrency The maximum number of function calls to execute concurrently. Defaults to 100.
+   * @example Basic usage
+   * ```ts
+   * d.setConcurrency(1); // only execute one function at a time
+   * ```
+   */
+  setConcurrency(concurrency: number) {
+    this.pollState.concurrency = concurrency;
   }
 }

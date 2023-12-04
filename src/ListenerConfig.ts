@@ -3,7 +3,7 @@
  * @example Basic usage
  * ```ts
  * const config = new ListenerConfig({
- *  name: "background-worker",
+ *   name: "background-worker",
  * });
  * ```
  * @example Using fly compute to scale in and out. See FlyMachines for more information.
@@ -14,7 +14,7 @@
  *   onWork: () => {
  *     // Scale out
  *     flyMachinesInstance.start();
- *    },
+ *   },
  *   onIdle: () => {
  *     // Scale in
  *     flyMachinesInstance.stop();
@@ -34,8 +34,8 @@ export class ListenerConfig {
    * @param name Name of the listener
    * @param params Listener configuration
    * @param params.idleTimeout Time in milliseconds to wait before considering the listener idle
-   * @param params.onWork Callback to be called when the listener has work to do
-   * @param params.onIdle Callback to be called when the listener is idle
+   * @param params.onWork Callback to be called when the listener has work to do. Useful for scaling out compute resources.
+   * @param params.onIdle Callback to be called when the listener is idle and has no work to do. Useful for scaling in compute resources.
    */
   constructor(
     machineType: string,

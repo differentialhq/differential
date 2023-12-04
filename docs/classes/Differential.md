@@ -1,6 +1,36 @@
-[@differential-dev/sdk](../README.md) / [Exports](../modules.md) / Differential
-
 # Class: Differential
+
+The Differential client. Use this to register functions, and establish listeners to listen for function calls.
+For most use cases, you should only need one Differential instance per process.
+
+**`Example`**
+
+```ts
+ const d = new Differential("API_SECRET");
+```
+
+**`Example`**
+
+```ts
+const d = new Differential("API_SECRET", [
+  // background worker can keep running
+  new ListenerConfig({
+    machineType: "background-worker",
+  }),
+  // image processor should scale in and out when there's no work
+  // because it's expensive to keep running
+  new ListenerConfig({
+    machineType: "image-processor",
+    idleTimeout: 10_000,
+    onWork: () => {
+       flyMachinesInstance.start();
+    },
+    onIdle: () => {
+      flyMachinesInstance.stop();
+    },
+  }),
+]);
+```
 
 ## Table of contents
 
@@ -34,38 +64,9 @@ Initializes a new Differential instance.
 
 [`Differential`](Differential.md)
 
-**`Example`**
-
-```ts
- const d = new Differential("API_SECRET", []);
-```
-
-**`Example`**
-
-```ts
-const d = new Differential("API_SECRET", [
-  // background worker can keep running
-  new ListenerConfig({
-    machineType: "background-worker",
-  }),
-  // image processor should scale in and out when there's no work
-  // because it's expensive to keep running
-  new ListenerConfig({
-    machineType: "image-processor",
-    idleTimeout: 10_000,
-    onWork: () => {
-       flyMachinesInstance.start();
-    },
-    onIdle: () => {
-      flyMachinesInstance.stop();
-    },
-  }),
-]);
-```
-
 #### Defined in
 
-[src/Differential.ts:324](https://github.com/differential-dev/sdk-js/blob/b14c4df/src/Differential.ts#L324)
+[src/Differential.ts:329](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/Differential.ts#L329)
 
 ## Methods
 
@@ -134,7 +135,7 @@ const report = d.background(async (data: { userId: string }) => {
 
 #### Defined in
 
-[src/Differential.ts:542](https://github.com/differential-dev/sdk-js/blob/b14c4df/src/Differential.ts#L542)
+[src/Differential.ts:547](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/Differential.ts#L547)
 
 ___
 
@@ -178,7 +179,7 @@ const processImage = d.fn(async (image: Buffer) => {
 
 #### Defined in
 
-[src/Differential.ts:452](https://github.com/differential-dev/sdk-js/blob/b14c4df/src/Differential.ts#L452)
+[src/Differential.ts:456](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/Differential.ts#L456)
 
 ___
 
@@ -194,7 +195,6 @@ Listens for jobs and executes them in the host compute environment. This method 
 | :------ | :------ | :------ |
 | `listenParams?` | `Object` |  |
 | `listenParams.asMachineType?` | `string` | The machine type to listen for jobs for. If not provided, all machine types will be listened for. |
-| `listenParams.registerPaths?` | `string`[] | An array of paths to register for differential functions. Differential functions are functions that are registered with d.fn() or d.background(). This function will scan these paths for functions that are wrapped and register them with Differential. |
 
 #### Returns
 
@@ -211,13 +211,12 @@ d.listen();
 ```ts
 d.listen({
  asMachineType: "image-processor",
- registerPaths: ["./modules/image-processor/index"]
 });
 ```
 
 #### Defined in
 
-[src/Differential.ts:358](https://github.com/differential-dev/sdk-js/blob/b14c4df/src/Differential.ts#L358)
+[src/Differential.ts:361](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/Differential.ts#L361)
 
 ___
 
@@ -244,4 +243,4 @@ process.on("beforeExit", async () => {
 
 #### Defined in
 
-[src/Differential.ts:415](https://github.com/differential-dev/sdk-js/blob/b14c4df/src/Differential.ts#L415)
+[src/Differential.ts:419](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/Differential.ts#L419)

@@ -1,5 +1,5 @@
 export { Differential } from "./Differential";
 
-export * as compute from "./compute";
+export { FlyMachines } from "./compute";
 
 export { ListenerConfig } from "./ListenerConfig";

@@ -5,6 +5,33 @@ const log = debug("differential:compute");
 
 /**
  * @beta
+ * A class to control Fly Machines with Differential client.
+ * Use this to start and stop machines when you have work with `onWork` and `onIdle` in the ListenerConfig.
+ * @example
+ * ```ts
+ * const compute = new FlyMachines({
+ *   appName: "my-app",
+ *   apiSecret: "my-api-secret", // obtain this by running `flyctl auth token`
+ *   idleTimeout: 60_000 // 1 minute
+ * })
+ *
+ * const emailWorker = new ListenerConfig({
+ *   machineType: "email-worker",
+ *   idleTimeout: 60_000, // 1 minute
+ *   onWork: async () => {
+ *     await compute.start() // start a machine when there is work
+ *   },
+ *   onIdle: async () => {
+ *     await compute.stop() // stop a machine when there is no work
+ *   },
+ * })
+ *
+ * // add the listener to the client
+ * const d = new Differential({
+ *   apiSecret: "my-api-secret",
+ *   listeners: [emailWorker]
+ * })
+ * ```
  */
 export class FlyMachines {
   /**
@@ -17,7 +44,7 @@ export class FlyMachines {
    * ```ts
    * const compute = new FlyMachines({
    *  appName: "my-app",
-   *  apiSecret: "my-api-secret",
+   *  apiSecret: "my-api-secret", // obtain this by running `flyctl auth token`
    *  idleTimeout: 60_000 // 1 minute
    * })
    * ```

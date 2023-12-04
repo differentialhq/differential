@@ -1,5 +1,3 @@
-[@differential-dev/sdk](../README.md) / [Exports](../modules.md) / ListenerConfig
-
 # Class: ListenerConfig
 
 ListenerConfig represents a configuration for a listener. A listener listens for work and executes them in the host compute environment.
@@ -8,7 +6,7 @@ ListenerConfig represents a configuration for a listener. A listener listens for
 
 ```ts
 const config = new ListenerConfig({
- name: "background-worker",
+  name: "background-worker",
 });
 ```
 
@@ -21,7 +19,7 @@ const config = new ListenerConfig({
   onWork: () => {
     // Scale out
     flyMachinesInstance.start();
-   },
+  },
   onIdle: () => {
     // Scale in
     flyMachinesInstance.stop();
@@ -55,8 +53,8 @@ const config = new ListenerConfig({
 | `machineType` | `string` | - |
 | `params` | `Object` | Listener configuration |
 | `params.idleTimeout?` | `number` | Time in milliseconds to wait before considering the listener idle |
-| `params.onIdle?` | () => `void` | Callback to be called when the listener is idle |
-| `params.onWork?` | () => `void` | Callback to be called when the listener has work to do |
+| `params.onIdle?` | () => `void` | Callback to be called when the listener is idle and has no work to do. Useful for scaling in compute resources. |
+| `params.onWork?` | () => `void` | Callback to be called when the listener has work to do. Useful for scaling out compute resources. |
 
 #### Returns
 
@@ -64,7 +62,7 @@ const config = new ListenerConfig({
 
 #### Defined in
 
-[src/ListenerConfig.ts:40](https://github.com/differential-dev/sdk-js/blob/b14c4df/src/ListenerConfig.ts#L40)
+[src/ListenerConfig.ts:40](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/ListenerConfig.ts#L40)
 
 ## Accessors
 
@@ -78,7 +76,7 @@ const config = new ListenerConfig({
 
 #### Defined in
 
-[src/ListenerConfig.ts:65](https://github.com/differential-dev/sdk-js/blob/b14c4df/src/ListenerConfig.ts#L65)
+[src/ListenerConfig.ts:65](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/ListenerConfig.ts#L65)
 
 ___
 
@@ -92,7 +90,7 @@ ___
 
 #### Defined in
 
-[src/ListenerConfig.ts:61](https://github.com/differential-dev/sdk-js/blob/b14c4df/src/ListenerConfig.ts#L61)
+[src/ListenerConfig.ts:61](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/ListenerConfig.ts#L61)
 
 ___
 
@@ -106,7 +104,7 @@ ___
 
 #### Defined in
 
-[src/ListenerConfig.ts:73](https://github.com/differential-dev/sdk-js/blob/b14c4df/src/ListenerConfig.ts#L73)
+[src/ListenerConfig.ts:73](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/ListenerConfig.ts#L73)
 
 ___
 
@@ -120,4 +118,4 @@ ___
 
 #### Defined in
 
-[src/ListenerConfig.ts:69](https://github.com/differential-dev/sdk-js/blob/b14c4df/src/ListenerConfig.ts#L69)
+[src/ListenerConfig.ts:69](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/ListenerConfig.ts#L69)
