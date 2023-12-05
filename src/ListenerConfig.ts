@@ -39,14 +39,14 @@ export class ListenerConfig {
    */
   constructor(
     machineType: string,
-    params: {
+    params?: {
       idleTimeout?: number;
       onWork?: () => void;
       onIdle?: () => void;
     }
   ) {
     // throw error if onIdle is provided without idleTimeout
-    if (params.onIdle && !params.idleTimeout) {
+    if (params?.onIdle && !params?.idleTimeout) {
       throw new Error(
         "idleTimeout must be provided if onIdle is provided as a parameter"
       );
