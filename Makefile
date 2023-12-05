@@ -8,7 +8,6 @@ clean:
 	rm -f src/contract.ts
 
 publish:
-	npm version patch
 	npm publish
 
 update-examples:
