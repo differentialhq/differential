@@ -1,8 +1,10 @@
 import { d } from "./utils/differential";
 
+// register functions
+import "./utils/email";
+
 d.listen({
   asPool: "worker",
-  registerPaths: ["./utils/email"],
 });
 
 console.log("Worker started");
