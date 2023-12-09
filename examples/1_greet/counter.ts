@@ -2,6 +2,6 @@ import { d } from "./differential";
 
 // listen to work coming in
 d.listen({
-  asMachineType: "counter",
+  asPool: "counter",
   registerPaths: ["./program"],
 });

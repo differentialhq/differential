@@ -42,6 +42,6 @@ export const sendGreeting = d.background(
     });
   },
   {
-    runOn: "worker", // only run on worker nodes
+    pool: "worker", // only run on worker nodes
   }
 );

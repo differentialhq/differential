@@ -14,13 +14,13 @@ For most use cases, you should only need one Differential instance per process.
 ```ts
 const d = new Differential("API_SECRET", [
   // background worker can keep running
-  new ListenerConfig({
-    machineType: "background-worker",
+  new PoolConfig({
+    pool: "background-worker",
   }),
   // image processor should scale in and out when there's no work
   // because it's expensive to keep running
-  new ListenerConfig({
-    machineType: "image-processor",
+  new PoolConfig({
+    pool: "image-processor",
     idleTimeout: 10_000,
     onWork: () => {
        flyMachinesInstance.start();
@@ -58,7 +58,7 @@ Initializes a new Differential instance.
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `apiSecret` | `string` | The API Secret for your Differential cluster. Obtain this from [your Differential dashboard](https://admin.differential.dev/dashboard). |
-| `listeners?` | [`ListenerConfig`](ListenerConfig.md)[] | An array of listener configurations to use for listening for jobs. A listener listens for work and executes them in the host compute environment. |
+| `listeners?` | [`PoolConfig`](PoolConfig.md)[] | An array of listener configurations to use for listening for jobs. A listener listens for work and executes them in the host compute environment. |
 
 #### Returns
 
@@ -89,7 +89,7 @@ Register a background function with Differential. The inner function will be exe
 | `f` | `AssertPromiseReturnType`\<`T`\> | The function to register with Differential. Can be any async function. |
 | `options?` | `Object` |  |
 | `options.name?` | `string` | The name of the function. Defaults to the name of the function passed in, or a hash of the function if it is anonymous. Differential does a good job of uniquely identifying the function across different runtimes, as long as the source code is the same. Specifying the function name would be helpful if the source code between your nodes is somehow different, and you'd like to ensure that the same function is being executed. |
-| `options.runOn?` | `string` | The machine type to run this function on. If not provided, the function will be run on any machine type. |
+| `options.pool?` | `string` | The worker pool to run this function on. If not provided, the function will be run on any worker pool. |
 
 #### Returns
 
@@ -119,7 +119,7 @@ A promise that resolves to the job ID of the job that was created.
 const report = d.background(async (data: { userId: string }) => {
   await db.insert(data);
 }, {
-  runOn: "background-worker"
+  pool: "background-worker"
 });
 ```
 
@@ -129,7 +129,7 @@ const report = d.background(async (data: { userId: string }) => {
 const report = d.background(async (data: { userId: string }) => {
   await db.insert(data);
 }, {
-  runOn: "background-worker"
+  pool: "background-worker"
 });
 ```
 
@@ -158,7 +158,7 @@ Register a foreground function with Differential. The inner function will be exe
 | `f` | `AssertPromiseReturnType`\<`T`\> | The function to register with Differential. Can be any async function. |
 | `options?` | `Object` |  |
 | `options.name?` | `string` | The name of the function. Defaults to the name of the function passed in, or a hash of the function if it is anonymous. Differential does a good job of uniquely identifying the function across different runtimes, as long as the source code is the same. Specifying the function name would be helpful if the source code between your nodes is somehow different, and you'd like to ensure that the same function is being executed. |
-| `options.runOn?` | `string` | The machine type to run this function on. If not provided, the function will be run on any machine type. |
+| `options.pool?` | `string` | The worker pool to run this function on. If not provided, the function will be run on any worker pool. |
 
 #### Returns
 
@@ -173,7 +173,7 @@ const processImage = d.fn(async (image: Buffer) => {
   const processedImage = await imageProcessor.process(image);
   return processedImage;
 }, {
-  runOn: "image-processor"
+  pool: "image-processor"
 });
 ```
 
@@ -194,7 +194,7 @@ Listens for jobs and executes them in the host compute environment. This method 
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `listenParams?` | `Object` |  |
-| `listenParams.asMachineType?` | `string` | The machine type to listen for jobs for. If not provided, all machine types will be listened for. |
+| `listenParams.asPool?` | `string` | The worker pool to listen for jobs for. If not provided, all worker pools will be listened for. |
 
 #### Returns
 
@@ -210,7 +210,7 @@ d.listen();
 
 ```ts
 d.listen({
- asMachineType: "image-processor",
+ asPool: "image-processor",
 });
 ```
 

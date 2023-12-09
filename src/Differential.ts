@@ -2,7 +2,7 @@ import { initClient } from "@ts-rest/core";
 import debug from "debug";
 import { contract } from "./contract";
 import { pack, unpack } from "./serialize";
-import { ListenerConfig } from "./ListenerConfig";
+import { PoolConfig } from "./PoolConfig";
 
 const log = debug("differential:client");
 
@@ -151,7 +151,7 @@ const pollForNextJob = async (
     concurrency: number;
     polling: boolean;
   },
-  machineType?: string
+  pool?: string
 ): Promise<
   | {
       jobCount: number;
@@ -175,7 +175,7 @@ const pollForNextJob = async (
       .getNextJobs({
         query: {
           limit: Math.ceil((pollState.concurrency - pollState.current) / 2),
-          machineTypes: machineType, // TODO: machineTypes -> machineType
+          pools: pool, // TODO: pools -> pool
         },
         headers: {
           authorization: authHeader,
@@ -280,13 +280,13 @@ const pollForNextJob = async (
  * ```ts
  * const d = new Differential("API_SECRET", [
  *   // background worker can keep running
- *   new ListenerConfig({
- *     machineType: "background-worker",
+ *   new PoolConfig({
+ *     pool: "background-worker",
  *   }),
  *   // image processor should scale in and out when there's no work
  *   // because it's expensive to keep running
- *   new ListenerConfig({
- *     machineType: "image-processor",
+ *   new PoolConfig({
+ *     pool: "image-processor",
  *     idleTimeout: 10_000,
  *     onWork: () => {
  *        flyMachinesInstance.start();
@@ -316,9 +316,9 @@ export class Differential {
    * so that the network doesn't have to be configured to allow incoming requests.
    * from the outside.
    */
-  private onWork = async (runsOn?: string): Promise<void> => {
-    const listeners = runsOn
-      ? this.listeners?.filter((l) => l.machineType === runsOn)
+  private onWork = async (pool?: string): Promise<void> => {
+    const listeners = pool
+      ? this.listeners?.filter((l) => l.name === pool)
       : this.listeners;
 
     for (const listener of listeners ?? []) {
@@ -331,7 +331,7 @@ export class Differential {
    * @param apiSecret The API Secret for your Differential cluster. Obtain this from [your Differential dashboard](https://admin.differential.dev/dashboard).
    * @param listeners An array of listener configurations to use for listening for jobs. A listener listens for work and executes them in the host compute environment.
    */
-  constructor(private apiSecret: string, private listeners?: ListenerConfig[]) {
+  constructor(private apiSecret: string, private listeners?: PoolConfig[]) {
     this.authHeader = `Basic ${this.apiSecret}`;
     this.endpoint =
       process.env.DIFFERENTIAL_API_ENDPOINT_OVERRIDE ??
@@ -349,21 +349,21 @@ export class Differential {
   /**
    * Listens for jobs and executes them in the host compute environment. This method is non-blocking.
    * @param listenParams
-   * @param listenParams.asMachineType The machine type to listen for jobs for. If not provided, all machine types will be listened for.
+   * @param listenParams.asPool The worker pool to listen for jobs for. If not provided, all worker pools will be listened for.
    *
    * @example Basic usage
    * ```ts
    * d.listen();
    * ```
    *
-   * @example With machine type
+   * @example With worker pool
    * ```ts
    * d.listen({
-   *  asMachineType: "image-processor",
+   *  asPool: "image-processor",
    * });
    * ```
    */
-  listen(listenParams?: { asMachineType?: string }) {
+  listen(listenParams?: { asPool?: string }) {
     if (Object.keys(functionRegistry).length === 0) {
       throw new Error(
         "No functions were registered. Make sure you `import` or `require` the paths to your functions before calling `listen`."
@@ -372,21 +372,19 @@ export class Differential {
 
     let lastTimeWeHadJobs = Date.now();
 
-    const initMachineTypes = this.listeners?.map(
-      (listener) => listener.machineType
-    );
+    const initMachineTypes = this.listeners?.map((listener) => listener.name);
 
     if (
-      listenParams?.asMachineType &&
-      !initMachineTypes?.includes(listenParams?.asMachineType)
+      listenParams?.asPool &&
+      !initMachineTypes?.includes(listenParams?.asPool)
     ) {
       throw new DifferentialError(
-        `Machine type '${listenParams?.asMachineType}' is not configured in listeners`
+        `Machine type '${listenParams?.asPool}' is not configured in listeners`
       );
     }
 
     const listener = this.listeners?.find(
-      (listener) => listener.machineType === listenParams?.asMachineType
+      (listener) => listener.name === listenParams?.asPool
     );
 
     this.pollJobsTimer = setInterval(async () => {
@@ -394,7 +392,7 @@ export class Differential {
         this.client,
         this.authHeader,
         this.pollState,
-        listenParams?.asMachineType
+        listenParams?.asPool
       );
 
       if (result?.jobCount === 0 && listener?.idleTimeout) {
@@ -446,7 +444,7 @@ export class Differential {
    * @param f The function to register with Differential. Can be any async function.
    * @param options
    * @param options.name The name of the function. Defaults to the name of the function passed in, or a hash of the function if it is anonymous. Differential does a good job of uniquely identifying the function across different runtimes, as long as the source code is the same. Specifying the function name would be helpful if the source code between your nodes is somehow different, and you'd like to ensure that the same function is being executed.
-   * @param options.runOn The machine type to run this function on. If not provided, the function will be run on any machine type.
+   * @param options.pool The worker pool to run this function on. If not provided, the function will be run on any worker pool.
    * @returns A function that returns a promise that resolves to the result of the function.
    *
    * @example Basic usage
@@ -455,7 +453,7 @@ export class Differential {
    *   const processedImage = await imageProcessor.process(image);
    *   return processedImage;
    * }, {
-   *   runOn: "image-processor"
+   *   pool: "image-processor"
    * });
    * ```
    */
@@ -463,7 +461,7 @@ export class Differential {
     f: AssertPromiseReturnType<T>,
     options?: {
       name?: string;
-      runOn?: string;
+      pool?: string;
     }
   ): T {
     if (typeof f !== "function") {
@@ -484,7 +482,7 @@ export class Differential {
 
     return (async (...args: unknown[]) => {
       // wake up machine
-      await this.onWork(options?.runOn);
+      await this.onWork(options?.pool);
 
       // create a job
       const id = await this.client
@@ -492,7 +490,7 @@ export class Differential {
           body: {
             targetFn: name,
             targetArgs: pack(args),
-            machineType: options?.runOn,
+            pool: options?.pool,
           },
           headers: {
             authorization: this.authHeader,
@@ -540,21 +538,21 @@ export class Differential {
    * const report = d.background(async (data: { userId: string }) => {
    *   await db.insert(data);
    * }, {
-   *   runOn: "background-worker"
+   *   pool: "background-worker"
    * });
    * ```
    *
    * @param f The function to register with Differential. Can be any async function.
    * @param options
    * @param options.name The name of the function. Defaults to the name of the function passed in, or a hash of the function if it is anonymous. Differential does a good job of uniquely identifying the function across different runtimes, as long as the source code is the same. Specifying the function name would be helpful if the source code between your nodes is somehow different, and you'd like to ensure that the same function is being executed.
-   * @param options.runOn The machine type to run this function on. If not provided, the function will be run on any machine type.
+   * @param options.pool The worker pool to run this function on. If not provided, the function will be run on any worker pool.
    * @returns A promise that resolves to the job ID of the job that was created.
    */
   background<T extends (...args: Parameters<T>) => ReturnType<T>>(
     f: AssertPromiseReturnType<T>,
     options?: {
       name?: string;
-      runOn?: string;
+      pool?: string;
     }
   ): (...args: Parameters<T>) => Promise<{ id: string }> {
     if (typeof f !== "function") {
@@ -575,7 +573,7 @@ export class Differential {
 
     return async (...args: unknown[]) => {
       // wake up machine
-      await this.onWork(options?.runOn);
+      await this.onWork(options?.pool);
 
       // create a job
       const id = await this.client
@@ -583,7 +581,7 @@ export class Differential {
           body: {
             targetFn: name,
             targetArgs: pack(args),
-            machineType: options?.runOn,
+            pool: options?.pool,
           },
           headers: {
             authorization: this.authHeader,

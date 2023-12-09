@@ -17,5 +17,5 @@ const countGreets = d.fn(
       `Greeted ${greetingCounts} times. Last greeting was from ${pid}!`
     );
   },
-  { runOn: "counter" } // only run on counter machines
+  { pool: "counter" } // only run on counter machines
 );

@@ -1,11 +1,11 @@
-# Class: ListenerConfig
+# Class: PoolConfig
 
-ListenerConfig represents a configuration for a listener. A listener listens for work and executes them in the host compute environment.
+PoolConfig represents a configuration for a listener. A listener listens for work and executes them in the host compute environment.
 
 **`Example`**
 
 ```ts
-const config = new ListenerConfig({
+const config = new PoolConfig({
   name: "background-worker",
 });
 ```
@@ -13,7 +13,7 @@ const config = new ListenerConfig({
 **`Example`**
 
 ```ts
-const config = new ListenerConfig({
+const config = new PoolConfig({
   name: "email-worker",
   idleTimeout: 10_000,
   onWork: () => {
@@ -31,26 +31,26 @@ const config = new ListenerConfig({
 
 ### Constructors
 
-- [constructor](ListenerConfig.md#constructor)
+- [constructor](PoolConfig.md#constructor)
 
 ### Accessors
 
-- [idleTimeout](ListenerConfig.md#idletimeout)
-- [machineType](ListenerConfig.md#machinetype)
-- [onIdle](ListenerConfig.md#onidle)
-- [onWork](ListenerConfig.md#onwork)
+- [idleTimeout](PoolConfig.md#idletimeout)
+- [pool](PoolConfig.md#machinetype)
+- [onIdle](PoolConfig.md#onidle)
+- [onWork](PoolConfig.md#onwork)
 
 ## Constructors
 
 ### constructor
 
-• **new ListenerConfig**(`machineType`, `params`): [`ListenerConfig`](ListenerConfig.md)
+• **new PoolConfig**(`pool`, `params`): [`PoolConfig`](PoolConfig.md)
 
 #### Parameters
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `machineType` | `string` | - |
+| `pool` | `string` | - |
 | `params` | `Object` | Listener configuration |
 | `params.idleTimeout?` | `number` | Time in milliseconds to wait before considering the listener idle |
 | `params.onIdle?` | () => `void` | Callback to be called when the listener is idle and has no work to do. Useful for scaling in compute resources. |
@@ -58,11 +58,11 @@ const config = new ListenerConfig({
 
 #### Returns
 
-[`ListenerConfig`](ListenerConfig.md)
+[`PoolConfig`](PoolConfig.md)
 
 #### Defined in
 
-[src/ListenerConfig.ts:40](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/ListenerConfig.ts#L40)
+[src/PoolConfig.ts:40](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/PoolConfig.ts#L40)
 
 ## Accessors
 
@@ -76,13 +76,13 @@ const config = new ListenerConfig({
 
 #### Defined in
 
-[src/ListenerConfig.ts:65](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/ListenerConfig.ts#L65)
+[src/PoolConfig.ts:65](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/PoolConfig.ts#L65)
 
 ___
 
-### machineType
+### pool
 
-• `get` **machineType**(): `string`
+• `get` **pool**(): `string`
 
 #### Returns
 
@@ -90,7 +90,7 @@ ___
 
 #### Defined in
 
-[src/ListenerConfig.ts:61](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/ListenerConfig.ts#L61)
+[src/PoolConfig.ts:61](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/PoolConfig.ts#L61)
 
 ___
 
@@ -104,7 +104,7 @@ ___
 
 #### Defined in
 
-[src/ListenerConfig.ts:73](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/ListenerConfig.ts#L73)
+[src/PoolConfig.ts:73](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/PoolConfig.ts#L73)
 
 ___
 
@@ -118,4 +118,4 @@ ___
 
 #### Defined in
 
-[src/ListenerConfig.ts:69](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/ListenerConfig.ts#L69)
+[src/PoolConfig.ts:69](https://github.com/differential-dev/sdk-js/blob/9d50d52/src/PoolConfig.ts#L69)

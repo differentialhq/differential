@@ -28,14 +28,14 @@ export const d = Differential({
 
 // initialize the communication. this starts listening for queued function calls
 d.listen({
-  asMachineType: "worker", // this listening process will run as the "worker" machine type
+  asPool: "worker", // this listening process will run as the "worker" worker pool
 });
 
 // define any function and wrap it with d.fn to run it in a distributed manner
 const helloWorld = d.fn((pid) => {
   return `Hello from pid ${process.pid}!`;
 }, {
-  runOn: "worker", // this function will only run on workers
+  pool: "worker", // this function will only run on workers
 })
 
 // call the function as if it were a normal function in the same process

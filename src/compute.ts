@@ -6,7 +6,7 @@ const log = debug("differential:compute");
 /**
  * @beta
  * A class to control Fly Machines with Differential client.
- * Use this to start and stop machines when you have work with `onWork` and `onIdle` in the ListenerConfig.
+ * Use this to start and stop machines when you have work with `onWork` and `onIdle` in the PoolConfig.
  * @example
  * ```ts
  * const compute = new FlyMachines({
@@ -15,8 +15,7 @@ const log = debug("differential:compute");
  *   idleTimeout: 60_000 // 1 minute
  * })
  *
- * const emailWorker = new ListenerConfig({
- *   machineType: "email-worker",
+ * const emailWorker = new PoolConfig("email-worker", {
  *   idleTimeout: 60_000, // 1 minute
  *   onWork: async () => {
  *     await compute.start() // start a machine when there is work

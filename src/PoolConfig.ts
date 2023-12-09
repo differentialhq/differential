@@ -1,15 +1,12 @@
 /**
- * ListenerConfig represents a configuration for a listener. A listener listens for work and executes them in the host compute environment.
+ * PoolConfig represents a configuration for a worker pool. A pool listens for work and executes them in the host compute environment.
  * @example Basic usage
  * ```ts
- * const config = new ListenerConfig({
- *   name: "background-worker",
- * });
+ * const config = new PoolConfig("background-worker");
  * ```
  * @example Using fly compute to scale in and out. See FlyMachines for more information.
  * ```ts
- * const config = new ListenerConfig({
- *   name: "email-worker",
+ * const config = new PoolConfig("email-worker", {
  *   idleTimeout: 10_000,
  *   onWork: () => {
  *     // Scale out
@@ -22,23 +19,23 @@
  * });
  * ```
  */
-export class ListenerConfig {
+export class PoolConfig {
   private config: {
-    machineType: string;
+    name: string;
     idleTimeout?: number;
     onWork?: () => void;
     onIdle?: () => void;
   };
 
   /**
-   * @param name Name of the listener
-   * @param params Listener configuration
-   * @param params.idleTimeout Time in milliseconds to wait before considering the listener idle
-   * @param params.onWork Callback to be called when the listener has work to do. Useful for scaling out compute resources.
-   * @param params.onIdle Callback to be called when the listener is idle and has no work to do. Useful for scaling in compute resources.
+   * @param name Name of the pool
+   * @param params Optional parameters
+   * @param params.idleTimeout Time in milliseconds to wait before considering the pool idle
+   * @param params.onWork Callback to be called when the pool has work to do. Useful for scaling out compute resources.
+   * @param params.onIdle Callback to be called when the pool is idle and has no work to do. Useful for scaling in compute resources.
    */
   constructor(
-    machineType: string,
+    name: string,
     params?: {
       idleTimeout?: number;
       onWork?: () => void;
@@ -53,13 +50,13 @@ export class ListenerConfig {
     }
 
     this.config = {
-      machineType,
+      name,
       ...params,
     };
   }
 
-  get machineType() {
-    return this.config.machineType;
+  get name() {
+    return this.config.name;
   }
 
   get idleTimeout() {

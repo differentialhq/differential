@@ -18,7 +18,7 @@ export const contract = c.router({
       "x-machine-id": z.string(),
     }),
     query: z.object({
-      machineTypes: z.string().optional(),
+      pools: z.string().optional(),
       limit: z.coerce.number().default(1),
     }),
     responses: {
@@ -41,7 +41,7 @@ export const contract = c.router({
     body: z.object({
       targetFn: z.string(),
       targetArgs: z.string(),
-      machineType: z.string().optional(),
+      pool: z.string().optional(),
     }),
   },
   getJobStatus: {
@@ -155,7 +155,7 @@ export const contract = c.router({
           z.object({
             id: z.string(),
             description: z.string().nullable(),
-            machineType: z.string().nullable(),
+            pool: z.string().nullable(),
             lastPingAt: z.date().nullable(),
             ip: z.string().nullable(),
             organizationId: z.string(),
@@ -185,4 +185,3 @@ export const contract = c.router({
     },
   },
 });
-

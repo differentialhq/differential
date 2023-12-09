@@ -1,7 +1,7 @@
 import { d } from "./utils/differential";
 
 d.listen({
-  asMachineType: "worker",
+  asPool: "worker",
   registerPaths: ["./utils/email"],
 });
 
