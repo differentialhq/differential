@@ -2,7 +2,6 @@ import { initClient } from "@ts-rest/core";
 import debug from "debug";
 import { contract } from "./contract";
 import { pack, unpack } from "./serialize";
-import { PoolConfig } from "./PoolConfig";
 
 const log = debug("differential:client");
 
@@ -16,20 +15,17 @@ type AssertPromiseReturnType<T extends (...args: any[]) => any> = T extends (
     : "Any function that is passed to fn must return a Promise. Fix this by making the inner function async."
   : "Any function that is passed to fn must return a Promise. Fix this by making the inner function async.";
 
-const cyrb53 = (str: string, seed = 0) => {
-  let h1 = 0xdeadbeef ^ seed,
-    h2 = 0x41c6ce57 ^ seed;
-  for (let i = 0, ch; i < str.length; i++) {
-    ch = str.charCodeAt(i);
-    h1 = Math.imul(h1 ^ ch, 2654435761);
-    h2 = Math.imul(h2 ^ ch, 1597334677);
-  }
-  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
-  h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
-  h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+// Define a type for any function that returns a promise
+type AsyncFunction = (...args: any[]) => Promise<any>;
 
-  return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+export type ServiceDefinition = {
+  name: string;
+  operations: {
+    [key: string]: {
+      fn: AsyncFunction;
+      options?: {};
+    };
+  };
 };
 
 const createClient = (baseUrl: string, machineId: string) =>
@@ -104,16 +100,22 @@ const pollForJob = async (
   });
 };
 
-const functionRegistry: { [key: string]: Function } = {};
+type ServiceRegistryFunction = {
+  fn: Function;
+  serviceName: string;
+  options?: {};
+};
+
+const functionRegistry: { [key: string]: ServiceRegistryFunction } = {};
 
 type Result<T = unknown> = {
   content: T;
   type: "resolution" | "rejection";
 };
 
-const executeFn = async (fn: Function, args: unknown[]): Promise<Result> => {
+const executeFn = async (fn: Function, arg: unknown): Promise<Result> => {
   try {
-    const result = await fn(...args);
+    const result = await fn(arg);
 
     return {
       content: result,
@@ -151,7 +153,7 @@ const pollForNextJob = async (
     concurrency: number;
     polling: boolean;
   },
-  pool?: string
+  service: string
 ): Promise<
   | {
       jobCount: number;
@@ -175,7 +177,10 @@ const pollForNextJob = async (
       .getNextJobs({
         query: {
           limit: Math.ceil((pollState.concurrency - pollState.current) / 2),
-          pools: pool, // TODO: pools -> pool
+          functions: Object.entries(functionRegistry)
+            .filter((s) => s[1].serviceName === service)
+            .map((s) => s[0])
+            .join(","),
         },
         headers: {
           authorization: authHeader,
@@ -200,13 +205,13 @@ const pollForNextJob = async (
 
       await Promise.allSettled(
         jobs.map(async (job) => {
-          const fn = functionRegistry[job.targetFn];
+          const registered = functionRegistry[job.targetFn];
 
           log("Executing job", job.id, job.targetFn);
 
           let result: Result;
 
-          if (!fn) {
+          if (!registered) {
             const error = new DifferentialError(
               `Function was not registered. name='${
                 job.targetFn
@@ -220,8 +225,8 @@ const pollForNextJob = async (
               type: "rejection",
             };
           } else {
-            const args = unpack(job.targetArgs);
-            result = await executeFn(fn, args);
+            const arg = unpack(job.targetArgs);
+            result = await executeFn(registered.fn, arg);
           }
 
           await client
@@ -265,6 +270,12 @@ const pollForNextJob = async (
   } finally {
     pollingForNextJob = false;
   }
+};
+
+type WorkerPool = {
+  idleTimeout?: number;
+  onWork?: () => void;
+  onIdle?: () => void;
 };
 
 /**
@@ -312,26 +323,16 @@ export class Differential {
   };
 
   /**
-   * waking up is done by sending a request to the health check url directly
-   * so that the network doesn't have to be configured to allow incoming requests.
-   * from the outside.
-   */
-  private onWork = async (pool?: string): Promise<void> => {
-    const listeners = pool
-      ? this.listeners?.filter((l) => l.name === pool)
-      : this.listeners;
-
-    for (const listener of listeners ?? []) {
-      listener.onWork?.();
-    }
-  };
-
-  /**
    * Initializes a new Differential instance.
    * @param apiSecret The API Secret for your Differential cluster. Obtain this from [your Differential dashboard](https://admin.differential.dev/dashboard).
-   * @param listeners An array of listener configurations to use for listening for jobs. A listener listens for work and executes them in the host compute environment.
+   * @param workerPools A dictionary of worker pool configurations to use for running service functions.
    */
-  constructor(private apiSecret: string, private listeners?: PoolConfig[]) {
+  constructor(
+    private apiSecret: string,
+    private workerPools?: {
+      [key: string]: WorkerPool;
+    }
+  ) {
     this.authHeader = `Basic ${this.apiSecret}`;
     this.endpoint =
       process.env.DIFFERENTIAL_API_ENDPOINT_OVERRIDE ??
@@ -347,60 +348,49 @@ export class Differential {
   }
 
   /**
-   * Listens for jobs and executes them in the host compute environment. This method is non-blocking.
-   * @param listenParams
-   * @param listenParams.asPool The worker pool to listen for jobs for. If not provided, all worker pools will be listened for.
-   *
-   * @example Basic usage
-   * ```ts
-   * d.listen();
-   * ```
-   *
-   * @example With worker pool
-   * ```ts
-   * d.listen({
-   *  asPool: "image-processor",
-   * });
-   * ```
+   * waking up is done by sending a request to the health check url directly
+   * so that the network doesn't have to be configured to allow incoming requests.
+   * from the outside.
    */
-  listen(listenParams?: { asPool?: string }) {
-    if (Object.keys(functionRegistry).length === 0) {
-      throw new Error(
-        "No functions were registered. Make sure you `import` or `require` the paths to your functions before calling `listen`."
-      );
-    }
+  // TODO: call this
+  // private onWork = async (pool?: string): Promise<void> => {
+  //   if (!pool) {
+  //     // execute all pools
 
+  //     const pools = this.workerPools
+  //       ? Object.values(this.workerPools)
+  //       : undefined;
+
+  //     for (const listener of pools ?? []) {
+  //       listener.onWork?.();
+  //     }
+  //   } else {
+  //     // execute specific pool
+  //     const listener = this.workerPools?.[pool];
+
+  //     listener?.onWork?.();
+  //   }
+  // };
+
+  private listen(service: string) {
     let lastTimeWeHadJobs = Date.now();
 
-    const initMachineTypes = this.listeners?.map((listener) => listener.name);
-
-    if (
-      listenParams?.asPool &&
-      !initMachineTypes?.includes(listenParams?.asPool)
-    ) {
-      throw new DifferentialError(
-        `Machine type '${listenParams?.asPool}' is not configured in listeners`
-      );
-    }
-
-    const listener = this.listeners?.find(
-      (listener) => listener.name === listenParams?.asPool
-    );
+    const pool = this.workerPools?.[service];
 
     this.pollJobsTimer = setInterval(async () => {
       const result = await pollForNextJob(
         this.client,
         this.authHeader,
         this.pollState,
-        listenParams?.asPool
+        service
       );
 
-      if (result?.jobCount === 0 && listener?.idleTimeout) {
+      if (result?.jobCount === 0 && pool?.idleTimeout) {
         const timeSinceLastJob = Date.now() - lastTimeWeHadJobs;
 
-        if (timeSinceLastJob > listener?.idleTimeout) {
+        if (timeSinceLastJob > pool?.idleTimeout) {
           log("Idle timeout reached");
-          listener?.onIdle?.();
+          pool?.onIdle?.();
         }
       } else {
         lastTimeWeHadJobs = Date.now();
@@ -409,7 +399,7 @@ export class Differential {
   }
 
   /**
-   * Stops listening for jobs, and waits for all currently executing jobs to finish. Useful for a graceful shutdown.
+   * Stops the service, and waits for all currently executing functions to finish. Useful for a graceful shutdown.
    * @returns A promise that resolves when all currently executing jobs have finished.
    *
    * @example Basic usage
@@ -420,7 +410,7 @@ export class Differential {
    * });
    * ```
    */
-  quit(): Promise<void> {
+  private quit(): Promise<void> {
     clearInterval(this.pollJobsTimer);
 
     return new Promise((resolve) => {
@@ -439,36 +429,18 @@ export class Differential {
     });
   }
 
-  /**
-   * Register a foreground function with Differential. The inner function will be executed in the host compute environment, and the result will be returned to the caller.
-   * @param f The function to register with Differential. Can be any async function.
-   * @param options
-   * @param options.name The name of the function. Defaults to the name of the function passed in, or a hash of the function if it is anonymous. Differential does a good job of uniquely identifying the function across different runtimes, as long as the source code is the same. Specifying the function name would be helpful if the source code between your nodes is somehow different, and you'd like to ensure that the same function is being executed.
-   * @param options.pool The worker pool to run this function on. If not provided, the function will be run on any worker pool.
-   * @returns A function that returns a promise that resolves to the result of the function.
-   *
-   * @example Basic usage
-   * ```ts
-   * const processImage = d.fn(async (image: Buffer) => {
-   *   const processedImage = await imageProcessor.process(image);
-   *   return processedImage;
-   * }, {
-   *   pool: "image-processor"
-   * });
-   * ```
-   */
-  fn<T extends (...args: Parameters<T>) => ReturnType<T>>(
-    f: AssertPromiseReturnType<T>,
-    options?: {
-      name?: string;
-      pool?: string;
-    }
-  ): T {
-    if (typeof f !== "function") {
+  private register<T extends (...args: Parameters<T>) => ReturnType<T>>({
+    fn,
+    name,
+    serviceName,
+  }: {
+    fn: AssertPromiseReturnType<T>;
+    name: string;
+    serviceName: string;
+  }) {
+    if (typeof fn !== "function") {
       throw new DifferentialError("fn must be a function");
     }
-
-    const name = options?.name || f.name || cyrb53(f.toString()).toString();
 
     log(`Registering function`, {
       name,
@@ -478,125 +450,100 @@ export class Differential {
       throw new DifferentialError("Function must have a name");
     }
 
-    functionRegistry[name] = f;
-
-    return (async (...args: unknown[]) => {
-      // wake up machine
-      await this.onWork(options?.pool);
-
-      // create a job
-      const id = await this.client
-        .createJob({
-          body: {
-            targetFn: name,
-            targetArgs: pack(args),
-            pool: options?.pool,
-          },
-          headers: {
-            authorization: this.authHeader,
-          },
-        })
-        .then((res) => {
-          if (res.status === 201) {
-            return res.body.id;
-          } else if (res.status === 401) {
-            throw new DifferentialError(
-              "Invalid API Key or API Secret. Make sure you are using the correct API Key and API Secret."
-            );
-          } else {
-            throw new DifferentialError(`Failed to create job: ${res.status}`);
-          }
-        });
-
-      // wait for the job to complete
-      this.pollState.polling = true;
-      const result = await pollForJob(
-        this.client,
-        { jobId: id },
-        this.authHeader
-      );
-
-      if (result.type === "resolution") {
-        // return the result
-        this.pollState.polling = false;
-        return result.content;
-      } else if (result.type === "rejection") {
-        this.pollState.polling = false;
-        const error = deserializeError(result.content);
-        throw error;
-      } else {
-        throw new DifferentialError("Unexpected result type");
-      }
-    }) as unknown as T;
+    functionRegistry[name] = {
+      fn: fn,
+      serviceName,
+    };
   }
 
-  /**
-   * Register a background function with Differential. The inner function will be executed asynchronously in the host compute environment. Good for set-and-forget functions.
-   *
-   * @example Basic usage
-   * ```ts
-   * const report = d.background(async (data: { userId: string }) => {
-   *   await db.insert(data);
-   * }, {
-   *   pool: "background-worker"
-   * });
-   * ```
-   *
-   * @param f The function to register with Differential. Can be any async function.
-   * @param options
-   * @param options.name The name of the function. Defaults to the name of the function passed in, or a hash of the function if it is anonymous. Differential does a good job of uniquely identifying the function across different runtimes, as long as the source code is the same. Specifying the function name would be helpful if the source code between your nodes is somehow different, and you'd like to ensure that the same function is being executed.
-   * @param options.pool The worker pool to run this function on. If not provided, the function will be run on any worker pool.
-   * @returns A promise that resolves to the job ID of the job that was created.
-   */
-  background<T extends (...args: Parameters<T>) => ReturnType<T>>(
-    f: AssertPromiseReturnType<T>,
-    options?: {
-      name?: string;
-      pool?: string;
-    }
-  ): (...args: Parameters<T>) => Promise<{ id: string }> {
-    if (typeof f !== "function") {
-      throw new DifferentialError("fn must be a function");
-    }
-
-    const name = options?.name || f.name || cyrb53(f.toString()).toString();
-
-    log(`Registering function`, {
-      name,
-    });
-
-    if (!name) {
-      throw new DifferentialError("Function must have a name");
-    }
-
-    functionRegistry[name] = f;
-
-    return async (...args: unknown[]) => {
-      // wake up machine
-      await this.onWork(options?.pool);
-
-      // create a job
-      const id = await this.client
-        .createJob({
-          body: {
-            targetFn: name,
-            targetArgs: pack(args),
-            pool: options?.pool,
-          },
-          headers: {
-            authorization: this.authHeader,
-          },
-        })
-        .then((res) => {
-          if (res.status === 201) {
-            return res.body.id;
-          } else {
-            throw new DifferentialError(`Failed to create job: ${res.status}`);
-          }
+  service<T extends ServiceDefinition>(service: T) {
+    for (const [key, value] of Object.entries(service.operations)) {
+      if (functionRegistry[key]) {
+        throw new DifferentialError(
+          `Function name '${key}' is already registered by another service.`
+        );
+      } else {
+        this.register({
+          fn: value.fn,
+          name: key,
+          serviceName: service.name,
         });
+      }
+    }
 
-      return { id };
+    return {
+      ...service,
+      start: () => this.listen(service.name),
+      stop: () => this.quit(),
     };
+  }
+
+  async call<T extends ServiceDefinition>(
+    fn: keyof T["operations"],
+    args: Parameters<T["operations"][keyof T["operations"]]["fn"]>[0],
+    options?: { background?: boolean }
+  ): Promise<ReturnType<T["operations"][keyof T["operations"]]["fn"]>> {
+    // create a job
+    const id = await this.createJob<T>(fn, args);
+
+    // wait for the job to complete
+    this.pollState.polling = true;
+    const result = await pollForJob(
+      this.client,
+      { jobId: id },
+      this.authHeader
+    );
+
+    if (result.type === "resolution") {
+      // return the result
+      this.pollState.polling = false;
+      return result.content as ReturnType<
+        T["operations"][keyof T["operations"]]["fn"]
+      >;
+    } else if (result.type === "rejection") {
+      this.pollState.polling = false;
+      const error = deserializeError(result.content);
+      throw error;
+    } else {
+      throw new DifferentialError("Unexpected result type");
+    }
+  }
+
+  async background<T extends ServiceDefinition>(
+    fn: keyof T["operations"],
+    args: Parameters<T["operations"][keyof T["operations"]]["fn"]>[0]
+  ): Promise<{ id: string }> {
+    // create a job
+    const id = await this.createJob<T>(fn, args);
+
+    return { id };
+  }
+
+  private async createJob<T extends ServiceDefinition>(
+    fn: string | number | symbol,
+    args: Parameters<T["operations"][keyof T["operations"]]["fn"]>[0]
+  ) {
+    return await this.client
+      .createJob({
+        body: {
+          targetFn: fn as string,
+          targetArgs: pack(args),
+        },
+        headers: {
+          authorization: this.authHeader,
+        },
+      })
+      .then((res) => {
+        if (res.status === 201) {
+          return res.body.id;
+        } else if (res.status === 401) {
+          throw new DifferentialError(
+            "Invalid API Key or API Secret. Make sure you are using the correct API Key and API Secret."
+          );
+        } else {
+          throw new DifferentialError(`Failed to create job: ${res.status}`);
+        }
+      });
   }
 
   /**

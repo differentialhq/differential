@@ -1,6 +1,6 @@
 all: fetch
 
-fetch-contract:
+update-contract:
 	mkdir -p src
 	curl https://api.differential.dev/contract | jq -r '.contract' > src/contract.ts
 
