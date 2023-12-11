@@ -1,0 +1,57 @@
+import { d } from "./d";
+import type { dbService } from "./db";
+import { expertService } from "./expert";
+import { facadeService } from "./facade";
+
+describe("monolith", () => {
+  it("should not import a service, if we're just consuming it", async () => {
+    const result = await d.background<typeof dbService>("getNumberFromDB", {
+      input: 10,
+    });
+
+    expect(result.id).toBeDefined();
+
+    // at this point, dbService should not be registered
+    expect((globalThis as any).db).toBeUndefined();
+  });
+
+  it("should be able to call a service", async () => {
+    await expertService.start();
+
+    const result = await d.call<typeof expertService>(
+      "callExpert",
+      "Can't touch this"
+    );
+
+    expect(result).toBe("Expert says: Can't touch this");
+
+    await expertService.stop();
+  }, 10000);
+
+  it("should be able to call a service from another service", async () => {
+    await facadeService.start();
+    await expertService.start();
+
+    const result = await d.call<typeof facadeService>(
+      "interFunctionCall",
+      "foobar"
+    );
+
+    expect(result).toMatchInlineSnapshot(`
+[
+  "
+    foobar
+      \\   ^__^
+       \\  (oo)\\_______
+          (__)\\       )\\/\\
+              ||----w |
+              ||     ||
+    ",
+  "Expert says: foobar",
+]
+`);
+
+    await facadeService.stop();
+    await expertService.stop();
+  }, 20000);
+});

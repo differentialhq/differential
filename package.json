@@ -4,7 +4,7 @@
   "description": "Javascript SDK for differential.dev",
   "main": "bin/index.js",
   "scripts": {
-    "test": "jest ./src",
+    "test": "jest ./src --runInBand",
     "build": "make fetch-contract && tsc",
     "clean": "rm -rf ./bin",
     "prepare": "npm run clean && make fetch-contract && npm run build",

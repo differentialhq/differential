@@ -2,7 +2,6 @@ import { initClient } from "@ts-rest/core";
 import debug from "debug";
 import { contract } from "./contract";
 import { pack, unpack } from "./serialize";
-import { PoolConfig } from "./PoolConfig";
 
 const log = debug("differential:client");
 
@@ -16,20 +15,14 @@ type AssertPromiseReturnType<T extends (...args: any[]) => any> = T extends (
     : "Any function that is passed to fn must return a Promise. Fix this by making the inner function async."
   : "Any function that is passed to fn must return a Promise. Fix this by making the inner function async.";
 
-const cyrb53 = (str: string, seed = 0) => {
-  let h1 = 0xdeadbeef ^ seed,
-    h2 = 0x41c6ce57 ^ seed;
-  for (let i = 0, ch; i < str.length; i++) {
-    ch = str.charCodeAt(i);
-    h1 = Math.imul(h1 ^ ch, 2654435761);
-    h2 = Math.imul(h2 ^ ch, 1597334677);
-  }
-  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
-  h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
-  h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+// Define a type for any function that returns a promise
+type AsyncFunction = (...args: any[]) => Promise<any>;
 
-  return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+export type ServiceDefinition = {
+  name: string;
+  operations: {
+    [key: string]: AsyncFunction;
+  };
 };
 
 const createClient = (baseUrl: string, machineId: string) =>
@@ -87,6 +80,8 @@ const pollForJob = async (
     result.status === 429;
 
   if (jobPending || serviceUnavailable) {
+    // TODO: if this happens, we need to update the job status to "failed"
+    // and see if we can cancel the job on the service through some signal implementation.
     if (attempt > 10) {
       throw new DifferentialError("Failed to execute job due to timeout", {
         code: "JOB_TIMEOUT",
@@ -94,6 +89,7 @@ const pollForJob = async (
       });
     }
 
+    // TODO: rework attempt logic
     await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
     return pollForJob(client, params, authHeader, attempt + 1);
   }
@@ -104,16 +100,22 @@ const pollForJob = async (
   });
 };
 
-const functionRegistry: { [key: string]: Function } = {};
+type ServiceRegistryFunction = {
+  fn: Function;
+  serviceName: string;
+  options?: {};
+};
+
+const functionRegistry: { [key: string]: ServiceRegistryFunction } = {};
 
 type Result<T = unknown> = {
   content: T;
   type: "resolution" | "rejection";
 };
 
-const executeFn = async (fn: Function, args: unknown[]): Promise<Result> => {
+const executeFn = async (fn: Function, arg: unknown): Promise<Result> => {
   try {
-    const result = await fn(...args);
+    const result = await fn(arg);
 
     return {
       content: result,
@@ -141,130 +143,219 @@ const executeFn = async (fn: Function, args: unknown[]): Promise<Result> => {
   }
 };
 
-let pollingForNextJob = false;
+class PollingAgent {
+  private pollingForNextJob = false;
+  private pollJobsTimer: NodeJS.Timeout | undefined;
 
-const pollForNextJob = async (
-  client: ReturnType<typeof createClient>,
-  authHeader: string,
-  pollState: {
-    current: number;
-    concurrency: number;
-    polling: boolean;
-  },
-  pool?: string
-): Promise<
-  | {
-      jobCount: number;
+  private pollState = {
+    current: 0,
+    concurrency: 100,
+    polling: false, // this is the polling state for the currently executing job.
+  };
+
+  constructor(
+    private client: ReturnType<typeof createClient>,
+    private authHeader: string,
+    private service: {
+      name: string;
+      idleTimeout?: number;
+      onIdle?: () => void;
     }
-  | undefined
-> => {
-  if (pollingForNextJob) {
-    return;
-  }
+  ) {}
 
-  log("Polling for next job");
-  pollingForNextJob = true;
+  pollForNextJob = async (): Promise<
+    | {
+        jobCount: number;
+      }
+    | undefined
+  > => {
+    if (this.pollingForNextJob) {
+      return;
+    }
 
-  if (pollState.concurrency <= pollState.current) {
-    log("Max concurrency reached");
-    return;
-  }
+    log("Polling for next job", { service: this.service });
+    this.pollingForNextJob = true;
 
-  try {
-    const pollResult = await client
-      .getNextJobs({
-        query: {
-          limit: Math.ceil((pollState.concurrency - pollState.current) / 2),
-          pools: pool, // TODO: pools -> pool
-        },
-        headers: {
-          authorization: authHeader,
-        },
-      })
-      .catch((e) => {
-        log(`Failed to poll for next job: ${e.message}`);
+    if (this.pollState.concurrency <= this.pollState.current) {
+      log("Max concurrency reached");
+      return;
+    }
+
+    try {
+      const pollResult = await this.client
+        .getNextJobs({
+          query: {
+            limit: Math.ceil(
+              (this.pollState.concurrency - this.pollState.current) / 2
+            ),
+            functions: Object.entries(functionRegistry)
+              .filter((s) => s[1].serviceName === this.service.name)
+              .map((s) => s[0])
+              .join(","),
+          },
+          headers: {
+            authorization: this.authHeader,
+          },
+        })
+        .catch((e) => {
+          log(`Failed to poll for next job: ${e.message}`);
+
+          return {
+            status: -1,
+          } as const;
+        });
+
+      if (pollResult.status === 400) {
+        log("Error polling for next job", JSON.stringify(pollResult.body));
+      } else if (pollResult.status === 200) {
+        log("Received jobs", pollResult.body.length);
+
+        this.pollState.current += pollResult.body.length;
+
+        const jobs = pollResult.body;
+
+        await Promise.allSettled(
+          jobs.map(async (job) => {
+            const registered = functionRegistry[job.targetFn];
+
+            log("Executing job", {
+              id: job.id,
+              targetFn: job.targetFn,
+              registered: !!registered,
+            });
+
+            let result: Result;
+
+            if (!registered) {
+              const error = new DifferentialError(
+                `Function was not registered. name='${
+                  job.targetFn
+                }' registeredFunctions='${Object.keys(functionRegistry).join(
+                  ","
+                )}'`
+              );
+
+              result = {
+                content: serializeError(error),
+                type: "rejection",
+              };
+            } else {
+              const arg = unpack(job.targetArgs);
+
+              log("Executing fn", {
+                id: job.id,
+                targetFn: job.targetFn,
+                registeredFn: registered.fn,
+                arg,
+              });
+
+              result = await executeFn(registered.fn, arg);
+            }
+
+            log("Persisting job result", {
+              id: job.id,
+              resultType: result.type,
+            });
+
+            await this.client
+              .persistJobResult({
+                body: {
+                  result: pack(result.content),
+                  resultType: result.type,
+                },
+                params: {
+                  jobId: job.id,
+                },
+                headers: {
+                  authorization: this.authHeader,
+                },
+              })
+              .then((res) => {
+                if (res.status === 204) {
+                  log("Completed job", job.id, job.targetFn);
+                } else {
+                  throw new DifferentialError(
+                    `Failed to persist job: ${res.status}`,
+                    {
+                      jobId: job.id,
+                      body: res.body,
+                    }
+                  );
+                }
+              })
+              .finally(() => {
+                this.pollState.current -= 1;
+              });
+          })
+        );
 
         return {
-          status: -1,
-        } as const;
-      });
-
-    if (pollResult.status === 400) {
-      log("Error polling for next job", JSON.stringify(pollResult.body));
-    } else if (pollResult.status === 200) {
-      log("Received jobs", pollResult.body.length);
-
-      pollState.current += pollResult.body.length;
-
-      const jobs = pollResult.body;
-
-      await Promise.allSettled(
-        jobs.map(async (job) => {
-          const fn = functionRegistry[job.targetFn];
-
-          log("Executing job", job.id, job.targetFn);
-
-          let result: Result;
-
-          if (!fn) {
-            const error = new DifferentialError(
-              `Function was not registered. name='${
-                job.targetFn
-              }' registeredFunctions='${Object.keys(functionRegistry).join(
-                ","
-              )}'`
-            );
-
-            result = {
-              content: serializeError(error),
-              type: "rejection",
-            };
-          } else {
-            const args = unpack(job.targetArgs);
-            result = await executeFn(fn, args);
-          }
-
-          await client
-            .persistJobResult({
-              body: {
-                result: pack(result.content),
-                resultType: result.type,
-              },
-              params: {
-                jobId: job.id,
-              },
-              headers: {
-                authorization: authHeader,
-              },
-            })
-            .then((res) => {
-              if (res.status === 204) {
-                log("Completed job", job.id, job.targetFn);
-              } else {
-                throw new DifferentialError(
-                  `Failed to persist job: ${res.status}`,
-                  {
-                    jobId: job.id,
-                    body: res.body,
-                  }
-                );
-              }
-            })
-            .finally(() => {
-              pollState.current -= 1;
-            });
-        })
-      );
-
-      return {
-        jobCount: jobs.length,
-      };
-    } else {
-      log("Error polling for next job", pollResult.status);
+          jobCount: jobs.length,
+        };
+      } else {
+        log("Error polling for next job", { pollResult });
+      }
+    } finally {
+      this.pollingForNextJob = false;
     }
-  } finally {
-    pollingForNextJob = false;
+  };
+
+  startPolling() {
+    let resolved = false;
+    let lastTimeWeHadJobs = Date.now();
+
+    return new Promise<void>((resolve) => {
+      this.pollJobsTimer = setInterval(async () => {
+        const result = await this.pollForNextJob();
+
+        if (!resolved) {
+          resolved = true;
+          resolve();
+        }
+
+        if (result?.jobCount === 0 && this.service?.idleTimeout) {
+          const timeSinceLastJob = Date.now() - lastTimeWeHadJobs;
+
+          if (timeSinceLastJob > this.service?.idleTimeout) {
+            log("Idle timeout reached");
+            this.service?.onIdle?.();
+          }
+        } else {
+          lastTimeWeHadJobs = Date.now();
+        }
+      }, 1000);
+    });
   }
+
+  quit(): Promise<void> {
+    clearInterval(this.pollJobsTimer);
+
+    return new Promise((resolve) => {
+      if (this.pollState.polling) {
+        const quitTimer: NodeJS.Timeout = setInterval(() => {
+          log("Waiting for polling to finish");
+          if (!this.pollState.polling) {
+            log("Polling finished");
+            clearInterval(quitTimer);
+            resolve();
+          }
+        }, 500);
+      } else {
+        resolve();
+      }
+    });
+  }
+
+  setConcurrency(concurrency: number) {
+    this.pollState.concurrency = concurrency;
+  }
+}
+
+type WorkerPool = {
+  idleTimeout?: number;
+  onWork?: () => void;
+  onIdle?: () => void;
+  concurrency?: number;
 };
 
 /**
@@ -305,33 +396,23 @@ export class Differential {
   private machineId: string;
   private client: ReturnType<typeof createClient>;
 
-  private pollState = {
-    current: 0,
-    concurrency: 100,
-    polling: false, // this is the polling state for the currently executing job.
-  };
+  // TODO: needs to be configurable in the constructor
+  private workerPoolConfig: Map<string, WorkerPool> = new Map();
 
-  /**
-   * waking up is done by sending a request to the health check url directly
-   * so that the network doesn't have to be configured to allow incoming requests.
-   * from the outside.
-   */
-  private onWork = async (pool?: string): Promise<void> => {
-    const listeners = pool
-      ? this.listeners?.filter((l) => l.name === pool)
-      : this.listeners;
+  private pollingAgents = new Map<string, PollingAgent>();
 
-    for (const listener of listeners ?? []) {
-      listener.onWork?.();
-    }
-  };
+  // private pollState = {
+  //   current: 0,
+  //   concurrency: 100,
+  //   polling: false, // this is the polling state for the currently executing job.
+  // };
 
   /**
    * Initializes a new Differential instance.
    * @param apiSecret The API Secret for your Differential cluster. Obtain this from [your Differential dashboard](https://admin.differential.dev/dashboard).
-   * @param listeners An array of listener configurations to use for listening for jobs. A listener listens for work and executes them in the host compute environment.
+   * @param workerPools A dictionary of worker pool configurations to use for running service functions.
    */
-  constructor(private apiSecret: string, private listeners?: PoolConfig[]) {
+  constructor(private apiSecret: string) {
     this.authHeader = `Basic ${this.apiSecret}`;
     this.endpoint =
       process.env.DIFFERENTIAL_API_ENDPOINT_OVERRIDE ??
@@ -347,69 +428,46 @@ export class Differential {
   }
 
   /**
-   * Listens for jobs and executes them in the host compute environment. This method is non-blocking.
-   * @param listenParams
-   * @param listenParams.asPool The worker pool to listen for jobs for. If not provided, all worker pools will be listened for.
-   *
-   * @example Basic usage
-   * ```ts
-   * d.listen();
-   * ```
-   *
-   * @example With worker pool
-   * ```ts
-   * d.listen({
-   *  asPool: "image-processor",
-   * });
-   * ```
+   * waking up is done by sending a request to the health check url directly
+   * so that the network doesn't have to be configured to allow incoming requests.
+   * from the outside.
    */
-  listen(listenParams?: { asPool?: string }) {
-    if (Object.keys(functionRegistry).length === 0) {
-      throw new Error(
-        "No functions were registered. Make sure you `import` or `require` the paths to your functions before calling `listen`."
-      );
-    }
+  // TODO: call this
+  // private onWork = async (pool?: string): Promise<void> => {
+  //   if (!pool) {
+  //     // execute all pools
 
-    let lastTimeWeHadJobs = Date.now();
+  //     const pools = this.workerPools
+  //       ? Object.values(this.workerPools)
+  //       : undefined;
 
-    const initMachineTypes = this.listeners?.map((listener) => listener.name);
+  //     for (const listener of pools ?? []) {
+  //       listener.onWork?.();
+  //     }
+  //   } else {
+  //     // execute specific pool
+  //     const listener = this.workerPools?.[pool];
 
-    if (
-      listenParams?.asPool &&
-      !initMachineTypes?.includes(listenParams?.asPool)
-    ) {
-      throw new DifferentialError(
-        `Machine type '${listenParams?.asPool}' is not configured in listeners`
-      );
-    }
+  //     listener?.onWork?.();
+  //   }
+  // };
 
-    const listener = this.listeners?.find(
-      (listener) => listener.name === listenParams?.asPool
-    );
+  private async listen(service: string) {
+    const pool = this.workerPoolConfig.get(service);
 
-    this.pollJobsTimer = setInterval(async () => {
-      const result = await pollForNextJob(
-        this.client,
-        this.authHeader,
-        this.pollState,
-        listenParams?.asPool
-      );
+    const pollingAgent = new PollingAgent(this.client, this.authHeader, {
+      name: service,
+      idleTimeout: pool?.idleTimeout,
+      onIdle: pool?.onIdle,
+    });
 
-      if (result?.jobCount === 0 && listener?.idleTimeout) {
-        const timeSinceLastJob = Date.now() - lastTimeWeHadJobs;
+    this.pollingAgents.set(service, pollingAgent);
 
-        if (timeSinceLastJob > listener?.idleTimeout) {
-          log("Idle timeout reached");
-          listener?.onIdle?.();
-        }
-      } else {
-        lastTimeWeHadJobs = Date.now();
-      }
-    }, 1000);
+    await pollingAgent.startPolling();
   }
 
   /**
-   * Stops listening for jobs, and waits for all currently executing jobs to finish. Useful for a graceful shutdown.
+   * Stops the service, and waits for all currently executing functions to finish. Useful for a graceful shutdown.
    * @returns A promise that resolves when all currently executing jobs have finished.
    *
    * @example Basic usage
@@ -420,55 +478,26 @@ export class Differential {
    * });
    * ```
    */
-  quit(): Promise<void> {
-    clearInterval(this.pollJobsTimer);
-
-    return new Promise((resolve) => {
-      if (this.pollState.polling) {
-        const quitTimer: NodeJS.Timeout = setInterval(() => {
-          log("Waiting for polling to finish");
-          if (!this.pollState.polling) {
-            log("Polling finished");
-            clearInterval(quitTimer);
-            resolve();
-          }
-        }, 500);
-      } else {
-        resolve();
-      }
+  private quit(): Promise<void> {
+    return Promise.allSettled(
+      Array.from(this.pollingAgents.values()).map((agent) => agent.quit())
+    ).then(() => {
+      this.pollingAgents.clear();
     });
   }
 
-  /**
-   * Register a foreground function with Differential. The inner function will be executed in the host compute environment, and the result will be returned to the caller.
-   * @param f The function to register with Differential. Can be any async function.
-   * @param options
-   * @param options.name The name of the function. Defaults to the name of the function passed in, or a hash of the function if it is anonymous. Differential does a good job of uniquely identifying the function across different runtimes, as long as the source code is the same. Specifying the function name would be helpful if the source code between your nodes is somehow different, and you'd like to ensure that the same function is being executed.
-   * @param options.pool The worker pool to run this function on. If not provided, the function will be run on any worker pool.
-   * @returns A function that returns a promise that resolves to the result of the function.
-   *
-   * @example Basic usage
-   * ```ts
-   * const processImage = d.fn(async (image: Buffer) => {
-   *   const processedImage = await imageProcessor.process(image);
-   *   return processedImage;
-   * }, {
-   *   pool: "image-processor"
-   * });
-   * ```
-   */
-  fn<T extends (...args: Parameters<T>) => ReturnType<T>>(
-    f: AssertPromiseReturnType<T>,
-    options?: {
-      name?: string;
-      pool?: string;
-    }
-  ): T {
-    if (typeof f !== "function") {
+  private register<T extends (...args: Parameters<T>) => ReturnType<T>>({
+    fn,
+    name,
+    serviceName,
+  }: {
+    fn: AssertPromiseReturnType<T>;
+    name: string;
+    serviceName: string;
+  }) {
+    if (typeof fn !== "function") {
       throw new DifferentialError("fn must be a function");
     }
-
-    const name = options?.name || f.name || cyrb53(f.toString()).toString();
 
     log(`Registering function`, {
       name,
@@ -478,136 +507,95 @@ export class Differential {
       throw new DifferentialError("Function must have a name");
     }
 
-    functionRegistry[name] = f;
-
-    return (async (...args: unknown[]) => {
-      // wake up machine
-      await this.onWork(options?.pool);
-
-      // create a job
-      const id = await this.client
-        .createJob({
-          body: {
-            targetFn: name,
-            targetArgs: pack(args),
-            pool: options?.pool,
-          },
-          headers: {
-            authorization: this.authHeader,
-          },
-        })
-        .then((res) => {
-          if (res.status === 201) {
-            return res.body.id;
-          } else if (res.status === 401) {
-            throw new DifferentialError(
-              "Invalid API Key or API Secret. Make sure you are using the correct API Key and API Secret."
-            );
-          } else {
-            throw new DifferentialError(`Failed to create job: ${res.status}`);
-          }
-        });
-
-      // wait for the job to complete
-      this.pollState.polling = true;
-      const result = await pollForJob(
-        this.client,
-        { jobId: id },
-        this.authHeader
-      );
-
-      if (result.type === "resolution") {
-        // return the result
-        this.pollState.polling = false;
-        return result.content;
-      } else if (result.type === "rejection") {
-        this.pollState.polling = false;
-        const error = deserializeError(result.content);
-        throw error;
-      } else {
-        throw new DifferentialError("Unexpected result type");
-      }
-    }) as unknown as T;
-  }
-
-  /**
-   * Register a background function with Differential. The inner function will be executed asynchronously in the host compute environment. Good for set-and-forget functions.
-   *
-   * @example Basic usage
-   * ```ts
-   * const report = d.background(async (data: { userId: string }) => {
-   *   await db.insert(data);
-   * }, {
-   *   pool: "background-worker"
-   * });
-   * ```
-   *
-   * @param f The function to register with Differential. Can be any async function.
-   * @param options
-   * @param options.name The name of the function. Defaults to the name of the function passed in, or a hash of the function if it is anonymous. Differential does a good job of uniquely identifying the function across different runtimes, as long as the source code is the same. Specifying the function name would be helpful if the source code between your nodes is somehow different, and you'd like to ensure that the same function is being executed.
-   * @param options.pool The worker pool to run this function on. If not provided, the function will be run on any worker pool.
-   * @returns A promise that resolves to the job ID of the job that was created.
-   */
-  background<T extends (...args: Parameters<T>) => ReturnType<T>>(
-    f: AssertPromiseReturnType<T>,
-    options?: {
-      name?: string;
-      pool?: string;
-    }
-  ): (...args: Parameters<T>) => Promise<{ id: string }> {
-    if (typeof f !== "function") {
-      throw new DifferentialError("fn must be a function");
-    }
-
-    const name = options?.name || f.name || cyrb53(f.toString()).toString();
-
-    log(`Registering function`, {
-      name,
-    });
-
-    if (!name) {
-      throw new DifferentialError("Function must have a name");
-    }
-
-    functionRegistry[name] = f;
-
-    return async (...args: unknown[]) => {
-      // wake up machine
-      await this.onWork(options?.pool);
-
-      // create a job
-      const id = await this.client
-        .createJob({
-          body: {
-            targetFn: name,
-            targetArgs: pack(args),
-            pool: options?.pool,
-          },
-          headers: {
-            authorization: this.authHeader,
-          },
-        })
-        .then((res) => {
-          if (res.status === 201) {
-            return res.body.id;
-          } else {
-            throw new DifferentialError(`Failed to create job: ${res.status}`);
-          }
-        });
-
-      return { id };
+    functionRegistry[name] = {
+      fn: fn,
+      serviceName,
     };
   }
 
-  /**
-   * Sets the maximum number of function calls to execute concurrently.
-   * @param concurrency The maximum number of function calls to execute concurrently. Defaults to 100.
-   * @example Basic usage
-   * ```ts
-   * d.setConcurrency(1); // only execute one function at a time
-   * ```
-   */
-  setConcurrency(concurrency: number) {
-    this.pollState.concurrency = concurrency;
+  service<T extends ServiceDefinition>(service: T) {
+    for (const [key, value] of Object.entries(service.operations)) {
+      if (functionRegistry[key]) {
+        throw new DifferentialError(
+          `Function name '${key}' is already registered by another service.`
+        );
+      } else {
+        this.register({
+          fn: value,
+          name: key,
+          serviceName: service.name,
+        });
+      }
+    }
+
+    return {
+      ...service,
+      start: () => this.listen(service.name),
+      stop: () => this.quit(),
+    };
+  }
+
+  async call<T extends ServiceDefinition>(
+    fn: keyof T["operations"],
+    args: Parameters<T["operations"][keyof T["operations"]]>[0]
+  ): Promise<ReturnType<T["operations"][keyof T["operations"]]>> {
+    // create a job
+    const id = await this.createJob<T>(fn, args);
+
+    // wait for the job to complete
+    const result = await pollForJob(
+      this.client,
+      { jobId: id },
+      this.authHeader
+    );
+
+    if (result.type === "resolution") {
+      // return the result
+      return result.content as ReturnType<
+        T["operations"][keyof T["operations"]]
+      >;
+    } else if (result.type === "rejection") {
+      const error = deserializeError(result.content);
+      throw error;
+    } else {
+      throw new DifferentialError("Unexpected result type");
+    }
+  }
+
+  async background<T extends ServiceDefinition>(
+    fn: keyof T["operations"],
+    args: Parameters<T["operations"][keyof T["operations"]]>[0]
+  ): Promise<{ id: string }> {
+    // create a job
+    const id = await this.createJob<T>(fn, args);
+
+    return { id };
+  }
+
+  private async createJob<T extends ServiceDefinition>(
+    fn: string | number | symbol,
+    args: Parameters<T["operations"][keyof T["operations"]]>[0]
+  ) {
+    return await this.client
+      .createJob({
+        body: {
+          targetFn: fn as string,
+          targetArgs: pack(args),
+        },
+        headers: {
+          authorization: this.authHeader,
+        },
+      })
+      .then((res) => {
+        if (res.status === 201) {
+          return res.body.id;
+        } else if (res.status === 401) {
+          throw new DifferentialError(
+            "Invalid API Key or API Secret. Make sure you are using the correct API Key and API Secret."
+          );
+        } else {
+          throw new DifferentialError(`Failed to create job: ${res.status}`);
+        }
+      });
   }
 }
