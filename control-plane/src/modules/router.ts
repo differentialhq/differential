@@ -32,14 +32,28 @@ export const router = s.router(contract, {
 
     await selfHealJobsHack();
 
-    const jobs = await nextJobs({
-      functions: request.query.functions,
-      pools: pool,
-      owner,
-      limit,
-      machineId: request.headers["x-machine-id"],
-      ip: request.request.ip,
-    });
+    let jobs: {
+      id: string;
+      targetFn: string;
+      targetArgs: string;
+    }[];
+
+    const start = Date.now();
+
+    do {
+      jobs = await nextJobs({
+        functions: request.query.functions,
+        pools: pool,
+        owner,
+        limit,
+        machineId: request.headers["x-machine-id"],
+        ip: request.request.ip,
+      });
+
+      if (jobs.length === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    } while (jobs.length === 0 && Date.now() - start < 5000);
 
     return {
       status: 200,
