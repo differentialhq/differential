@@ -1,0 +1,1 @@
+ALTER TABLE "credentials" DROP COLUMN IF EXISTS "api_key";

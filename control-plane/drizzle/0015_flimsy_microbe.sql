@@ -1,0 +1,2 @@
+ALTER TABLE "jobs" ADD COLUMN "timed_out_at" timestamp with time zone DEFAULT now() + interval '300 seconds';--> statement-breakpoint
+ALTER TABLE "jobs" ADD COLUMN "timeout_interval" integer DEFAULT 300;

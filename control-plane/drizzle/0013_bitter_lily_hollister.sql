@@ -1,0 +1,1 @@
+ALTER TABLE "machines" ALTER COLUMN "cluster_id" SET NOT NULL;

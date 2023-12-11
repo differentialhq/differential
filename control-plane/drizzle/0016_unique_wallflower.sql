@@ -1,0 +1,1 @@
+ALTER TABLE "clusters" ADD COLUMN "wake_up_config" json;

@@ -1,0 +1,1 @@
+ALTER TABLE "jobs" ADD COLUMN "owner_id" varchar(1024);
