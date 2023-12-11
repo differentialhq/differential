@@ -9,6 +9,8 @@ import util from "util";
 import path from "path";
 import * as auth from "./auth";
 import * as admin from "./admin";
+import { QueryResult } from "pg";
+import { nextJobs } from "./jobs";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -28,57 +30,16 @@ export const router = s.router(contract, {
 
     const pool = request.query.pools || "*";
 
-    // make jobs timed out with no remaining attempts into failed jobs
-    await data.db.execute(
-      sql`UPDATE jobs SET status = 'failure' WHERE status = 'running' AND remaining = 0 AND timed_out_at < now()`
-    );
+    await selfHealJobsHack();
 
-    // make jobs that have failed but still have remaining attempts into pending jobs
-    await data.db.execute(
-      sql`UPDATE jobs SET status = 'pending' WHERE status = 'failure' AND remaining > 0`
-    );
-
-    // drizzle raw query to update the status of the jobs
-    const results = await data.db.execute(
-      sql`UPDATE jobs SET status = 'running', remaining = remaining - 1 WHERE id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining > 0)) AND owner_hash = ${owner.clusterId} AND (machine_type IS NULL OR machine_type = ${pool}) LIMIT ${limit}) RETURNING *`
-    );
-
-    // store machine info. needs to be backgrounded later
-    await data.db
-      .insert(data.machines)
-      .values({
-        id: request.headers["x-machine-id"],
-        last_ping_at: new Date(),
-        machine_type: pool,
-        ip: request.request.ip,
-        cluster_id: owner.clusterId,
-      })
-      .onConflictDoUpdate({
-        target: data.machines.id,
-        set: {
-          last_ping_at: new Date(),
-          machine_type: pool,
-          ip: request.request.ip,
-          cluster_id: owner.clusterId, // beacuse we're using the secret key hash as the cluster id
-        },
-      });
-
-    if (results.rowCount === 0) {
-      return {
-        status: 200,
-        body: [],
-      };
-    }
-
-    const jobs: {
-      id: string;
-      targetFn: string;
-      targetArgs: string;
-    }[] = results.rows.map((row) => ({
-      id: row.id as string,
-      targetFn: row.target_fn as string,
-      targetArgs: row.target_args as string,
-    }));
+    const jobs = await nextJobs({
+      functions: request.query.functions,
+      pools: pool,
+      owner,
+      limit,
+      machineId: request.headers["x-machine-id"],
+      ip: request.request.ip,
+    });
 
     return {
       status: 200,
@@ -277,3 +238,13 @@ export const router = s.router(contract, {
     };
   },
 });
+async function selfHealJobsHack() {
+  await data.db.execute(
+    sql`UPDATE jobs SET status = 'failure' WHERE status = 'running' AND remaining = 0 AND timed_out_at < now()`
+  );
+
+  // make jobs that have failed but still have remaining attempts into pending jobs
+  await data.db.execute(
+    sql`UPDATE jobs SET status = 'pending' WHERE status = 'failure' AND remaining > 0`
+  );
+}

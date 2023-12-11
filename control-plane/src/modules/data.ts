@@ -91,6 +91,11 @@ export const db = drizzle(pool);
 
 (async function () {
   console.log("Migrating database...");
-  await migrate(db, { migrationsFolder: "./drizzle" });
+  try {
+    await migrate(db, { migrationsFolder: "./drizzle" });
+  } catch (e) {
+    console.error("Error migrating database", e);
+    process.exit(1);
+  }
   console.log("Database migrated");
 })();

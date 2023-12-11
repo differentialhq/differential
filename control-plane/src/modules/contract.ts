@@ -20,6 +20,7 @@ export const contract = c.router({
     query: z.object({
       pools: z.string().optional(),
       limit: z.coerce.number().default(1),
+      functions: z.string().optional(),
     }),
     responses: {
       200: z.array(NextJobSchema),
