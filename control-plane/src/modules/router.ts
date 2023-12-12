@@ -53,7 +53,7 @@ export const router = s.router(contract, {
       if (jobs.length === 0) {
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
-    } while (jobs.length === 0 && Date.now() - start < 5000);
+    } while (jobs.length === 0 && Date.now() - start < 5000); // TODO: make the blocking time configurable via query param
 
     return {
       status: 200,

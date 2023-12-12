@@ -14,7 +14,7 @@ Run the following command in your terminal to set up a hello world project
 mkdir differential-hello-world && \
 cd differential-hello-world && \
 npm init es6 -y && \
-npm install @differential-dev/sdk && \
+npm install @differentialhq/core && \
 touch index.js && \
 touch differential.js && \
 touch hello.js && \
@@ -29,7 +29,7 @@ Demo tokens will expire after 1 hour and will have lower rate limits. But you ca
 
 ```ts
 // differential.js
-import { Differential, PoolConfig } from "@differential-dev/sdk";
+import { Differential, PoolConfig } from "@differentialhq/core";
 
 export const d = new Differential(
   "API_SECRET", // replace with your API secret

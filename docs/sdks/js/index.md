@@ -11,19 +11,19 @@ order: 2000
 ### npm
 
 ```bash
-npm install @differential-dev/sdk
+npm install @differentialhq/core
 ```
 
 ### yarn
 
 ```bash
-yarn add @differential-dev/sdk
+yarn add @differentialhq/core
 ```
 
 ## Usage
 
 ```ts
-import { Differential, PoolConfig } from "@differential-dev/sdk";
+import { Differential, PoolConfig } from "@differentialhq/core";
 
 export const d = new Differential(
   "API_SECRET",
