@@ -13,14 +13,14 @@ This allows you to easily distribute work across multiple machines, and even acr
 ## Installation
 
 ```bash
-npm install @differential-dev/sdk
+npm install @differentialhq/core
 ```
 
 ## Quick Start
 
 ```ts
 import process from 'process';
-import { Differential } from "@differential-dev/sdk";
+import { Differential } from "@differentialhq/core";
 
 export const d = Differential({
   apiSecret: "sk_excellent_beans_1234",

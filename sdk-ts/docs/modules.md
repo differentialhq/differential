@@ -1,4 +1,4 @@
-# @differential-dev/sdk
+# @differentialhq/core
 
 ## Table of contents
 

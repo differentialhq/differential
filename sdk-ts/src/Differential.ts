@@ -537,7 +537,7 @@ export class Differential {
 
   async call<T extends ServiceDefinition>(
     fn: keyof T["operations"],
-    args: Parameters<T["operations"][keyof T["operations"]]>[0]
+    ...args: Parameters<T["operations"][keyof T["operations"]]>
   ): Promise<ReturnType<T["operations"][keyof T["operations"]]>> {
     // create a job
     const id = await this.createJob<T>(fn, args);
@@ -564,7 +564,7 @@ export class Differential {
 
   async background<T extends ServiceDefinition>(
     fn: keyof T["operations"],
-    args: Parameters<T["operations"][keyof T["operations"]]>[0]
+    ...args: Parameters<T["operations"][keyof T["operations"]]>
   ): Promise<{ id: string }> {
     // create a job
     const id = await this.createJob<T>(fn, args);
@@ -574,7 +574,7 @@ export class Differential {
 
   private async createJob<T extends ServiceDefinition>(
     fn: string | number | symbol,
-    args: Parameters<T["operations"][keyof T["operations"]]>[0]
+    args: Parameters<T["operations"][keyof T["operations"]]>
   ) {
     return await this.client
       .createJob({
