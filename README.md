@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./sdk-ts/assets/logo.png" width="200" style="border-radius: 10px" />
+  <img src="./ts-core/assets/logo.png" width="200" style="border-radius: 10px" />
 </p>
 
 # Overview
@@ -7,7 +7,7 @@
 This is a mono-repo for almost all of the Differential codebase. It contains the following repositories:
 
 - [Control Plance](./control-plane/) The control plane is the central command & control for a differential cluster. This is fully open source and can be run on your own infrastructure without using the cloud offering.
-- [Typescript SDK](./sdk-ts/) The Typescript SDK is the main way to interact with Differential. It is used to define services, call services, and run services.
+- [Typescript SDK](./ts-core/) The Typescript SDK is the main way to interact with Differential. It is used to define services, call services, and run services.
 - [Docs](./docs/) The docs are the main source of information for Differential. They are hosted at [docs.differential.dev](https://docs.differential.dev).
 
 # What's Differential?
