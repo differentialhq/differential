@@ -26,6 +26,8 @@ jobs:
 
       - name: Run tests for ts-core
         run: npm test --prefix ts-core
+        env:
+          DIFFERENTIAL_API_SECRET: ${{ secrets.DIFFERENTIAL_API_SECRET }}
 
       - name: Run tests for control-plane
         run: npm test --prefix control-plane
