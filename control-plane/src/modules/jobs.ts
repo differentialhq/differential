@@ -1,6 +1,43 @@
 import { sql } from "drizzle-orm";
 import { QueryResult } from "pg";
 import * as data from "./data";
+import { ulid } from "ulid";
+import crypto from "crypto";
+
+export const createJob = async ({
+  targetFn,
+  targetArgs,
+  owner,
+  pool,
+}: {
+  targetFn: string;
+  targetArgs: string;
+  owner: { clusterId: string };
+  pool?: string;
+}) => {
+  const id = `exec-${targetFn.substring(0, 8)}-${ulid()}`;
+
+  console.log("Creating job", {
+    id,
+    target_fn: targetFn,
+    target_args: targetArgs,
+    idempotency_key: `1`,
+    status: "pending",
+    pool,
+  });
+
+  await data.db.insert(data.jobs).values({
+    id,
+    target_fn: targetFn,
+    target_args: targetArgs,
+    idempotency_key: `ik_${crypto.randomBytes(64).toString("hex")}`,
+    status: "pending",
+    owner_hash: owner.clusterId,
+    machine_type: pool,
+  });
+
+  return { id };
+};
 
 export const nextJobs = async ({
   functions,

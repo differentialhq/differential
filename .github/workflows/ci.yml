@@ -31,3 +31,5 @@ jobs:
 
       - name: Run tests for control-plane
         run: npm test --prefix control-plane
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

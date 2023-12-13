@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "test": "jest src",
+    "test": "jest src --setupFiles dotenv/config --forceExit",
     "dev": "nodemon src/index.ts",
     "migrations": "node_modules/.bin/drizzle-kit generate:pg --schema src/modules/data.ts",
     "build": "tsc",

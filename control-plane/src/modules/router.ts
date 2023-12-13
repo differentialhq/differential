@@ -10,7 +10,7 @@ import path from "path";
 import * as auth from "./auth";
 import * as admin from "./admin";
 import { QueryResult } from "pg";
-import { nextJobs } from "./jobs";
+import { createJob, nextJobs } from "./jobs";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -99,25 +99,11 @@ export const router = s.router(contract, {
 
     const { targetFn, targetArgs, pool } = request.body;
 
-    const id = `exec-${ulid()}`;
-
-    console.log("Creating job", {
-      id,
-      target_fn: targetFn,
-      target_args: targetArgs,
-      idempotency_key: `1`,
-      status: "pending",
+    const { id } = await createJob({
+      targetFn,
+      targetArgs,
+      owner,
       pool,
-    });
-
-    await data.db.insert(data.jobs).values({
-      id,
-      target_fn: targetFn,
-      target_args: targetArgs,
-      idempotency_key: `ik_${crypto.randomBytes(64).toString("hex")}`,
-      status: "pending",
-      owner_hash: owner.clusterId,
-      machine_type: pool,
     });
 
     return {
