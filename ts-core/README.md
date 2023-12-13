@@ -49,7 +49,7 @@ const callEndpoint = async () => {
 // Register the function as a service
 export const helloWorldService = d.service({
   name: "helloWorld",
-  operations: {
+  functions: {
     sayHello,
     callEndpoint,
   },

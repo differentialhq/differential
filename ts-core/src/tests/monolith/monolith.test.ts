@@ -5,9 +5,11 @@ import { facadeService } from "./facade";
 
 describe("monolith", () => {
   it("should not import a service, if we're just consuming it", async () => {
-    const result = await d.background<typeof dbService>("getNumberFromDB", {
-      input: 10,
-    });
+    const result = await d.background<typeof dbService, "getNumberFromDB">(
+      "getNumberFromDB",
+      10,
+      2
+    );
 
     expect(result.id).toBeDefined();
 
@@ -18,7 +20,7 @@ describe("monolith", () => {
   it("should be able to call a service", async () => {
     await expertService.start();
 
-    const result = await d.call<typeof expertService>(
+    const result = await d.call<typeof expertService, "callExpert">(
       "callExpert",
       "Can't touch this"
     );
@@ -32,9 +34,12 @@ describe("monolith", () => {
     await facadeService.start();
     await expertService.start();
 
-    const result = await d.call<typeof facadeService>(
+    const result = await d.call<typeof facadeService, "interFunctionCall">(
       "interFunctionCall",
-      "foobar"
+      {
+        expertText: "foobar",
+        cowText: "foobar",
+      }
     );
 
     expect(result).toMatchInlineSnapshot(`

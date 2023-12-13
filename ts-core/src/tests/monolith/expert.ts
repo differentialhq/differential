@@ -8,7 +8,7 @@ export const callExpert = async (text: string) => {
 
 export const expertService = d.service({
   name: "expert",
-  operations: {
+  functions: {
     callExpert,
   },
 });

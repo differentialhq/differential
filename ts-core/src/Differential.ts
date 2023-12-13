@@ -20,7 +20,7 @@ type AsyncFunction = (...args: any[]) => Promise<any>;
 
 export type ServiceDefinition = {
   name: string;
-  operations: {
+  functions: {
     [key: string]: AsyncFunction;
   };
 };
@@ -101,7 +101,7 @@ const pollForJob = async (
 };
 
 type ServiceRegistryFunction = {
-  fn: Function;
+  fn: AsyncFunction;
   serviceName: string;
   options?: {};
 };
@@ -113,9 +113,12 @@ type Result<T = unknown> = {
   type: "resolution" | "rejection";
 };
 
-const executeFn = async (fn: Function, arg: unknown): Promise<Result> => {
+const executeFn = async (
+  fn: AsyncFunction,
+  args: Parameters<AsyncFunction>
+): Promise<Result> => {
   try {
-    const result = await fn(arg);
+    const result = await fn(args[0]);
 
     return {
       content: result,
@@ -240,16 +243,16 @@ class PollingAgent {
                 type: "rejection",
               };
             } else {
-              const arg = unpack(job.targetArgs);
+              const args: Parameters<AsyncFunction> = unpack(job.targetArgs);
 
               log("Executing fn", {
                 id: job.id,
                 targetFn: job.targetFn,
                 registeredFn: registered.fn,
-                arg,
+                args,
               });
 
-              result = await executeFn(registered.fn, arg);
+              result = await executeFn(registered.fn, args);
             }
 
             log("Persisting job result", {
@@ -486,12 +489,12 @@ export class Differential {
     });
   }
 
-  private register<T extends (...args: Parameters<T>) => ReturnType<T>>({
+  private register<T extends AsyncFunction>({
     fn,
     name,
     serviceName,
   }: {
-    fn: AssertPromiseReturnType<T>;
+    fn: AsyncFunction;
     name: string;
     serviceName: string;
   }) {
@@ -514,7 +517,7 @@ export class Differential {
   }
 
   service<T extends ServiceDefinition>(service: T) {
-    for (const [key, value] of Object.entries(service.operations)) {
+    for (const [key, value] of Object.entries(service.functions)) {
       if (functionRegistry[key]) {
         throw new DifferentialError(
           `Function name '${key}' is already registered by another service.`
@@ -535,12 +538,12 @@ export class Differential {
     };
   }
 
-  async call<T extends ServiceDefinition>(
-    fn: keyof T["operations"],
-    ...args: Parameters<T["operations"][keyof T["operations"]]>
-  ): Promise<ReturnType<T["operations"][keyof T["operations"]]>> {
+  async call<T extends ServiceDefinition, U extends keyof T["functions"]>(
+    fn: U,
+    ...args: Parameters<T["functions"][U]>
+  ): Promise<ReturnType<T["functions"][U]>> {
     // create a job
-    const id = await this.createJob<T>(fn, args);
+    const id = await this.createJob<T, U>(fn, args);
 
     // wait for the job to complete
     const result = await pollForJob(
@@ -551,9 +554,7 @@ export class Differential {
 
     if (result.type === "resolution") {
       // return the result
-      return result.content as ReturnType<
-        T["operations"][keyof T["operations"]]
-      >;
+      return result.content as ReturnType<T["functions"][U]>;
     } else if (result.type === "rejection") {
       const error = deserializeError(result.content);
       throw error;
@@ -562,20 +563,20 @@ export class Differential {
     }
   }
 
-  async background<T extends ServiceDefinition>(
-    fn: keyof T["operations"],
-    ...args: Parameters<T["operations"][keyof T["operations"]]>
+  async background<T extends ServiceDefinition, U extends keyof T["functions"]>(
+    fn: U,
+    ...args: Parameters<T["functions"][U]>
   ): Promise<{ id: string }> {
     // create a job
-    const id = await this.createJob<T>(fn, args);
+    const id = await this.createJob<T, U>(fn, args);
 
     return { id };
   }
 
-  private async createJob<T extends ServiceDefinition>(
-    fn: string | number | symbol,
-    args: Parameters<T["operations"][keyof T["operations"]]>
-  ) {
+  private async createJob<
+    T extends ServiceDefinition,
+    U extends keyof T["functions"]
+  >(fn: string | number | symbol, args: Parameters<T["functions"][U]>) {
     return await this.client
       .createJob({
         body: {
