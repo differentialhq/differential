@@ -2,21 +2,12 @@ import { initClient } from "@ts-rest/core";
 import debug from "debug";
 import { contract } from "./contract";
 import { pack, unpack } from "./serialize";
+import { AsyncFunction } from "./types";
+import { Result, TaskQueue } from "./task-queue";
 
 const log = debug("differential:client");
 
 const { serializeError, deserializeError } = require("./errors");
-
-type AssertPromiseReturnType<T extends (...args: any[]) => any> = T extends (
-  ...args: any[]
-) => infer R
-  ? R extends Promise<any>
-    ? T
-    : "Any function that is passed to fn must return a Promise. Fix this by making the inner function async."
-  : "Any function that is passed to fn must return a Promise. Fix this by making the inner function async.";
-
-// Define a type for any function that returns a promise
-type AsyncFunction = (...args: any[]) => Promise<any>;
 
 export type ServiceDefinition = {
   name: string;
@@ -107,44 +98,6 @@ type ServiceRegistryFunction = {
 };
 
 const functionRegistry: { [key: string]: ServiceRegistryFunction } = {};
-
-type Result<T = unknown> = {
-  content: T;
-  type: "resolution" | "rejection";
-};
-
-const executeFn = async (
-  fn: AsyncFunction,
-  args: Parameters<AsyncFunction>
-): Promise<Result> => {
-  try {
-    const result = await fn(args[0]);
-
-    return {
-      content: result,
-      type: "resolution",
-    };
-  } catch (e) {
-    if (e instanceof Error) {
-      return {
-        content: serializeError(e),
-        type: "rejection",
-      };
-    } else if (typeof e === "string") {
-      return {
-        content: serializeError(new Error(e)),
-        type: "rejection",
-      };
-    } else {
-      return {
-        content: new Error(
-          "Differential encountered an unexpected error type. Make sure you are throwing an Error object."
-        ),
-        type: "rejection",
-      };
-    }
-  }
-};
 
 class PollingAgent {
   private pollingForNextJob = false;
@@ -252,43 +205,45 @@ class PollingAgent {
                 args,
               });
 
-              result = await executeFn(registered.fn, args);
-            }
-
-            log("Persisting job result", {
-              id: job.id,
-              resultType: result.type,
-            });
-
-            await this.client
-              .persistJobResult({
-                body: {
-                  result: pack(result.content),
+              const onComplete = async (result: Result) => {
+                log("Persisting job result", {
+                  id: job.id,
                   resultType: result.type,
-                },
-                params: {
-                  jobId: job.id,
-                },
-                headers: {
-                  authorization: this.authHeader,
-                },
-              })
-              .then((res) => {
-                if (res.status === 204) {
-                  log("Completed job", job.id, job.targetFn);
-                } else {
-                  throw new DifferentialError(
-                    `Failed to persist job: ${res.status}`,
-                    {
+                });
+
+                await this.client
+                  .persistJobResult({
+                    body: {
+                      result: pack(result.content),
+                      resultType: result.type,
+                    },
+                    params: {
                       jobId: job.id,
-                      body: res.body,
+                    },
+                    headers: {
+                      authorization: this.authHeader,
+                    },
+                  })
+                  .then((res) => {
+                    if (res.status === 204) {
+                      log("Completed job", job.id, job.targetFn);
+                    } else {
+                      throw new DifferentialError(
+                        `Failed to persist job: ${res.status}`,
+                        {
+                          jobId: job.id,
+                          body: res.body,
+                        }
+                      );
                     }
-                  );
-                }
-              })
-              .finally(() => {
-                this.pollState.current -= 1;
-              });
+                  })
+                  .finally(() => {
+                    this.pollState.current -= 1;
+                  });
+              };
+
+              TaskQueue.addTask(registered.fn, args, onComplete);
+            }
           })
         );
 
@@ -333,7 +288,9 @@ class PollingAgent {
   quit(): Promise<void> {
     clearInterval(this.pollJobsTimer);
 
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
+      await TaskQueue.quit();
+
       if (this.pollState.polling) {
         const quitTimer: NodeJS.Timeout = setInterval(() => {
           log("Waiting for polling to finish");
