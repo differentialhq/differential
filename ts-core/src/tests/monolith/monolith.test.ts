@@ -59,4 +59,11 @@ describe("monolith", () => {
     await facadeService.stop();
     await expertService.stop();
   }, 20000);
+
+  it("should be ok to start the service idempotently", async () => {
+    await expertService.start();
+    await expertService.start();
+
+    await expertService.stop();
+  });
 });

@@ -309,6 +309,14 @@ class PollingAgent {
   setConcurrency(concurrency: number) {
     this.pollState.concurrency = concurrency;
   }
+
+  public get serviceName(): string {
+    return this.service.name;
+  }
+
+  public get polling(): boolean {
+    return this.pollState.polling;
+  }
 }
 
 type WorkerPool = {
@@ -359,7 +367,7 @@ export class Differential {
   // TODO: needs to be configurable in the constructor
   private workerPoolConfig: Map<string, WorkerPool> = new Map();
 
-  private pollingAgents = new Map<string, PollingAgent>();
+  private pollingAgents: PollingAgent[] = [];
 
   // private pollState = {
   //   current: 0,
@@ -421,7 +429,14 @@ export class Differential {
       onIdle: pool?.onIdle,
     });
 
-    this.pollingAgents.set(service, pollingAgent);
+    if (
+      this.pollingAgents.find((p) => p.serviceName === service && p.polling)
+    ) {
+      log("Polling agent already exists. This is a no-op", { service });
+      return;
+    }
+
+    this.pollingAgents.push(pollingAgent);
 
     await pollingAgent.startPolling();
   }
@@ -438,11 +453,11 @@ export class Differential {
    * });
    * ```
    */
-  private quit(): Promise<void> {
-    return Promise.allSettled(
-      Array.from(this.pollingAgents.values()).map((agent) => agent.quit())
-    ).then(() => {
-      this.pollingAgents.clear();
+  private async quit(): Promise<void> {
+    await Promise.all(this.pollingAgents.map((agent) => agent.quit()));
+
+    log("All polling agents quit", {
+      count: this.pollingAgents.length,
     });
   }
 
