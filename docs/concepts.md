@@ -12,5 +12,5 @@ A computer that you operate and own, that runs your code. It connects to Differe
 ## Cluster
 A group of hosts.
 
-## Listener
-A host that is listening for incoming work. It is a member of a cluster.
+## Service
+A collection of functions that can be called by a consumer using the differential client.

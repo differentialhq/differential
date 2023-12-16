@@ -4,10 +4,19 @@ order: 1500
 
 # Differential
 
-Differential transforms your internal functions into secure RPC endpoints, streamlining app and service integration without requiring separate service contracts or deployments. This approach fosters a unified codebase, akin to a monolithic architecture, while granting the flexibility to activate specific functions as needed and deactivate others at runtime.
+> Connect your services together 10x faster with delightful DX!
 
-This model offers the ease of maintaining a cohesive codebase without the typical drawbacks of such an approach, such as complications arising from executing worker code within an API server. Differential orchestrates these functions through a centralized server. This allows you to leverage the benefits of a unified codebase while enjoying the efficiency and security of distributed execution.
+Differential is a platform aimed at making it easier for developers to work with service-oriented architectures, whether they are starting a new project or modifying an existing one. We currently have first class support for Typescript, with more languages coming soon.
 
-Your get the developer experience of maintaining co-located code, without the downfalls of co-located execution (e.g. like worker code running in a API server).
+It simplifies the process of splitting and managing services, and completely abstracts away the network communication, serialization, and transport protocols. Below, we outline the main features and benefits of Differential, and explain how it's suitable for both new projects (greenfield) and existing ones looking for improvement (brownfield).
 
-Orchestration is done via a central server, however - it supports end to end encryption so you can trust that Differential can't read your data.
+## Differential helps you with:
+- Decomposition of Complex Codebases: Breaks down intricate codebases into smaller, independently scalable services while keeping the code co-located.
+- Secure RPC Endpoints: Transforms internal functions into secure Remote Procedure Call (RPC) endpoints, facilitating smooth app and service integration.
+- Unified Codebase: Maintains a unified codebase, offering the simplicity of a monolithic architecture with the flexibility of activating or deactivating functions as needed.
+- Centralized Orchestration: Orchestrates functions through a centralized server with end-to-end encryption, balancing the benefits of distributed execution and the security of data.
+- Automated Service Contracts: Generates service contracts automatically without a compile step, ensuring type safety across different services.
+
+## Ideal Use Cases
+- Greenfield Projects: For new projects looking to build background services from day one, Differential offers a straightforward path to develop and scale services efficiently.
+- Brownfield Projects: Ideal for existing projects aiming to split their services. Differential facilitates this transition without the overhead of splitting codebases and setting up new tooling, making it a practical choice for evolving projects.
