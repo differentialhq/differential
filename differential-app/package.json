@@ -1,13 +1,14 @@
 {
   "name": "@differentialhq/create-app",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A scaffolding for differential.dev apps",
+  "bin": "setup.sh",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "service": "tsx src/services/$npm_config_name.ts",
     "command": "tsx src/commands/$npm_config_name.ts",
-    "patch": "npm version patch && git push --follow-tags && git add . && git commit -m \"release: $(cat package.json | jq -r '.version')\" && git push"
+    "patch": "npm version patch && git push --follow-tags && git add . && git commit -m \"release: $(cat package.json | jq -r '.version')\" && git push && npm publish"
   },
   "repository": {
     "type": "git",

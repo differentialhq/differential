@@ -1,11 +1,7 @@
 import { Differential } from "@differentialhq/core";
 
-// Go to https://api.differential.dev/demo/token and replace the token below
-// with the temporary token you receive.
+// This is a temporary API sercret for testing purposes, created by npm init.
+// You can obtain your own API sercret by signing up at https://differential.dev
 const apiSecret = "REPLACE_ME";
-
-if (apiSecret === "REPLACE_ME") {
-  throw new Error("Please replace the apiSecret with your own");
-}
 
 export const d = new Differential(apiSecret);
