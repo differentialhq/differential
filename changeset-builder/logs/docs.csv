@@ -1,1 +1,11 @@
-27d2347, 2023-12-17, chore: Adding logs directory
+16e44e6, 2023-12-17, Update changelogs [skip ci]
+732247b, 2023-12-17, feat: Updating the docs to 3.0
+56c69ce, 2023-12-16, docs: Update docs to reflect 3.0
+f9b81aa, 2023-12-12, docs: Updating the docs to new package name
+5110192, 2023-12-12, chore: Adding docs to the monorepo
+c3bb7db, 2023-12-12, chore: Adding the SDK to monorepo
+cdffc61, 2023-12-09, breaking: Representing machine types and listeners as Worker Pools
+fcbbd40, 2023-12-04, feat(sdk): Add setConcurrency to dynamically change host concurrency
+9b7996b, 2023-12-02, Remove registerPaths
+b0f0a2b, 2023-11-30, Fix integration tests
+cad93dc, 2023-11-30, Adding docs
