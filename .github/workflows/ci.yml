@@ -12,6 +12,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -33,3 +36,12 @@ jobs:
         run: npm test --prefix control-plane
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Generate changelogs
+        run: cd changeset-builder && npm install && npm i -g tsx && sh src/log.sh
+
+      - name: Commit changelogs
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Update changelogs [skip ci]
+          file_pattern: '*.md *.csv'
