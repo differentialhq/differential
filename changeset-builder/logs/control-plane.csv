@@ -1,9 +1,1 @@
-7a4ae43, 2023-12-17, chore: Clean up tsconfig
-2b99b99, 2023-12-13, test: Use real database for ci tests
-3fa0702, 2023-12-12, chore: Configure monorepo-wide CI
-f9b81aa, 2023-12-12, docs: Updating the docs to new package name
-98a6b69, 2023-12-12, feat: Adding long polling support for control-plane
-372b897, 2023-12-12, feat: Adding function support
-28b182e, 2023-12-12, chore: Add control plane back without git history
-063b4f4, 2023-12-12, chore: Remove git submodule
-31966bf, 2023-12-12, chore: Moving control-plane to the monorepo
+27d2347, 2023-12-17, chore: Adding logs directory
