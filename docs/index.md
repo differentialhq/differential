@@ -4,19 +4,82 @@ order: 1500
 
 # Differential
 
-> Connect your services together 10x faster with delightful DX!
+> Build and Connect production services 10x faster with delightful DX!
 
-Differential is a platform aimed at making it easier for developers to work with service-oriented architectures, whether they are starting a new project or modifying an existing one. We currently have first class support for Typescript, with more languages coming soon.
+Differential is a platform that enables developers to turn every functions into typesafe services, without spending additional effort on managing service contracts. It currently has first class support for Typescript.
 
-It simplifies the process of splitting and managing services, and completely abstracts away the network communication, serialization, and transport protocols. Below, we outline the main features and benefits of Differential, and explain how it's suitable for both new projects (greenfield) and existing ones looking for improvement (brownfield).
+## How does it look?
 
-## Differential helps you with:
-- Decomposition of Complex Codebases: Breaks down intricate codebases into smaller, independently scalable services while keeping the code co-located.
-- Secure RPC Endpoints: Transforms internal functions into secure Remote Procedure Call (RPC) endpoints, facilitating smooth app and service integration.
-- Unified Codebase: Maintains a unified codebase, offering the simplicity of a monolithic architecture with the flexibility of activating or deactivating functions as needed.
-- Centralized Orchestration: Orchestrates functions through a centralized server with end-to-end encryption, balancing the benefits of distributed execution and the security of data.
-- Automated Service Contracts: Generates service contracts automatically without a compile step, ensuring type safety across different services.
+### 1. Initialize your codebase
 
-## Ideal Use Cases
-- Greenfield Projects: For new projects looking to build background services from day one, Differential offers a straightforward path to develop and scale services efficiently.
-- Brownfield Projects: Ideal for existing projects aiming to split their services. Differential facilitates this transition without the overhead of splitting codebases and setting up new tooling, making it a practical choice for evolving projects.
+Keep your code co-located, and define your services in the `services/` directory - or not. It's up to you. 
+
+It only matters whether your service consumers can access the types of the service definition file.
+
+```ts
+src/
+ |- services/
+ |    └- my-service.ts
+ |- index.ts
+ └- d.ts
+```
+
+### 2. Define a service
+
+Running this code will start your service and advertise it to the Differential network.
+
+```ts
+// services/my-service.ts
+import { d } from "../d.ts";
+
+const service = d.service({
+  name: "my-service",
+  functions: {
+    hello: async (name: string) => {
+     return `Hello ${name}!`;
+    }
+  }
+});
+
+// start the service
+await service.start();
+
+// you can stop the service by calling 
+// service.stop() anytime, but it's recommended 
+// to do it on process exit.
+process.on("beforeExit", async () => {
+  await service.stop();
+});
+```
+
+### 3. Call the service
+
+Running this code in another process will call the service and return the result.
+
+```ts
+// index.ts
+
+import typeof { service } from "./services/my-service.ts";
+import { d } from "./d.ts";
+
+const result = 
+  await d.call<typeof service, "hello">("hello", "World");
+
+console.log(result); // Hello World!
+```
+
+## Why should I use it?
+- **Just focus on the functions**: 
+  - It simplifies the process of splitting and managing services
+  - Completely abstracts away the network communication, serialization, and transport protocols.
+- **Secure RPC Endpoints**: 
+  - Your functions are only accessible through the differential cluster. 
+  - This means you don't have to worry about service to service authentication, and can focus on the business logic. 
+  - The usual problems of exposing endpoints to the internet are also non-existent.
+- **Maintains a unified codebase**: 
+  - You don't have to split the codebase to split your services. 
+  - A simple `d.service()` will register a collection of functions as a service.
+  - Instead, you can deploy your code as a unified codebase, and start individual services by calling `service.start()`.
+- **Automated Service Contracts**: 
+  - Because service contracts are inferred by Typescript types, you don't have to worry about maintaining a separate contract file like in other RPC frameworks.
+  - The obvious trade-off here is that contracts don't validate the data at runtime, but it's trivial to add runtime validation if you need it.
