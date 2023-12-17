@@ -1,5 +1,5 @@
 {
-  "name": "differential-app",
+  "name": "@differentialhq/app",
   "version": "0.0.1",
   "description": "A scaffolding for differential.dev apps",
   "main": "index.ts",
