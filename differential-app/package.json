@@ -1,6 +1,6 @@
 {
   "name": "@differentialhq/create-app",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A scaffolding for differential.dev apps",
   "bin": "setup.sh",
   "type": "module",
