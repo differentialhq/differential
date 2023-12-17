@@ -1,8 +1,7 @@
 {
-  "name": "@differentialhq/app",
+  "name": "@differentialhq/create-app",
   "version": "0.0.1",
   "description": "A scaffolding for differential.dev apps",
-  "main": "index.ts",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
