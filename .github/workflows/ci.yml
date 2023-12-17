@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: '0' # fetch all history for all tags and branches so that changeset-builder can generate changelogs
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
