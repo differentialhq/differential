@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="100" height="150" src="./media/logo.png">
+  <img height="150" src="https://cdn.differential.dev/logo.png">
 </p>
 
 ## Overview

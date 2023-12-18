@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./ts-core/assets/logo.png" width="200" style="border-radius: 10px" />
+  <img src="https://cdn.differential.dev/logo.png" width="200" style="border-radius: 10px" />
 </p>
 
 # Overview
