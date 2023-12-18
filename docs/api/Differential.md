@@ -1,35 +1,30 @@
 # Class: Differential
 
-The Differential client. Use this to register functions, and establish listeners to listen for function calls.
-For most use cases, you should only need one Differential instance per process.
+The Differential client. This is the main entry point for using Differential.
 
 **`Example`**
 
 ```ts
- const d = new Differential("API_SECRET");
-```
+ const d = new Differential("API_SECRET"); // obtain this from your Differential dashboard
 
-**`Example`**
+const myService = d.service({
+  name: "my-service",
+  functions: {
+    hello: async (name: string) => { ... }
+  },
+});
 
-```ts
-const d = new Differential("API_SECRET", [
-  // background worker can keep running
-  new PoolConfig({
-    pool: "background-worker",
-  }),
-  // image processor should scale in and out when there's no work
-  // because it's expensive to keep running
-  new PoolConfig({
-    pool: "image-processor",
-    idleTimeout: 10_000,
-    onWork: () => {
-       flyMachinesInstance.start();
-    },
-    onIdle: () => {
-      flyMachinesInstance.stop();
-    },
-  }),
-]);
+await d.listen("my-service");
+
+// stop the service on shutdown
+process.on("beforeExit", async () => {
+  await d.quit();
+});
+
+// call a function on the service
+const result = await d.call<typeof myService, "hello">("hello", "world");
+
+console.log(result); // "Hello world"
 ```
 
 ## Table of contents
@@ -64,7 +59,7 @@ Initializes a new Differential instance.
 
 #### Defined in
 
-[src/Differential.ts:388](https://github.com/differentialHQ/differential/blob/27394f4/ts-core/src/Differential.ts#L388)
+[src/Differential.ts:374](https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L374)
 
 ## Methods
 
@@ -107,7 +102,7 @@ console.log(result.id); //
 
 #### Defined in
 
-[src/Differential.ts:590](https://github.com/differentialHQ/differential/blob/27394f4/ts-core/src/Differential.ts#L590)
+[src/Differential.ts:572](https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L572)
 
 ___
 
@@ -151,7 +146,7 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[src/Differential.ts:547](https://github.com/differentialHQ/differential/blob/27394f4/ts-core/src/Differential.ts#L547)
+[src/Differential.ts:529](https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L529)
 
 ___
 
@@ -203,4 +198,4 @@ process.on("beforeExit", async () => {
 
 #### Defined in
 
-[src/Differential.ts:509](https://github.com/differentialHQ/differential/blob/27394f4/ts-core/src/Differential.ts#L509)
+[src/Differential.ts:491](https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L491)

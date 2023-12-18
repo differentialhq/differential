@@ -333,53 +333,39 @@ type WorkerPool = {
 };
 
 /**
- * The Differential client. Use this to register functions, and establish listeners to listen for function calls.
- * For most use cases, you should only need one Differential instance per process.
+ * The Differential client. This is the main entry point for using Differential.
  *
  * @example Basic usage
  * ```ts
- *  const d = new Differential("API_SECRET");
- * ```
+ *  const d = new Differential("API_SECRET"); // obtain this from your Differential dashboard
  *
- * @example With listeners
- * ```ts
- * const d = new Differential("API_SECRET", [
- *   // background worker can keep running
- *   new PoolConfig({
- *     pool: "background-worker",
- *   }),
- *   // image processor should scale in and out when there's no work
- *   // because it's expensive to keep running
- *   new PoolConfig({
- *     pool: "image-processor",
- *     idleTimeout: 10_000,
- *     onWork: () => {
- *        flyMachinesInstance.start();
- *     },
- *     onIdle: () => {
- *       flyMachinesInstance.stop();
- *     },
- *   }),
- * ]);
+ * const myService = d.service({
+ *   name: "my-service",
+ *   functions: {
+ *     hello: async (name: string) => { ... }
+ *   },
+ * });
+ *
+ * await d.listen("my-service");
+ *
+ * // stop the service on shutdown
+ * process.on("beforeExit", async () => {
+ *   await d.quit();
+ * });
+ *
+ * // call a function on the service
+ * const result = await d.call<typeof myService, "hello">("hello", "world");
+ *
+ * console.log(result); // "Hello world"
  * ```
  */
 export class Differential {
   private authHeader: string;
-  private pollJobsTimer: NodeJS.Timeout | undefined;
   private endpoint: string;
   private machineId: string;
   private client: ReturnType<typeof createClient>;
 
-  // TODO: needs to be configurable in the constructor
-  private workerPoolConfig: Map<string, WorkerPool> = new Map();
-
   private pollingAgents: PollingAgent[] = [];
-
-  // private pollState = {
-  //   current: 0,
-  //   concurrency: 100,
-  //   polling: false, // this is the polling state for the currently executing job.
-  // };
 
   /**
    * Initializes a new Differential instance.
@@ -426,12 +412,8 @@ export class Differential {
   // };
 
   private async listen(service: string) {
-    const pool = this.workerPoolConfig.get(service);
-
     const pollingAgent = new PollingAgent(this.client, this.authHeader, {
       name: service,
-      idleTimeout: pool?.idleTimeout,
-      onIdle: pool?.onIdle,
     });
 
     if (
