@@ -1,6 +1,9 @@
 # Changelog
 ## 2023-12-18
+- Releases
+  - 3.0.6 [2db47ff](https://github.com/differentialhq/differential/commit/2db47ff)
 - Fixes
+  - Remove obsolete dependency [2c81915](https://github.com/differentialhq/differential/commit/2c81915)
   - Remove obsolete fly and listenerconfigs [9ba1719](https://github.com/differentialhq/differential/commit/9ba1719)
   - Deprecate unused modules [27394f4](https://github.com/differentialhq/differential/commit/27394f4)
 - Documentation
