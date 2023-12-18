@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.756211181001">
+
+    <!-- See retype.com -->
+    <meta name="generator" content="Retype 3.5.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Class: Differential</title>
+    <meta name="title" content="Class: Differential">
+    <meta name="description" content="The Differential client. Use this to register functions, and establish listeners to listen for function calls.">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://docs.differential.dev/api/differential/">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://docs.differential.dev/api/differential/">
+    <meta property="og:title" content="Class: Differential">
+    <meta property="og:description" content="The Differential client. Use this to register functions, and establish listeners to listen for function calls.">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://docs.differential.dev/api/differential/">
+    <meta property="twitter:title" content="Class: Differential">
+    <meta property="twitter:description" content="The Differential client. Use this to register functions, and establish listeners to listen for function calls.">
+
+    <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
+
+    <link href="../../resources/css/retype.css?v=3.5.0.756211181001" rel="stylesheet">
+
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.756211181001" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.756211181001" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.756211181001" defer></script>
+
+    <script>
+      !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
+      posthog.init('phc_ChaKGgtXEdJqaFw1r0w8XHXKG6dktdJQyFyMdqLToc1', { api_host: 'https://app.posthog.com' })
+    </script>
+</head>
+<body>
+    <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
+        <div class="absolute bottom-0 left-0 bg-gray-100 dark:bg-dark-800" style="top: 5rem; right: 50%"></div>
+    
+        <header id="docs-site-header" class="sticky top-0 z-30 flex w-full h-16 bg-white border-b border-gray-200 md:h-20 dark:bg-dark-850 dark:border-dark-650">
+            <div class="container relative flex items-center justify-between pr-6 grow md:justify-start">
+                <!-- Mobile menu button skeleton -->
+                <button v-cloak class="skeleton docs-mobile-menu-button flex items-center justify-center shrink-0 overflow-hidden dark:text-white focus:outline-none rounded-full w-10 h-10 ml-3.5 md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="mb-px shrink-0" width="24" height="24" viewBox="0 0 24 24" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor"><path d="M2 4h20v2H2zM2 11h20v2H2zM2 18h20v2H2z"></path></g></svg></button>
+                <div v-cloak id="docs-sidebar-toggle"></div>
+        
+                <!-- Logo -->
+                <div class="flex items-center justify-between h-full py-2 md:w-75">
+                    <div class="flex items-center px-2 md:px-6">
+                        <a id="docs-site-logo" href="../../" class="flex items-center leading-snug text-xl">
+                            <span class="w-10 mr-2 grow-0 shrink-0 overflow-hidden">
+                                <img class="max-h-10 dark:hidden md:inline-block" src="../../256.png">
+                                <img class="max-h-10 hidden dark:inline-block" src="../../256.png">
+                            </span>
+                            <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Differential Docs</span>
+                        </a>
+                    </div>
+        
+                    <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
+                </div>
+        
+                <div class="flex justify-between md:grow">
+                    <!-- Top Nav -->
+                    <nav class="hidden md:flex">
+                        <ul class="flex flex-col mb-4 md:pl-16 md:mb-0 md:flex-row md:items-center">
+                            <li class="mr-6">
+                                <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-blue-500 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200" href="https://www.differential.dev">Home</a>
+                            </li>
+                            <li class="mr-6">
+                                <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-blue-500 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200" href="https://admin.differential.dev/dashboard">Dashboard</a>
+                            </li>
+                            <li class="mr-6">
+                                <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-blue-500 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200" href="https://blog.differential.dev">Blog</a>
+                            </li>
+        
+                        </ul>
+                    </nav>
+        
+                    <!-- Header Right Skeleton -->
+                    <div v-cloak class="flex justify-end grow skeleton">
+        
+                        <!-- Search input mock -->
+                        <div class="relative hidden w-40 lg:block lg:max-w-sm lg:ml-auto">
+                            <div class="absolute flex items-center justify-center h-full pl-3 dark:text-dark-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon-base" width="16" height="16" viewBox="0 0 24 24" aria-labelledby="icon" role="presentation" style="margin-bottom: 1px;"><g fill="currentColor" ><path d="M21.71 20.29l-3.68-3.68A8.963 8.963 0 0020 11c0-4.96-4.04-9-9-9s-9 4.04-9 9 4.04 9 9 9c2.12 0 4.07-.74 5.61-1.97l3.68 3.68c.2.19.45.29.71.29s.51-.1.71-.29c.39-.39.39-1.03 0-1.42zM4 11c0-3.86 3.14-7 7-7s7 3.14 7 7c0 1.92-.78 3.66-2.04 4.93-.01.01-.02.01-.02.01-.01.01-.01.01-.01.02A6.98 6.98 0 0111 18c-3.86 0-7-3.14-7-7z" ></path></g></svg>
+                            </div>
+                            <input class="w-full h-10 placeholder-gray-400 transition-colors duration-200 ease-in bg-gray-200 border border-transparent rounded md:text-sm hover:bg-white hover:border-gray-300 focus:outline-none focus:bg-white focus:border-gray-500 dark:bg-dark-600 dark:border-dark-600 dark:placeholder-dark-400" style="padding: 0.625rem 0.75rem 0.625rem 2rem" type="text" placeholder="Search">
+                        </div>
+        
+                        <!-- Mobile search button -->
+                        <div class="flex items-center justify-center w-10 h-10 lg:hidden">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="shrink-0 icon-base" width="20" height="20" viewBox="0 0 24 24" aria-labelledby="icon" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor" ><path d="M21.71 20.29l-3.68-3.68A8.963 8.963 0 0020 11c0-4.96-4.04-9-9-9s-9 4.04-9 9 4.04 9 9 9c2.12 0 4.07-.74 5.61-1.97l3.68 3.68c.2.19.45.29.71.29s.51-.1.71-.29c.39-.39.39-1.03 0-1.42zM4 11c0-3.86 3.14-7 7-7s7 3.14 7 7c0 1.92-.78 3.66-2.04 4.93-.01.01-.02.01-.02.01-.01.01-.01.01-.01.02A6.98 6.98 0 0111 18c-3.86 0-7-3.14-7-7z" ></path></g></svg>
+                        </div>
+        
+                        <!-- Dark mode switch placeholder -->
+                        <div class="w-10 h-10 lg:ml-2"></div>
+        
+                        <!-- History button -->
+                        <div class="flex items-center justify-center w-10 h-10" style="margin-right: -0.625rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="shrink-0 icon-base" width="22" height="22" viewBox="0 0 24 24" aria-labelledby="icon" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor" ><g ><path d="M12.01 6.01c-.55 0-1 .45-1 1V12a1 1 0 00.4.8l3 2.22a.985.985 0 001.39-.2.996.996 0 00-.21-1.4l-2.6-1.92V7.01c.02-.55-.43-1-.98-1z"></path><path d="M12.01 1.91c-5.33 0-9.69 4.16-10.05 9.4l-.29-.26a.997.997 0 10-1.34 1.48l1.97 1.79c.19.17.43.26.67.26s.48-.09.67-.26l1.97-1.79a.997.997 0 10-1.34-1.48l-.31.28c.34-4.14 3.82-7.41 8.05-7.41 4.46 0 8.08 3.63 8.08 8.09s-3.63 8.08-8.08 8.08c-2.18 0-4.22-.85-5.75-2.4a.996.996 0 10-1.42 1.4 10.02 10.02 0 007.17 2.99c5.56 0 10.08-4.52 10.08-10.08.01-5.56-4.52-10.09-10.08-10.09z"></path></g></g></svg>
+                        </div>
+                    </div>
+        
+                    <div v-cloak class="flex justify-end grow">
+                        <div id="docs-mobile-search-button"></div>
+                        <doc-search-desktop></doc-search-desktop>
+        
+                        <doc-theme-switch class="lg:ml-2"></doc-theme-switch>
+                        <doc-history></doc-history>
+                    </div>
+                </div>
+            </div>
+        </header>
+    
+        <div class="container relative flex bg-white">
+            <!-- Sidebar Skeleton -->
+            <div v-cloak class="fixed flex flex-col shrink-0 duration-300 ease-in-out bg-gray-100 border-gray-200 sidebar top-20 w-75 border-r h-screen md:sticky transition-transform skeleton dark:bg-dark-800 dark:border-dark-650">
+            
+                <!-- Render this div, if config.showSidebarFilter is `true` -->
+                <div class="flex items-center h-16 px-6">
+                    <input class="w-full h-8 px-3 py-2 transition-colors duration-200 ease-linear bg-white border border-gray-200 rounded shadow-none text-sm focus:outline-none focus:border-gray-600 dark:bg-dark-600 dark:border-dark-600" type="text" placeholder="Filter">
+                </div>
+            
+                <div class="pl-6 mt-1 mb-4">
+                    <div class="w-32 h-3 mb-4 bg-gray-200 rounded-full loading dark:bg-dark-600"></div>
+                    <div class="w-48 h-3 mb-4 bg-gray-200 rounded-full loading dark:bg-dark-600"></div>
+                    <div class="w-40 h-3 mb-4 bg-gray-200 rounded-full loading dark:bg-dark-600"></div>
+                    <div class="w-32 h-3 mb-4 bg-gray-200 rounded-full loading dark:bg-dark-600"></div>
+                    <div class="w-48 h-3 mb-4 bg-gray-200 rounded-full loading dark:bg-dark-600"></div>
+                    <div class="w-40 h-3 mb-4 bg-gray-200 rounded-full loading dark:bg-dark-600"></div>
+                </div>
+            
+                <div class="shrink-0 mt-auto bg-transparent dark:border-dark-650">
+                    <a class="flex items-center justify-center flex-nowrap h-16 text-gray-400 dark:text-dark-400 hover:text-gray-700 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                        <span class="text-xs whitespace-nowrap">Powered by</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Sidebar component -->
+            <doc-sidebar v-cloak>
+                <template #sidebar-footer>
+                    <div class="shrink-0 mt-auto border-t md:bg-transparent md:border-none dark:border-dark-650">
+            
+                        <div class="py-3 px-6 md:hidden border-b dark:border-dark-650">
+                            <nav>
+                                <ul class="flex flex-wrap justify-center items-center">
+                                    <li class="mr-6">
+                                        <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-blue-500 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200" href="https://www.differential.dev">Home</a>
+                                    </li>
+                                    <li class="mr-6">
+                                        <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-blue-500 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200" href="https://admin.differential.dev/dashboard">Dashboard</a>
+                                    </li>
+                                    <li class="mr-6">
+                                        <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-blue-500 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200" href="https://blog.differential.dev">Blog</a>
+                                    </li>
+            
+                                </ul>
+                            </nav>
+                        </div>
+            
+                        <a class="flex items-center justify-center flex-nowrap h-16 text-gray-400 dark:text-dark-400 hover:text-gray-700 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                            <span class="text-xs whitespace-nowrap">Powered by</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                        </a>
+                    </div>
+                </template>
+            </doc-sidebar>
+    
+            <div class="grow min-w-0 dark:bg-dark-850">
+                <!-- Render "toolbar" template here on api pages --><!-- Render page content -->
+                <div class="flex">
+                    <div class="min-w-0 p-4 grow md:px-16">
+                        <main class="relative pb-12 lg:pt-2">
+                            <div class="docs-markdown" id="docs-content">
+                                <!-- Rendered if sidebar right is enabled -->
+                                <div id="docs-sidebar-right-toggle"></div>
+                                <!-- Page content  -->
+<doc-anchor-target id="class-differential" class="break-words">
+    <h1>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#class-differential">#</doc-anchor-trigger>
+        <span>Class: Differential</span>
+    </h1>
+</doc-anchor-target>
+<p>The Differential client. Use this to register functions, and establish listeners to listen for function calls.
+For most use cases, you should only need one Differential instance per process.</p>
+<p><strong><code v-pre>Example</code></strong></p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-typescript"><code v-pre class="language-typescript"> const d = new Differential(&quot;API_SECRET&quot;);</code></pre>
+</doc-codeblock></div>
+<p><strong><code v-pre>Example</code></strong></p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-typescript"><code v-pre class="language-typescript">const d = new Differential(&quot;API_SECRET&quot;, [
+  // background worker can keep running
+  new PoolConfig({
+    pool: &quot;background-worker&quot;,
+  }),
+  // image processor should scale in and out when there's no work
+  // because it's expensive to keep running
+  new PoolConfig({
+    pool: &quot;image-processor&quot;,
+    idleTimeout: 10_000,
+    onWork: () =&gt; {
+       flyMachinesInstance.start();
+    },
+    onIdle: () =&gt; {
+      flyMachinesInstance.stop();
+    },
+  }),
+]);</code></pre>
+</doc-codeblock></div>
+<doc-anchor-target id="table-of-contents">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#table-of-contents">#</doc-anchor-trigger>
+        <span>Table of contents</span>
+    </h2>
+</doc-anchor-target>
+<doc-anchor-target id="constructors">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#constructors">#</doc-anchor-trigger>
+        <span>Constructors</span>
+    </h3>
+</doc-anchor-target>
+<ul>
+<li><doc-anchor-trigger to="#constructor">constructor</doc-anchor-trigger></li>
+</ul>
+<doc-anchor-target id="methods">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#methods">#</doc-anchor-trigger>
+        <span>Methods</span>
+    </h3>
+</doc-anchor-target>
+<ul>
+<li><doc-anchor-trigger to="#background">background</doc-anchor-trigger></li>
+<li><doc-anchor-trigger to="#call">call</doc-anchor-trigger></li>
+<li><doc-anchor-trigger to="#service">service</doc-anchor-trigger></li>
+</ul>
+<doc-anchor-target id="constructors-1">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#constructors-1">#</doc-anchor-trigger>
+        <span>Constructors</span>
+    </h2>
+</doc-anchor-target>
+<doc-anchor-target id="constructor">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#constructor">#</doc-anchor-trigger>
+        <span>constructor</span>
+    </h3>
+</doc-anchor-target>
+<p>• <strong>new Differential</strong>(<code v-pre>apiSecret</code>): <a href=""><code v-pre>Differential</code></a></p>
+<p>Initializes a new Differential instance.</p>
+<doc-anchor-target id="parameters">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#parameters">#</doc-anchor-trigger>
+        <span>Parameters</span>
+    </h4>
+</doc-anchor-target>
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code v-pre>apiSecret</code></td>
+<td style="text-align: left;"><code v-pre>string</code></td>
+<td style="text-align: left;">The API Secret for your Differential cluster. Obtain this from <a href="https://admin.differential.dev/dashboard">your Differential dashboard</a>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<doc-anchor-target id="returns">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#returns">#</doc-anchor-trigger>
+        <span>Returns</span>
+    </h4>
+</doc-anchor-target>
+<p><a href=""><code v-pre>Differential</code></a></p>
+<doc-anchor-target id="defined-in">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#defined-in">#</doc-anchor-trigger>
+        <span>Defined in</span>
+    </h4>
+</doc-anchor-target>
+<p><a href="https://github.com/differentialHQ/differential/blob/27394f4/ts-core/src/Differential.ts#L388">src/Differential.ts:388</a></p>
+<doc-anchor-target id="methods-1">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#methods-1">#</doc-anchor-trigger>
+        <span>Methods</span>
+    </h2>
+</doc-anchor-target>
+<doc-anchor-target id="background">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#background">#</doc-anchor-trigger>
+        <span>background</span>
+    </h3>
+</doc-anchor-target>
+<p>▸ <strong>background</strong>&lt;<code v-pre>T</code>, <code v-pre>U</code>&gt;(<code v-pre>fn</code>, <code v-pre>...args</code>): <code v-pre>Promise</code>&lt;{ <code v-pre>id</code>: <code v-pre>string</code>  }&gt;</p>
+<p>Calls a function on a registered service, while ensuring the type safety of the function call through generics.
+Returns the job id of the function call, and doesn&#x27;t wait for the function to complete.</p>
+<doc-anchor-target id="type-parameters">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#type-parameters">#</doc-anchor-trigger>
+        <span>Type parameters</span>
+    </h4>
+</doc-anchor-target>
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code v-pre>T</code></td>
+<td style="text-align: left;">extends <code v-pre>RegisteredService</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>U</code></td>
+<td style="text-align: left;">extends <code v-pre>string</code> | <code v-pre>number</code> | <code v-pre>symbol</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<doc-anchor-target id="parameters-1">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#parameters-1">#</doc-anchor-trigger>
+        <span>Parameters</span>
+    </h4>
+</doc-anchor-target>
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code v-pre>fn</code></td>
+<td style="text-align: left;"><code v-pre>U</code></td>
+<td style="text-align: left;">The function name to call.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>...args</code></td>
+<td style="text-align: left;"><code v-pre>Parameters</code>&lt;<code v-pre>T</code>[<code v-pre>&quot;definition&quot;</code>][<code v-pre>&quot;functions&quot;</code>][<code v-pre>U</code>]&gt;</td>
+<td style="text-align: left;">The arguments to pass to the function.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<doc-anchor-target id="returns-1">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#returns-1">#</doc-anchor-trigger>
+        <span>Returns</span>
+    </h4>
+</doc-anchor-target>
+<p><code v-pre>Promise</code>&lt;{ <code v-pre>id</code>: <code v-pre>string</code>  }&gt;</p>
+<p>The job id of the function call.</p>
+<p><strong><code v-pre>Example</code></strong></p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-typescript"><code v-pre class="language-typescript">import { d } from &quot;./differential&quot;;
+
+const result = await d.background&lt;typeof helloService, &quot;hello&quot;&gt;(&quot;hello&quot;, &quot;world&quot;);
+
+console.log(result.id); //</code></pre>
+</doc-codeblock></div>
+<doc-anchor-target id="defined-in-1">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#defined-in-1">#</doc-anchor-trigger>
+        <span>Defined in</span>
+    </h4>
+</doc-anchor-target>
+<p><a href="https://github.com/differentialHQ/differential/blob/27394f4/ts-core/src/Differential.ts#L590">src/Differential.ts:590</a></p>
+<hr>
+<doc-anchor-target id="call">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#call">#</doc-anchor-trigger>
+        <span>call</span>
+    </h3>
+</doc-anchor-target>
+<p>▸ <strong>call</strong>&lt;<code v-pre>T</code>, <code v-pre>U</code>&gt;(<code v-pre>fn</code>, <code v-pre>...args</code>): <code v-pre>Promise</code>&lt;<code v-pre>ReturnType</code>&lt;<code v-pre>T</code>[<code v-pre>&quot;definition&quot;</code>][<code v-pre>&quot;functions&quot;</code>][<code v-pre>U</code>]&gt;&gt;</p>
+<p>Calls a function on a registered service, while ensuring the type safety of the function call through generics.
+Waits for the function to complete before returning, and returns the result of the function call.</p>
+<doc-anchor-target id="type-parameters-1">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#type-parameters-1">#</doc-anchor-trigger>
+        <span>Type parameters</span>
+    </h4>
+</doc-anchor-target>
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code v-pre>T</code></td>
+<td style="text-align: left;">extends <code v-pre>RegisteredService</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>U</code></td>
+<td style="text-align: left;">extends <code v-pre>string</code> | <code v-pre>number</code> | <code v-pre>symbol</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<doc-anchor-target id="parameters-2">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#parameters-2">#</doc-anchor-trigger>
+        <span>Parameters</span>
+    </h4>
+</doc-anchor-target>
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code v-pre>fn</code></td>
+<td style="text-align: left;"><code v-pre>U</code></td>
+<td style="text-align: left;">The function name to call.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>...args</code></td>
+<td style="text-align: left;"><code v-pre>Parameters</code>&lt;<code v-pre>T</code>[<code v-pre>&quot;definition&quot;</code>][<code v-pre>&quot;functions&quot;</code>][<code v-pre>U</code>]&gt;</td>
+<td style="text-align: left;">The arguments to pass to the function.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<doc-anchor-target id="returns-2">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#returns-2">#</doc-anchor-trigger>
+        <span>Returns</span>
+    </h4>
+</doc-anchor-target>
+<p><code v-pre>Promise</code>&lt;<code v-pre>ReturnType</code>&lt;<code v-pre>T</code>[<code v-pre>&quot;definition&quot;</code>][<code v-pre>&quot;functions&quot;</code>][<code v-pre>U</code>]&gt;&gt;</p>
+<p>The return value of the function.</p>
+<p><strong><code v-pre>Example</code></strong></p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-typescript"><code v-pre class="language-typescript">import { d } from &quot;./differential&quot;;
+import { helloService } from &quot;./hello-service&quot;;
+
+const result = await d.call&lt;typeof helloService, &quot;hello&quot;&gt;(&quot;hello&quot;, &quot;world&quot;);
+
+console.log(result); // &quot;Hello world&quot;</code></pre>
+</doc-codeblock></div>
+<doc-anchor-target id="defined-in-2">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#defined-in-2">#</doc-anchor-trigger>
+        <span>Defined in</span>
+    </h4>
+</doc-anchor-target>
+<p><a href="https://github.com/differentialHQ/differential/blob/27394f4/ts-core/src/Differential.ts#L547">src/Differential.ts:547</a></p>
+<hr>
+<doc-anchor-target id="service">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#service">#</doc-anchor-trigger>
+        <span>service</span>
+    </h3>
+</doc-anchor-target>
+<p>▸ <strong>service</strong>&lt;<code v-pre>T</code>&gt;(<code v-pre>service</code>): <code v-pre>RegisteredService</code></p>
+<p>Registers a service with Differential. This will register all functions on the service.</p>
+<doc-anchor-target id="type-parameters-2">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#type-parameters-2">#</doc-anchor-trigger>
+        <span>Type parameters</span>
+    </h4>
+</doc-anchor-target>
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code v-pre>T</code></td>
+<td style="text-align: left;">extends <code v-pre>ServiceDefinition</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<doc-anchor-target id="parameters-3">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#parameters-3">#</doc-anchor-trigger>
+        <span>Parameters</span>
+    </h4>
+</doc-anchor-target>
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code v-pre>service</code></td>
+<td style="text-align: left;"><code v-pre>T</code></td>
+<td style="text-align: left;">The service definition.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<doc-anchor-target id="returns-3">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#returns-3">#</doc-anchor-trigger>
+        <span>Returns</span>
+    </h4>
+</doc-anchor-target>
+<p><code v-pre>RegisteredService</code></p>
+<p>A registered service instance.</p>
+<p><strong><code v-pre>Example</code></strong></p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-typescript"><code v-pre class="language-typescript">const d = new Differential(&quot;API_SECRET&quot;);
+
+const service = d.service({
+  name: &quot;my-service&quot;,
+  functions: {
+    hello: async (name: string) =&gt; {
+      return `Hello ${name}`;
+   }
+});
+
+// start the service
+await service.start();
+
+// stop the service on shutdown
+process.on(&quot;beforeExit&quot;, async () =&gt; {
+  await service.stop();
+});</code></pre>
+</doc-codeblock></div>
+<doc-anchor-target id="defined-in-3">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#defined-in-3">#</doc-anchor-trigger>
+        <span>Defined in</span>
+    </h4>
+</doc-anchor-target>
+<p><a href="https://github.com/differentialHQ/differential/blob/27394f4/ts-core/src/Differential.ts#L509">src/Differential.ts:509</a></p>
+
+                                
+                                <!-- Required only on API pages -->
+                                <doc-toolbar-member-filter-no-results></doc-toolbar-member-filter-no-results>
+                            </div>
+                            <footer class="clear-both">
+                            
+                                <nav class="flex mt-14">
+                                    <div class="w-1/2">
+                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../api/">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                                            <span>
+                                                <span class="block text-xs font-normal text-gray-400 dark:text-dark-400">Previous</span>
+                                                <span class="block mt-1">Typescript Usage</span>
+                                            </span>
+                                        </a>
+                                    </div>
+                            
+                                    <div class="w-1/2">
+                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../changelog/">
+                                            <span>
+                                                <span class="block text-xs font-normal text-right text-gray-400 dark:text-dark-400">Next</span>
+                                                <span class="block mt-1">Changelog</span>
+                                            </span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                                        </a>
+                                    </div>
+                                </nav>
+                            </footer>
+                        </main>
+                
+                        <div class="border-t dark:border-dark-650 pt-6 mb-8">
+                            <footer class="flex flex-wrap items-center justify-between">
+                                <div>
+                                    <ul class="flex flex-wrap items-center text-sm">
+                                    </ul>
+                                </div>
+                                <div class="docs-copyright py-2 text-gray-500 dark:text-dark-350 text-sm leading-relaxed"><p>© Copyright 2023. All rights reserved.</p></div>
+                            </footer>
+                        </div>
+                    </div>
+                
+                    <!-- Rendered if sidebar right is enabled -->
+                    <!-- Sidebar right skeleton-->
+                    <div v-cloak class="fixed top-0 bottom-0 right-0 translate-x-full bg-white border-gray-200 lg:sticky lg:border-l lg:shrink-0 lg:pt-6 lg:transform-none sm:w-1/2 lg:w-64 lg:z-0 md:w-104 sidebar-right skeleton dark:bg-dark-850 dark:border-dark-650">
+                        <div class="pl-5">
+                            <div class="w-32 h-3 mb-4 bg-gray-200 dark:bg-dark-600 rounded-full loading"></div>
+                            <div class="w-48 h-3 mb-4 bg-gray-200 dark:bg-dark-600 rounded-full loading"></div>
+                            <div class="w-40 h-3 mb-4 bg-gray-200 dark:bg-dark-600 rounded-full loading"></div>
+                        </div>
+                    </div>
+                
+                    <!-- User should be able to hide sidebar right -->
+                    <doc-sidebar-right v-cloak></doc-sidebar-right>
+                </div>
+
+            </div>
+        </div>
+    
+        <doc-search-mobile></doc-search-mobile>
+        <doc-back-to-top></doc-back-to-top>
+    </div>
+
+
+    <div id="docs-overlay-target"></div>
+
+    <script data-cfasync="false">window.__DOCS__ = { "title": "Class: Differential", level: 2, icon: "file", hasPrism: true, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
+</body>
+</html>
