@@ -47,3 +47,11 @@ jobs:
         with:
           commit_message: Update changelogs [skip ci]
           file_pattern: '*.md *.csv'
+
+      - uses: retypeapp/action-build@latest
+        with:
+          config: docs
+
+      - uses: retypeapp/action-github-pages@latest
+        with:
+          update-branch: true
