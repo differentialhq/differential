@@ -1,6 +1,6 @@
 {
   "name": "@differentialhq/core",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "description": "Javascript SDK for differential.dev",
   "main": "bin/index.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "prepare": "npm run clean && make update-contract && npm run build",
     "release:major": "npm version major && git push origin && git push origin --tags",
     "release:minor": "npm version minor && git push origin && git push origin --tags",
-    "release:patch": "npm version patch && git push origin && git push origin --tags"
+    "release:patch": "npm version patch && git push origin && git push origin --tags && npm publish && git commit -m '$(cat package.json | jq -r '.version')'"
   },
   "author": "",
   "license": "ISC",
@@ -26,7 +26,6 @@
     "@types/debug": "^4.1.8",
     "@types/jest": "^29.5.4",
     "dotenv": "^16.3.1",
-    "generate-changelog": "^1.8.0",
     "jest": "^29.6.4",
     "typedoc": "^0.25.4",
     "typedoc-plugin-markdown": "^3.17.1",
