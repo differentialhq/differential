@@ -584,7 +584,8 @@ export class Differential {
    *
    * const result = await d.background<typeof helloService, "hello">("hello", "world");
    *
-   * console.log(result.id); // "1234"
+   * console.log(result.id); //
+   * ```
    */
   async background<
     T extends RegisteredService,

@@ -4,11 +4,7 @@
 
 # Differential SDK
 
-This is the official Differential SDK for JavaScript. 
-
-Differential allows two or more compute instances to communicate with each other just by calling functions.
-
-This allows you to easily distribute work across multiple machines, and even across multiple processes on the same machine, without having to worry about the underlying communication logic like building a message queue or setting up a REST API.
+This is the official Differential SDK for Typescript.
 
 ## Installation
 
@@ -18,40 +14,84 @@ npm install @differentialhq/core
 
 ## Quick Start
 
-```ts
-import process from 'process';
+### 1. Initializing Differential
+
+Create a file named d.ts which will be used to initialize Differential. This file will export the Differential instance.
+
+```typescript
+// d.ts
+
 import { Differential } from "@differentialhq/core";
 
-export const d = Differential({
-  apiSecret: "sk_excellent_beans_1234",
-});
+// Initialize Differential with your API secret
+export const d = new Differential("YOUR_API_SECRET");
+```
 
-// initialize the communication. this starts listening for queued function calls
-d.listen({
-  asPool: "worker", // this listening process will run as the "worker" worker pool
-});
+### 2. Hello World Service
 
-// define any function and wrap it with d.fn to run it in a distributed manner
-const helloWorld = d.fn((pid) => {
-  return `Hello from pid ${process.pid}!`;
-}, {
-  pool: "worker", // this function will only run on workers
-})
+In a separate file, create the "Hello World" service. This file will import the Differential instance from d.ts and define the service.
 
-// call the function as if it were a normal function in the same process
-// the SDK will handle the distribution logic
-helloWorld(process.pid).then((result) => {
-  console.log(result);
-});
+```typescript
+// service.ts
 
-// call d.quit() on process exit to gracefully shut down the SDK
-process.on("exit", () => {
-  d.quit();
+import { d } from "./d";
+
+// Define a simple function that returns "Hello, World!"
+const sayHello = async (to: string) => {
+  return `Hello, ${to}!`;
+};
+
+// ...and as many other functions as you want, any async function can be a service operation
+const callEndpoint = async () => {
+  return fetch("https://api.example.com");
+};
+
+// Register the function as a service
+export const helloWorldService = d.service({
+  name: "helloWorld",
+  functions: {
+    sayHello,
+    callEndpoint,
+  },
 });
 ```
 
+### 3. Calling the Service
+
+When calling the service, use the typeof generic to ensure type safety. This can be done in any file where you need to call the service, like a test file or another service file.
+
+```typescript
+// service-consumer.ts
+
+import { d } from "./d";
+import type { helloWorldService } from "./service";
+
+async function test() {
+  const greeting = await d.call<typeof helloWorldService>("sayHello", "World");
+  console.log(greeting); // Outputs: Hello, World!
+}
+
+test();
+```
+
+### 4. Running the Service
+
+To run the service, simply run the file with the service definition. This will start the service and make it available to other services.
+
+```bash
+tsx service.ts
+```
+
+and then you can invoke the service from another file:
+
+```bash
+tsx service-consumer.ts
+```
+
+## Documentation
+
+- [Differential documentation](https://docs.differential.dev/) contains all the information you need to get started with Differential.
+
 ## Examples
 
-1. [Counter / Greeter](./examples/1_greet) shows how two independent processes can communicate with each other.
-
-2. [API / Worker](./examples/2_api) shows how to create a simple API that offloads work to a worker process that gets executed in the background (set and forget).
+- [Monolith](./src/tests/monolith/) contains an example of a monolith application broken into multiple services.

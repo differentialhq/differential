@@ -2,7 +2,7 @@
   <img src="https://cdn.differential.dev/logo.png" width="200" style="border-radius: 10px" />
 </p>
 
-# Differential SDK
+# Differential SDK for Typescript
 
 This is the official Differential SDK for Typescript.
 
