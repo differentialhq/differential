@@ -1,4 +1,7 @@
 # Changelog
+## 2023-12-19
+- Documentation
+  - Update docs to remove PoolConfig references [676c461](https://github.com/differentialhq/differential/commit/676c461)
 ## 2023-12-18
 - Releases
   - 3.0.6 [2db47ff](https://github.com/differentialhq/differential/commit/2db47ff)
