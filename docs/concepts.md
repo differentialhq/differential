@@ -4,13 +4,14 @@ order: 1400
 
 # Concepts
 
-There are three major concepts in a Differential runtime.
+## Service
+A collection of functions that can be called by a consumer using the differential client. Defined using the SDK.
 
 ## Host
-A computer that you operate and own, that runs your code. It connects to Differential Cloud by using the Differential client.
+A computer that you operate and own, that runs your services.
 
 ## Cluster
-A group of hosts.
+A group services that are running on a host. An API key is required to join a cluster.
 
-## Service
-A collection of functions that can be called by a consumer using the differential client.
+## Control Plane
+A central service that keeps track of all the services that are running, and their health. It acts as a service registry, and a service bus.
