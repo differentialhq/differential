@@ -1,4 +1,10 @@
 # Changelog
+## 2023-12-18
+- Fixes
+  - Remove obsolete fly and listenerconfigs [9ba1719](https://github.com/differentialhq/differential/commit/9ba1719)
+  - Deprecate unused modules [27394f4](https://github.com/differentialhq/differential/commit/27394f4)
+- Documentation
+  - Documentation for all public methods [e80815d](https://github.com/differentialhq/differential/commit/e80815d)
 ## 2023-12-16
 - Fixes
   - Allow services to start idempotently [bf1c307](https://github.com/differentialhq/differential/commit/bf1c307)

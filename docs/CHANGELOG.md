@@ -1,4 +1,8 @@
 # Changelog
+## 2023-12-18
+- Documentation
+  - Depreacate all obsolete documentation. Generate new ts docs [9a8b7d9](https://github.com/differentialhq/differential/commit/9a8b7d9)
+  - Re-organize all docs directories [b1bf2a6](https://github.com/differentialhq/differential/commit/b1bf2a6)
 ## 2023-12-17
 - Features
   - Updating the docs to 3.0 [732247b](https://github.com/differentialhq/differential/commit/732247b)

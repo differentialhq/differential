@@ -1,4 +1,7 @@
 # Changelog
+## 2023-12-18
+- Documentation
+  - Update logo [110e56b](https://github.com/differentialhq/differential/commit/110e56b)
 ## 2023-12-17
 - Chores
   - Clean up tsconfig [7a4ae43](https://github.com/differentialhq/differential/commit/7a4ae43)
