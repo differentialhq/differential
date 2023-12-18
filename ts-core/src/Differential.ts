@@ -16,6 +16,12 @@ export type ServiceDefinition = {
   };
 };
 
+export type RegisteredService = {
+  definition: ServiceDefinition;
+  start: () => Promise<void>;
+  stop: () => Promise<void>;
+};
+
 const createClient = (baseUrl: string, machineId: string) =>
   initClient(contract, {
     baseUrl,
@@ -378,7 +384,6 @@ export class Differential {
   /**
    * Initializes a new Differential instance.
    * @param apiSecret The API Secret for your Differential cluster. Obtain this from [your Differential dashboard](https://admin.differential.dev/dashboard).
-   * @param workerPools A dictionary of worker pool configurations to use for running service functions.
    */
   constructor(private apiSecret: string) {
     this.authHeader = `Basic ${this.apiSecret}`;
@@ -441,18 +446,6 @@ export class Differential {
     await pollingAgent.startPolling();
   }
 
-  /**
-   * Stops the service, and waits for all currently executing functions to finish. Useful for a graceful shutdown.
-   * @returns A promise that resolves when all currently executing jobs have finished.
-   *
-   * @example Basic usage
-   * ```ts
-   * process.on("beforeExit", async () => {
-   *   await d.quit();
-   *   process.exit(0);
-   * });
-   * ```
-   */
   private async quit(): Promise<void> {
     await Promise.all(this.pollingAgents.map((agent) => agent.quit()));
 
@@ -488,7 +481,32 @@ export class Differential {
     };
   }
 
-  service<T extends ServiceDefinition>(service: T) {
+  /**
+   * Registers a service with Differential. This will register all functions on the service.
+   * @param service The service definition.
+   * @returns A registered service instance.
+   * @example
+   * ```ts
+   * const d = new Differential("API_SECRET");
+   *
+   * const service = d.service({
+   *   name: "my-service",
+   *   functions: {
+   *     hello: async (name: string) => {
+   *       return `Hello ${name}`;
+   *    }
+   * });
+   *
+   * // start the service
+   * await service.start();
+   *
+   * // stop the service on shutdown
+   * process.on("beforeExit", async () => {
+   *   await service.stop();
+   * });
+   * ```
+   */
+  service<T extends ServiceDefinition>(service: T): RegisteredService {
     for (const [key, value] of Object.entries(service.functions)) {
       if (functionRegistry[key]) {
         throw new DifferentialError(
@@ -504,16 +522,35 @@ export class Differential {
     }
 
     return {
-      ...service,
+      definition: service,
       start: () => this.listen(service.name),
       stop: () => this.quit(),
     };
   }
 
-  async call<T extends ServiceDefinition, U extends keyof T["functions"]>(
+  /**
+   * Calls a function on a registered service, while ensuring the type safety of the function call through generics.
+   * Waits for the function to complete before returning, and returns the result of the function call.
+   * @param fn The function name to call.
+   * @param args The arguments to pass to the function.
+   * @returns The return value of the function.
+   * @example
+   * ```ts
+   * import { d } from "./differential";
+   * import { helloService } from "./hello-service";
+   *
+   * const result = await d.call<typeof helloService, "hello">("hello", "world");
+   *
+   * console.log(result); // "Hello world"
+   * ```
+   */
+  async call<
+    T extends RegisteredService,
+    U extends keyof T["definition"]["functions"]
+  >(
     fn: U,
-    ...args: Parameters<T["functions"][U]>
-  ): Promise<ReturnType<T["functions"][U]>> {
+    ...args: Parameters<T["definition"]["functions"][U]>
+  ): Promise<ReturnType<T["definition"]["functions"][U]>> {
     // create a job
     const id = await this.createJob<T, U>(fn, args);
 
@@ -526,7 +563,7 @@ export class Differential {
 
     if (result.type === "resolution") {
       // return the result
-      return result.content as ReturnType<T["functions"][U]>;
+      return result.content as ReturnType<T["definition"]["functions"][U]>;
     } else if (result.type === "rejection") {
       const error = deserializeError(result.content);
       throw error;
@@ -535,9 +572,26 @@ export class Differential {
     }
   }
 
-  async background<T extends ServiceDefinition, U extends keyof T["functions"]>(
+  /**
+   * Calls a function on a registered service, while ensuring the type safety of the function call through generics.
+   * Returns the job id of the function call, and doesn't wait for the function to complete.
+   * @param fn The function name to call.
+   * @param args The arguments to pass to the function.
+   * @returns The job id of the function call.
+   * @example
+   * ```ts
+   * import { d } from "./differential";
+   *
+   * const result = await d.background<typeof helloService, "hello">("hello", "world");
+   *
+   * console.log(result.id); // "1234"
+   */
+  async background<
+    T extends RegisteredService,
+    U extends keyof T["definition"]["functions"]
+  >(
     fn: U,
-    ...args: Parameters<T["functions"][U]>
+    ...args: Parameters<T["definition"]["functions"][U]>
   ): Promise<{ id: string }> {
     // create a job
     const id = await this.createJob<T, U>(fn, args);
@@ -546,9 +600,12 @@ export class Differential {
   }
 
   private async createJob<
-    T extends ServiceDefinition,
-    U extends keyof T["functions"]
-  >(fn: string | number | symbol, args: Parameters<T["functions"][U]>) {
+    T extends RegisteredService,
+    U extends keyof T["definition"]["functions"]
+  >(
+    fn: string | number | symbol,
+    args: Parameters<T["definition"]["functions"][U]>
+  ) {
     return await this.client
       .createJob({
         body: {
