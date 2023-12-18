@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.756211181001">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.756242835571">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -11,7 +11,7 @@
     <!-- Primary Meta Tags -->
     <title>Class: Differential</title>
     <meta name="title" content="Class: Differential">
-    <meta name="description" content="The Differential client. Use this to register functions, and establish listeners to listen for function calls.">
+    <meta name="description" content="The Differential client. This is the main entry point for using Differential.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://docs.differential.dev/api/differential/">
@@ -20,22 +20,22 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://docs.differential.dev/api/differential/">
     <meta property="og:title" content="Class: Differential">
-    <meta property="og:description" content="The Differential client. Use this to register functions, and establish listeners to listen for function calls.">
+    <meta property="og:description" content="The Differential client. This is the main entry point for using Differential.">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://docs.differential.dev/api/differential/">
     <meta property="twitter:title" content="Class: Differential">
-    <meta property="twitter:description" content="The Differential client. Use this to register functions, and establish listeners to listen for function calls.">
+    <meta property="twitter:description" content="The Differential client. This is the main entry point for using Differential.">
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../../resources/css/retype.css?v=3.5.0.756211181001" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.756242835571" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.756211181001" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.756242835571" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.756211181001" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.756211181001" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.756242835571" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.756242835571" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -191,32 +191,29 @@
         <span>Class: Differential</span>
     </h1>
 </doc-anchor-target>
-<p>The Differential client. Use this to register functions, and establish listeners to listen for function calls.
-For most use cases, you should only need one Differential instance per process.</p>
+<p>The Differential client. This is the main entry point for using Differential.</p>
 <p><strong><code v-pre>Example</code></strong></p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-typescript"><code v-pre class="language-typescript"> const d = new Differential(&quot;API_SECRET&quot;);</code></pre>
-</doc-codeblock></div>
-<p><strong><code v-pre>Example</code></strong></p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-typescript"><code v-pre class="language-typescript">const d = new Differential(&quot;API_SECRET&quot;, [
-  // background worker can keep running
-  new PoolConfig({
-    pool: &quot;background-worker&quot;,
-  }),
-  // image processor should scale in and out when there's no work
-  // because it's expensive to keep running
-  new PoolConfig({
-    pool: &quot;image-processor&quot;,
-    idleTimeout: 10_000,
-    onWork: () =&gt; {
-       flyMachinesInstance.start();
-    },
-    onIdle: () =&gt; {
-      flyMachinesInstance.stop();
-    },
-  }),
-]);</code></pre>
+<pre class="language-typescript"><code v-pre class="language-typescript"> const d = new Differential(&quot;API_SECRET&quot;); // obtain this from your Differential dashboard
+
+const myService = d.service({
+  name: &quot;my-service&quot;,
+  functions: {
+    hello: async (name: string) =&gt; { ... }
+  },
+});
+
+await d.listen(&quot;my-service&quot;);
+
+// stop the service on shutdown
+process.on(&quot;beforeExit&quot;, async () =&gt; {
+  await d.quit();
+});
+
+// call a function on the service
+const result = await d.call&lt;typeof myService, &quot;hello&quot;&gt;(&quot;hello&quot;, &quot;world&quot;);
+
+console.log(result); // &quot;Hello world&quot;</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="table-of-contents">
     <h2>
@@ -295,7 +292,7 @@ For most use cases, you should only need one Differential instance per process.<
         <span>Defined in</span>
     </h4>
 </doc-anchor-target>
-<p><a href="https://github.com/differentialHQ/differential/blob/27394f4/ts-core/src/Differential.ts#L388">src/Differential.ts:388</a></p>
+<p><a href="https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L374">src/Differential.ts:374</a></p>
 <doc-anchor-target id="methods-1">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#methods-1">#</doc-anchor-trigger>
@@ -388,7 +385,7 @@ console.log(result.id); //</code></pre>
         <span>Defined in</span>
     </h4>
 </doc-anchor-target>
-<p><a href="https://github.com/differentialHQ/differential/blob/27394f4/ts-core/src/Differential.ts#L590">src/Differential.ts:590</a></p>
+<p><a href="https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L572">src/Differential.ts:572</a></p>
 <hr>
 <doc-anchor-target id="call">
     <h3>
@@ -477,7 +474,7 @@ console.log(result); // &quot;Hello world&quot;</code></pre>
         <span>Defined in</span>
     </h4>
 </doc-anchor-target>
-<p><a href="https://github.com/differentialHQ/differential/blob/27394f4/ts-core/src/Differential.ts#L547">src/Differential.ts:547</a></p>
+<p><a href="https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L529">src/Differential.ts:529</a></p>
 <hr>
 <doc-anchor-target id="service">
     <h3>
@@ -567,7 +564,7 @@ process.on(&quot;beforeExit&quot;, async () =&gt; {
         <span>Defined in</span>
     </h4>
 </doc-anchor-target>
-<p><a href="https://github.com/differentialHQ/differential/blob/27394f4/ts-core/src/Differential.ts#L509">src/Differential.ts:509</a></p>
+<p><a href="https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L491">src/Differential.ts:491</a></p>
 
                                 
                                 <!-- Required only on API pages -->
