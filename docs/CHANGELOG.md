@@ -1,11 +1,14 @@
 # Changelog
-## 2023-12-19
+## 2023-12-20
 - Documentation
-  - Update docs to remove PoolConfig references [676c461](https://github.com/differentialhq/differential/commit/676c461)
+  - Adding ELIs, and reorganizing docs [18eecef](https://github.com/differentialhq/differential/commit/18eecef)
 ## 2023-12-18
 - Documentation
   - Depreacate all obsolete documentation. Generate new ts docs [9a8b7d9](https://github.com/differentialhq/differential/commit/9a8b7d9)
   - Re-organize all docs directories [b1bf2a6](https://github.com/differentialhq/differential/commit/b1bf2a6)
+## 2023-12-19
+- Documentation
+  - Update docs to remove PoolConfig references [676c461](https://github.com/differentialhq/differential/commit/676c461)
 ## 2023-12-17
 - Features
   - Updating the docs to 3.0 [732247b](https://github.com/differentialhq/differential/commit/732247b)

@@ -1,7 +1,4 @@
 # Changelog
-## 2023-12-19
-- Documentation
-  - Update docs to remove PoolConfig references [676c461](https://github.com/differentialhq/differential/commit/676c461)
 ## 2023-12-18
 - Releases
   - 3.0.6 [2db47ff](https://github.com/differentialhq/differential/commit/2db47ff)
@@ -11,6 +8,9 @@
   - Deprecate unused modules [27394f4](https://github.com/differentialhq/differential/commit/27394f4)
 - Documentation
   - Documentation for all public methods [e80815d](https://github.com/differentialhq/differential/commit/e80815d)
+## 2023-12-19
+- Documentation
+  - Update docs to remove PoolConfig references [676c461](https://github.com/differentialhq/differential/commit/676c461)
 ## 2023-12-16
 - Fixes
   - Allow services to start idempotently [bf1c307](https://github.com/differentialhq/differential/commit/bf1c307)
