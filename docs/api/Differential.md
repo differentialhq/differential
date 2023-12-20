@@ -5,7 +5,7 @@ The Differential client. This is the main entry point for using Differential.
 **`Example`**
 
 ```ts
- const d = new Differential("API_SECRET"); // obtain this from your Differential dashboard
+const d = new Differential("API_SECRET"); // obtain this from your Differential dashboard
 
 const myService = d.service({
   name: "my-service",

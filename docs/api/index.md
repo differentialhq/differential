@@ -1,4 +1,9 @@
-# Typescript Usage
+---
+icon: gear
+expanded: true
+---
+
+# API Reference
 
 This is the official documentation for Differential SDK for Typescript. Package source code is available [here](https://github.com/differentialhq/differential/tree/main/ts-core).
 

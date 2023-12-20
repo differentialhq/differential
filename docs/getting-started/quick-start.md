@@ -1,8 +1,8 @@
 ---
-order: 1300
+order: 2000
 ---
 
-# Getting Started
+# Buiding your first service
 
 Learn to build an end to end Differential app in under 2 minutes with TypeScript and Node.js.
 
