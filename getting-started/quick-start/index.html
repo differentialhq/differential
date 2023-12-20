@@ -3,40 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.756242835571">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.756384781373">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
 
     <!-- Primary Meta Tags -->
-    <title>Thinking in Differential</title>
-    <meta name="title" content="Thinking in Differential">
-    <meta name="description" content="Differential is a little bit different (pun intended) from the way it looks at separation of services from the way you might be used to.">
+    <title>Buiding your first service</title>
+    <meta name="title" content="Buiding your first service">
+    <meta name="description" content="Learn to build an end to end Differential app in under 2 minutes with TypeScript and Node.js.">
 
     <!-- Canonical -->
-    <link rel="canonical" href="https://docs.differential.dev/thinking/">
+    <link rel="canonical" href="https://docs.differential.dev/getting-started/quick-start/">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://docs.differential.dev/thinking/">
-    <meta property="og:title" content="Thinking in Differential">
-    <meta property="og:description" content="Differential is a little bit different (pun intended) from the way it looks at separation of services from the way you might be used to.">
+    <meta property="og:url" content="https://docs.differential.dev/getting-started/quick-start/">
+    <meta property="og:title" content="Buiding your first service">
+    <meta property="og:description" content="Learn to build an end to end Differential app in under 2 minutes with TypeScript and Node.js.">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://docs.differential.dev/thinking/">
-    <meta property="twitter:title" content="Thinking in Differential">
-    <meta property="twitter:description" content="Differential is a little bit different (pun intended) from the way it looks at separation of services from the way you might be used to.">
+    <meta property="twitter:url" content="https://docs.differential.dev/getting-started/quick-start/">
+    <meta property="twitter:title" content="Buiding your first service">
+    <meta property="twitter:description" content="Learn to build an end to end Differential app in under 2 minutes with TypeScript and Node.js.">
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../resources/css/retype.css?v=3.5.0.756242835571" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.756384781373" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.5.0.756242835571" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.5.0.756242835571" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.5.0.756242835571" defer></script>
-    <script id="mermaid-js" data-cfasync="false" src="../resources/js/mermaid.js?v=3.5.0" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.756384781373" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.756384781373" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.756384781373" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -56,10 +55,10 @@
                 <!-- Logo -->
                 <div class="flex items-center justify-between h-full py-2 md:w-75">
                     <div class="flex items-center px-2 md:px-6">
-                        <a id="docs-site-logo" href="../" class="flex items-center leading-snug text-xl">
+                        <a id="docs-site-logo" href="../../" class="flex items-center leading-snug text-xl">
                             <span class="w-10 mr-2 grow-0 shrink-0 overflow-hidden">
-                                <img class="max-h-10 dark:hidden md:inline-block" src="../256.png">
-                                <img class="max-h-10 hidden dark:inline-block" src="../256.png">
+                                <img class="max-h-10 dark:hidden md:inline-block" src="../../256.png">
+                                <img class="max-h-10 hidden dark:inline-block" src="../../256.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Differential Docs</span>
                         </a>
@@ -186,147 +185,143 @@
                                 <!-- Rendered if sidebar right is enabled -->
                                 <div id="docs-sidebar-right-toggle"></div>
                                 <!-- Page content  -->
-<doc-anchor-target id="thinking-in-differential" class="break-words">
+<doc-anchor-target id="buiding-your-first-service" class="break-words">
     <h1>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#thinking-in-differential">#</doc-anchor-trigger>
-        <span>Thinking in Differential</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#buiding-your-first-service">#</doc-anchor-trigger>
+        <span>Buiding your first service</span>
     </h1>
 </doc-anchor-target>
-<p>Differential is a little bit different (pun intended) from the way it looks at separation of services from the way you might be used to.</p>
-<p>It&#x27;s built on the core beliefs that: <strong>Monolithic code does not need to result in co-located services</strong>.</p>
-<p>It&#x27;s not a RPC framework, or a microservices framework. If you&#x27;re familiar with a service mesh, you can think of it as a higher-level, app-code aware service mesh.</p>
-<doc-anchor-target id="the-differential-way">
+<p>Learn to build an end to end Differential app in under 2 minutes with TypeScript and Node.js.</p>
+<doc-anchor-target id="1-set-up-and-install">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#the-differential-way">#</doc-anchor-trigger>
-        <span>The Differential Way</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#1-set-up-and-install">#</doc-anchor-trigger>
+        <span>1. Set up and Install</span>
     </h2>
 </doc-anchor-target>
-<p><strong>1. Services are a collection of functions.</strong></p>
+<p>Run the following command in your terminal to set up a hello world project</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-typescript"><code v-pre class="language-typescript">// src/services/email.ts
+<pre class="language-bash"><code v-pre class="language-bash">git clone git@github.com:differentialhq/app.git my-app &amp;&amp; \ 
+cd my-app &amp;&amp; \ 
+npm run setup</code></pre>
+</doc-codeblock></div>
+<p>This will:</p>
+<ul>
+<li>Clone the <a href="https://github.com/differentialhq/app">Differential app template</a> into a dirctory called <code v-pre>my-app</code></li>
+<li>Install the dependencies</li>
+<li>Fetch a temporary API secret for you to use and insert it to src/d.ts file</li>
+</ul>
+<doc-anchor-target id="2-start-the-hello-service">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#2-start-the-hello-service">#</doc-anchor-trigger>
+        <span>2. Start the hello service</span>
+    </h2>
+</doc-anchor-target>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-none"><code v-pre class="language-none">npm run service --name=hello</code></pre>
+</doc-codeblock></div>
+<p>This will start a <a href="https://github.com/differentialhq/app/blob/master/src/services/hello.ts">service called <code v-pre>hello</code></a> and register itself with the Cloud control-plane.</p>
+<doc-anchor-target id="3-call-the-running-service">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#3-call-the-running-service">#</doc-anchor-trigger>
+        <span>3. Call the running service</span>
+    </h2>
+</doc-anchor-target>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-none"><code v-pre class="language-none">npm run command --name=greet</code></pre>
+</doc-codeblock></div>
+<p>This will call the <a href="https://github.com/differentialhq/app/blob/master/src/commands/greet.ts"><code v-pre>greet</code> command</a> on the <code v-pre>hello</code> service and print the result.</p>
+<doc-anchor-target id="extending-the-hello-service">
+    <h1>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#extending-the-hello-service">#</doc-anchor-trigger>
+        <span>Extending the hello service</span>
+    </h1>
+</doc-anchor-target>
+<p>Let&#x27;s add a new command to the hello service that will greet someone in a different language, so you can write some code.</p>
+<doc-anchor-target id="1-add-a-new-function-to-the-hello-service">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#1-add-a-new-function-to-the-hello-service">#</doc-anchor-trigger>
+        <span>1. Add a new function to the hello service</span>
+    </h2>
+</doc-anchor-target>
+<p>Open up the <code v-pre>src/services/hello.ts</code> file and add the following function, under the exising <code v-pre>hello</code> function:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-typescript"><code v-pre class="language-typescript">async function helloInAnotherLanguage(params: {
+  from: string;
+  language: string;
+}) {
+  console.log(&quot;Responding to hello request in&quot;, params.language);
 
-export const emailService = d.service({
-  name: &quot;email&quot;,
-  functions: {
-    sendWeeklyNewsletterToAll,
-    sendPasswordResetEmail,
-    scheduleOnboardingEmails,
+  const languageDefinitions = await fetch(
+    `https://raw.githubusercontent.com/differentialhq/app/master/fake-api/hello.json`
+  ).then((res) =&gt; res.json());
+
+  const greeting = languageDefinitions[params.language];
+
+  if (!greeting) {
+    throw new Error(`Language ${params.language} not supported`);
   }
-});</code></pre>
-</doc-codeblock></div>
-<p><strong>2. There are no restrictions on what these functions can do. They are just functions.</strong></p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-typescript"><code v-pre class="language-typescript">// src/modules/email/sendWeeklyNewsletterToAll.ts
 
-export async function sendWeeklyNewsletterToAll() {
-  const users = await db.getUsers();
-  const emails = users.map(user =&gt; user.email);
-  await email.send(emails, &quot;Weekly Newsletter&quot;, &quot;...&quot;);
-  // ...
+  return {
+    message: `${greeting} ${params.from}! I'm a service running on pid ${process.pid}!`,
+  };
 }</code></pre>
 </doc-codeblock></div>
-<p><strong>3. All services are co-located in the same codebase, so they can share code and types.</strong></p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-typescript"><code v-pre class="language-typescript">src/
- |- services/
- |    |- email.ts
- |    |- auth.ts
- |    └- crawler.ts
- └- index.ts</code></pre>
-</doc-codeblock></div>
-<p><strong>4. Starting a service is as simple as calling <code v-pre>d.start()</code>. Stopping is done via a <code v-pre>d.stop()</code></strong>.</p>
-<p>You can have 1:1 services to processes, or you can have multiple services running in the same process. It&#x27;s up to you. You can also start and stop services dynamically at runtime.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-typescript"><code v-pre class="language-typescript">import { emailService } from &quot;./services/email&quot;;
-
-d.start(emailService);</code></pre>
-</doc-codeblock></div>
-<p><strong>5. Once a service is started, it registers itself with the control-plane.</strong></p>
-<p>The open-source control-plane is a central service that keeps track of all the services that are running, and their health. It acts as a service registry, and a service bus.</p>
-<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre class="mermaid w-full">graph LR
-  A[emailService] --&gt; B[Control Plane]
-  C[authService] --&gt; B
-  D[crawlerService] --&gt; B</pre></div>
-<p><strong>6. You can call any function in any service from any other service.</strong></p>
-<p>You don&#x27;t need to know where the service is running, or how to connect to it. You just need to know the name of the service and the name of the function.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-typescript"><code v-pre class="language-typescript">import { d } from &quot;../d&quot;;
-import type { emailService } from &quot;./services/email&quot;;
-import type { authService } from &quot;./services/email&quot;;
-
-async function confirmUserSignup(email: string) {
-  await d.call&lt;&quot;emailService&quot;, &quot;scheduleOnboardingEmails&quot;&gt;(&quot;emailService&quot;, &quot;scheduleOnboardingEmails&quot;, email);
-  await d.call&lt;&quot;authService&quot;, &quot;onUserSignup&quot;&gt;(&quot;authService&quot;, &quot;onUserSignup&quot;, email);
-}</code></pre>
-</doc-codeblock></div>
-<p><strong>7. Thanks to co-located code, your function calls are type-safe</strong></p>
-<p>You can&#x27;t call a function that doesn&#x27;t exist, or pass the wrong arguments.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-typescript"><code v-pre class="language-typescript">import { d } from &quot;../d&quot;;
-import type { emailService } from &quot;./services/email&quot;;
-import type { authService } from &quot;./services/email&quot;;
-
-async function confirmUserSignup(email: string) {
-  await d.call&lt;&quot;emailService&quot;, &quot;foo&quot;&gt;(&quot;emailService&quot;, &quot;foo&quot;, &quot;bar&quot;); 
-  // ⛔️ Error: foo does not satisfy the constraint of &quot;sendPasswordResetEmail&quot; | &quot;scheduleOnboardingEmails&quot; ...
-  
-  await d.call&lt;&quot;authService&quot;, &quot;onUserSignup&quot;&gt;(&quot;authService&quot;, &quot;onUserSignup&quot;, { foo: &quot;bar&quot; }); 
-  // ⛔️ Error: Argument of type '{ foo: string; }' is not assignable to parameter of type 'string'.
-}</code></pre>
-</doc-codeblock></div>
-<p><strong>8. Calling a function has the same ergonomics as calling a local function.</strong></p>
-<p>You can just call the function and it will return the result, even if it results in an <code v-pre>Error</code>. SDK and the control-plane routes the function call to the correct service, and does the proper serialization and deserialization of arguments and return values.</p>
-<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre class="mermaid w-full">sequenceDiagram
-    participant Consumer
-    participant ConsumerSDK as Consumer's SDK
-    participant ControlPlane as Control Plane
-    participant EmailServiceSDK as Email Service's SDK
-    participant EmailService as Email Service
-
-    Consumer-&gt;&gt;ConsumerSDK: Calls scheduleOnboardingEmails
-    ConsumerSDK-&gt;&gt;ControlPlane: Serializes parameters and sends to Control Plane
-    ControlPlane-&gt;&gt;EmailServiceSDK: Forwards to Email Service's SDK
-    EmailServiceSDK-&gt;&gt;EmailService: Deserializes and executes function
-    EmailService-&gt;&gt;EmailServiceSDK: Function execution result
-    EmailServiceSDK-&gt;&gt;ControlPlane: Serializes result and sends back
-    ControlPlane-&gt;&gt;ConsumerSDK: Forwards result
-    ConsumerSDK-&gt;&gt;Consumer: Returns result to Consumer</pre></div>
-<doc-anchor-target id="why">
+<p>As you can see, this function fetches a list of greetings from a fake API and returns the appropriate one. A Differential function can do anything a normal Node.js function can do, including making network requests.</p>
+<doc-anchor-target id="2-register-the-function-with-the-service">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#why">#</doc-anchor-trigger>
-        <span>Why?</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#2-register-the-function-with-the-service">#</doc-anchor-trigger>
+        <span>2. Register the function with the service</span>
     </h2>
 </doc-anchor-target>
-<p>Differential is an opinionated framework. It makes some tradeoffs to make it easier to build services. They might not be the right tradeoffs for you, but we think they are the right tradeoffs for most people.</p>
-<p><strong>1. Monolithic codebases provide a great developer experience, but resulting monolithic services often do not.</strong></p>
-<ul>
-<li>Unless you&#x27;re very careful, heavy background processes can affect the high availability of your mission-critical services.</li>
-<li>Scaling a single service is hard. You can&#x27;t scale just the background processes; you have to scale the entire service.</li>
-<li>Keeping unnecessary services running is wasteful. You can&#x27;t just run the background processes; you have to run the entire service.</li>
-</ul>
-<p><strong>2. Writing duplicative service interfaces/contracts can be avoided.</strong></p>
-<ul>
-<li>A type-safe language that can infer types should be able to infer the contract of a service from the service&#x27;s implementation.</li>
-<li>Not having a compile step to generate contracts (e.g., protobufs) or a duplicative interface (tRPC) definition allows you to move faster.</li>
-</ul>
-<p><strong>3. Anything a service has ever done can and should be represented by a single function definition.</strong></p>
-<ul>
-<li>Every RPC framework introduces more complexity to deal with the impedance mismatch between the language and the wire format.</li>
-<li>In REST, it&#x27;s hard to model operations that <code v-pre>doStuff()</code>.</li>
-<li>GraphQL has queries and mutations, but you need complex tooling to generate the types.</li>
-<li>Modern RPC frameworks like gRPC and tRPC solve some of the problems, but they make different tradeoffs for stronger contracts and language/runtime interoperability.</li>
-</ul>
-<p><strong>4. Internal services should remain internal.</strong></p>
-<ul>
-<li>A service should stay internal until it&#x27;s ready or necessary to be exposed externally. Starting a service on a port should be a conscious decision, not the default.</li>
-<li>Communication via queues and pub/sub is a possible alternative, but it introduces complexities such as keeping track of channels:message types, message serialization, message delivery guarantees, and additional infrastructure configuration that lives outside of the code that does the work.</li>
-</ul>
-<p><strong>5. The disadvantages of a centralized control-plane are outweighed by the advantages.</strong></p>
-<ul>
-<li>Instead of n services talking to n services, a service bus allows streamlining the communication to a single service and fan-out from there.</li>
-<li>Such an architecture allows for a single place to implement cross-cutting concerns such as authentication, authorization, rate limiting, and observability.</li>
-<li>A service bus that is aware of the application code can provide a better developer experience by offering type-safety and a single place to find all the services and their functions.</li>
-</ul>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-diff"><code v-pre class="language-diff"> export const helloService = d.service({
+   name: &quot;hello&quot;,
+   functions: {
+     hello,
++    helloInAnotherLanguage,
+   },
+ });</code></pre>
+</doc-codeblock></div>
+<doc-anchor-target id="3-change-the-greet-command-to-call-the-new-function">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#3-change-the-greet-command-to-call-the-new-function">#</doc-anchor-trigger>
+        <span>3. Change the <code v-pre>greet</code> command to call the new function</span>
+    </h2>
+</doc-anchor-target>
+<p>You can replace the greet.ts file with the following. We&#x27;re just extending the existing command to take a new <code v-pre>language</code> parameter and call the new function.</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-typescript"><code v-pre class="language-typescript">// src/commands/greet.ts
+
+import { d } from &quot;../d&quot;;
+import type { helloService } from &quot;../services/hello&quot;;
+import { starting } from &quot;../utls/cmd&quot;;
+
+async function greet(name: string = &quot;World&quot;, language: string = &quot;english&quot;) {
+  const result = await d.call&lt;typeof helloService, &quot;helloInAnotherLanguage&quot;&gt;(
+    &quot;helloInAnotherLanguage&quot;,
+    { from: name, language }
+  );
+
+  console.log(`Received response: ${result.message}`);
+}
+
+if (starting()) {
+  greet(process.argv[3], process.argv[4]).then(() =&gt; {
+    console.log(&quot;Done!&quot;);
+  });
+}</code></pre>
+</doc-codeblock></div>
+<doc-anchor-target id="4-call-the-new-command">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#4-call-the-new-command">#</doc-anchor-trigger>
+        <span>4. Call the new command</span>
+    </h2>
+</doc-anchor-target>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-bash"><code v-pre class="language-bash">npm run command --name=greet -- &quot;Dali&quot; &quot;spanish&quot;
+npm run command --name=greet -- &quot;Mario&quot; &quot;italian&quot;
+# try other languages!</code></pre>
+</doc-codeblock></div>
 
                                 
                                 <!-- Required only on API pages -->
@@ -336,7 +331,7 @@ async function confirmUserSignup(email: string) {
                             
                                 <nav class="flex mt-14">
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../">
+                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                             <span>
                                                 <span class="block text-xs font-normal text-gray-400 dark:text-dark-400">Previous</span>
@@ -346,10 +341,10 @@ async function confirmUserSignup(email: string) {
                                     </div>
                             
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../concepts/">
+                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../getting-started/thinking/">
                                             <span>
                                                 <span class="block text-xs font-normal text-right text-gray-400 dark:text-dark-400">Next</span>
-                                                <span class="block mt-1">Concepts</span>
+                                                <span class="block mt-1">Thinking in Differential</span>
                                             </span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                         </a>
@@ -393,6 +388,6 @@ async function confirmUserSignup(email: string) {
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": "Thinking in Differential", level: 1, icon: "file", hasPrism: true, hasMermaid: true, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": "Buiding your first service", level: 2, icon: "file", hasPrism: true, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
 </body>
 </html>
