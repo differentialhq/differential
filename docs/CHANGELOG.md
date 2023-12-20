@@ -1,4 +1,7 @@
 # Changelog
+## 2023-12-21
+- Documentation
+  - Re-write the intro section [a78ca60](https://github.com/differentialhq/differential/commit/a78ca60)
 ## 2023-12-20
 - Documentation
   - Adding ELIs, and reorganizing docs [18eecef](https://github.com/differentialhq/differential/commit/18eecef)
