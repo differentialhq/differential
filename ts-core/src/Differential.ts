@@ -325,13 +325,6 @@ class PollingAgent {
   }
 }
 
-type WorkerPool = {
-  idleTimeout?: number;
-  onWork?: () => void;
-  onIdle?: () => void;
-  concurrency?: number;
-};
-
 /**
  * The Differential client. This is the main entry point for using Differential.
  *
