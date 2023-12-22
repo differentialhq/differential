@@ -9,6 +9,11 @@ const log = debug("differential:client");
 
 const { serializeError, deserializeError } = require("./errors");
 
+
+type ServiceClient<T extends RegisteredService<any>> = {    
+  [K in keyof T['definition']['functions']]: T['definition']['functions'][K];
+};
+
 export type ServiceDefinition = {
   name: string;
   functions: {
@@ -508,6 +513,18 @@ export class Differential {
       start: () => this.listen(service.name),
       stop: () => this.quit(),
     };
+  }
+
+  buildClient<T extends RegisteredService<any>>(service: T): ServiceClient<T> {
+    const d = this
+    return new Proxy(service.definition.functions, {
+      get(_target, property, _receiver) {
+        if (service.definition.functions[property] === undefined || typeof property === 'symbol') {
+          return undefined;
+        }
+        return (...args: any[]) => { return d.call(property, ...args) }
+      }
+    });
   }
 
   /**

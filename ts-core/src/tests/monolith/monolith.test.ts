@@ -30,6 +30,22 @@ describe("monolith", () => {
     await expertService.stop();
   }, 10000);
 
+  it("service client should return the same result", async () => {
+    await expertService.start();
+
+    const result = await d.call<typeof expertService, "callExpert">(
+      "callExpert",
+      "Can't touch this"
+    );
+    
+    const client = d.buildClient(expertService)
+    const clientResult = await client.callExpert("Can't touch this")
+
+    expect(clientResult).toBe(result);
+
+    await expertService.stop();
+  }, 10000);
+
   it("should be able to call a service from another service", async () => {
     await facadeService.start();
     await expertService.start();
