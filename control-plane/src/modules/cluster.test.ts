@@ -1,14 +1,21 @@
 import {
+  createCluster,
   getServiceDefinitionForCluster,
   registerServiceDefinitionForCluster,
 } from "./cluster";
 
+const crateTestCluster = async () => {
+  return createCluster({
+    organizationId: "unit-test",
+  });
+};
+
 describe("clusters", () => {
   describe("registerServiceDefinitionForCluster", () => {
     it("should persist the service definition", async () => {
-      const clusterId = Math.random().toString();
+      const { id } = await crateTestCluster();
 
-      await registerServiceDefinitionForCluster(clusterId, {
+      await registerServiceDefinitionForCluster(id, {
         name: "test",
         functions: {
           test: {
@@ -19,7 +26,7 @@ describe("clusters", () => {
         },
       });
 
-      const serviceDefinition = await getServiceDefinitionForCluster(clusterId);
+      const serviceDefinition = await getServiceDefinitionForCluster(id);
 
       expect(serviceDefinition).toEqual({
         name: "test",
@@ -35,26 +42,26 @@ describe("clusters", () => {
   });
 
   it("should be able to execute cache key generators", async () => {
-    const clusterId = Math.random().toString();
+    const { id } = await crateTestCluster();
 
-    await registerServiceDefinitionForCluster(clusterId, {
+    await registerServiceDefinitionForCluster(id, {
       name: "test",
       functions: {
         test: {
           name: "test",
           description: null,
-          cacheKeyGenerator: function (args: [{ id: string }]) {
-            return args[0] ? args[0].id : null;
+          cacheKeyGenerator: function (input?: { id?: string }) {
+            return input?.id;
           }.toString(),
         },
       },
     });
 
-    const serviceDefinition = await getServiceDefinitionForCluster(clusterId);
+    const serviceDefinition = await getServiceDefinitionForCluster(id);
 
     expect(
       eval(
-        `(${serviceDefinition?.functions.test.cacheKeyGenerator})({ id: "test" })`
+        `"use strict";(${serviceDefinition?.functions.test.cacheKeyGenerator})({ id: "test" })`
       )
     ).toEqual("test");
   });

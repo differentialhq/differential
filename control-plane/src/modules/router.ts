@@ -175,7 +175,7 @@ export const router = s.router(contract, {
 
     const { organizationId } = request.params;
 
-    const created = await admin.createCredential({
+    const created = await cluster.createCluster({
       organizationId,
     });
 
