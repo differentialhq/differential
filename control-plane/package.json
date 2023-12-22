@@ -21,7 +21,7 @@
     "axios": "^1.6.2",
     "dotenv": "^16.3.1",
     "drizzle-kit": "^0.19.12",
-    "drizzle-orm": "^0.27.2",
+    "drizzle-orm": "^0.29.1",
     "fastify": "^4.21.0",
     "jest": "^29.6.4",
     "jsonwebtoken": "^9.0.2",

@@ -4,6 +4,17 @@ import * as data from "./data";
 import { ulid } from "ulid";
 import crypto from "crypto";
 
+export async function selfHealJobsHack() {
+  await data.db.execute(
+    sql`UPDATE jobs SET status = 'failure' WHERE status = 'running' AND remaining = 0 AND timed_out_at < now()`
+  );
+
+  // make jobs that have failed but still have remaining attempts into pending jobs
+  await data.db.execute(
+    sql`UPDATE jobs SET status = 'pending' WHERE status = 'failure' AND remaining > 0`
+  );
+}
+
 export const createJob = async ({
   targetFn,
   targetArgs,

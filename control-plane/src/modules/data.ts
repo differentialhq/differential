@@ -4,6 +4,7 @@ import {
   integer,
   json,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   varchar,
@@ -84,7 +85,7 @@ export const clusters = pgTable("clusters", {
   created_at: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
-  wake_up_config: json("wake_up_config"),
+  service_definition: json("service_definition"),
 });
 
 export const db = drizzle(pool);

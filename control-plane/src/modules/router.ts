@@ -1,16 +1,14 @@
 import { initServer } from "@ts-rest/fastify";
-import crypto from "crypto";
-import { and, eq, sql } from "drizzle-orm";
-import { ulid } from "ulid";
+import { and, eq } from "drizzle-orm";
+import fs from "fs";
+import path from "path";
+import util from "util";
+import * as admin from "./admin";
+import * as auth from "./auth";
+import * as cluster from "./cluster";
 import { contract } from "./contract";
 import * as data from "./data";
-import fs from "fs";
-import util from "util";
-import path from "path";
-import * as auth from "./auth";
-import * as admin from "./admin";
-import { QueryResult } from "pg";
-import { createJob, nextJobs } from "./jobs";
+import { createJob, nextJobs, selfHealJobsHack } from "./jobs";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -30,6 +28,7 @@ export const router = s.router(contract, {
 
     const pool = request.query.pools || "*";
 
+    // TODO: fix this hack
     await selfHealJobsHack();
 
     let jobs: {
@@ -237,14 +236,49 @@ export const router = s.router(contract, {
       body: created.apiSecret,
     };
   },
-});
-async function selfHealJobsHack() {
-  await data.db.execute(
-    sql`UPDATE jobs SET status = 'failure' WHERE status = 'running' AND remaining = 0 AND timed_out_at < now()`
-  );
+  putServiceDefinition: async (request) => {
+    const owner = await auth.jobOwnerHash(request.headers.authorization);
 
-  // make jobs that have failed but still have remaining attempts into pending jobs
-  await data.db.execute(
-    sql`UPDATE jobs SET status = 'pending' WHERE status = 'failure' AND remaining > 0`
-  );
-}
+    if (!owner) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { serviceDefinition } = request.body;
+
+    await cluster.registerServiceDefinitionForCluster(
+      owner.clusterId,
+      serviceDefinition
+    );
+
+    return {
+      status: 204,
+      body: undefined,
+    };
+  },
+  getServiceDefinition: async (request) => {
+    const owner = await auth.jobOwnerHash(request.headers.authorization);
+
+    if (!owner) {
+      return {
+        status: 401,
+      };
+    }
+
+    const serviceDefinition = await cluster.getServiceDefinitionForCluster(
+      owner.clusterId
+    );
+
+    if (!serviceDefinition) {
+      return {
+        status: 404,
+      };
+    }
+
+    return {
+      status: 200,
+      body: serviceDefinition,
+    };
+  },
+});

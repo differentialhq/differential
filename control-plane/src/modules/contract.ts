@@ -185,4 +185,57 @@ export const contract = c.router({
       201: z.string(),
     },
   },
+  putServiceDefinition: {
+    method: "PUT",
+    path: "/organizations/:organizationId/clusters/:clusterId/service-definition",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      204: z.undefined(),
+      401: z.undefined(),
+    },
+    pathParams: z.object({
+      organizationId: z.string(),
+      clusterId: z.string(),
+    }),
+    body: z.object({
+      serviceDefinition: z.object({
+        name: z.string(),
+        functions: z.record(
+          z.string(),
+          z.object({
+            name: z.string(),
+            description: z.string().nullable(),
+            cacheKeyGenerator: z.string().nullable(),
+          })
+        ),
+      }),
+    }),
+  },
+  getServiceDefinition: {
+    method: "GET",
+    path: "/organizations/:organizationId/clusters/:clusterId/service-definition",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.object({
+        name: z.string(),
+        functions: z.record(
+          z.string(),
+          z.object({
+            name: z.string(),
+            description: z.string().nullable(),
+            cacheKeyGenerator: z.string().nullable(),
+          })
+        ),
+      }),
+      401: z.undefined(),
+    },
+    pathParams: z.object({
+      organizationId: z.string(),
+      clusterId: z.string(),
+    }),
+  },
 });
