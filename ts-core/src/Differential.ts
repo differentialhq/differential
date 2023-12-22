@@ -9,6 +9,11 @@ const log = debug("differential:client");
 
 const { serializeError, deserializeError } = require("./errors");
 
+
+type ServiceClient<T extends RegisteredService<any>> = {    
+  [K in keyof T['definition']['functions']]: T['definition']['functions'][K];
+};
+
 export type ServiceDefinition = {
   name: string;
   functions: {
@@ -508,6 +513,31 @@ export class Differential {
       start: () => this.listen(service.name),
       stop: () => this.quit(),
     };
+  }
+
+  /**
+   * Provides a type safe client for performing calls to a registered service.
+   * Waits for the function to complete before returning, and returns the result of the function call.
+   * @returns ServiceClient<T>
+   * @example
+   * ```ts
+   * import { d } from "./differential";
+   * import type { helloService } from "./hello-service";
+   *
+   * const client = d.buildClient<typeof helloService>();
+   *
+   * // Client usage
+   * const result = client.hello("world");
+   * console.log(result); // "Hello world"
+   * ```
+   */
+  buildClient<T extends RegisteredService<any>>(): ServiceClient<T> {
+    const d = this
+    return new Proxy({} as ServiceClient<T>, {
+      get(_target, property, _receiver) {
+        return (...args: any[]) => { return d.call(property, ...args) }
+      }
+    });
   }
 
   /**
