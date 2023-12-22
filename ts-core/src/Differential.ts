@@ -515,13 +515,10 @@ export class Differential {
     };
   }
 
-  buildClient<T extends RegisteredService<any>>(service: T): ServiceClient<T> {
+  buildClient<T extends RegisteredService<any>>(): ServiceClient<T> {
     const d = this
-    return new Proxy(service.definition.functions, {
+    return new Proxy({} as ServiceClient<T>, {
       get(_target, property, _receiver) {
-        if (service.definition.functions[property] === undefined || typeof property === 'symbol') {
-          return undefined;
-        }
         return (...args: any[]) => { return d.call(property, ...args) }
       }
     });
