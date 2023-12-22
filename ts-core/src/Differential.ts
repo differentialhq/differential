@@ -522,7 +522,7 @@ export class Differential {
    * @example
    * ```ts
    * import { d } from "./differential";
-   * import { helloService } from "./hello-service";
+   * import type { helloService } from "./hello-service";
    *
    * const client = d.buildClient<typeof helloService>();
    *
