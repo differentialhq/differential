@@ -30,7 +30,7 @@ describe("monolith", () => {
     await expertService.stop();
   }, 10000);
 
-  it("service client should return the same result", async () => {
+  it("service client should return the same result as 'call'", async () => {
     await expertService.start();
 
     const result = await d.call<typeof expertService, "callExpert">(
