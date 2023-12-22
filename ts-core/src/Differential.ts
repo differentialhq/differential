@@ -16,8 +16,8 @@ export type ServiceDefinition = {
   };
 };
 
-export type RegisteredService = {
-  definition: ServiceDefinition;
+export type RegisteredService<T extends ServiceDefinition> = {
+  definition: T;
   start: () => Promise<void>;
   stop: () => Promise<void>;
 };
@@ -488,7 +488,7 @@ export class Differential {
    * });
    * ```
    */
-  service<T extends ServiceDefinition>(service: T): RegisteredService {
+  service<T extends ServiceDefinition>(service: T): RegisteredService<T> {
     for (const [key, value] of Object.entries(service.functions)) {
       if (functionRegistry[key]) {
         throw new DifferentialError(
@@ -527,7 +527,7 @@ export class Differential {
    * ```
    */
   async call<
-    T extends RegisteredService,
+    T extends RegisteredService<any>,
     U extends keyof T["definition"]["functions"]
   >(
     fn: U,
@@ -570,7 +570,7 @@ export class Differential {
    * ```
    */
   async background<
-    T extends RegisteredService,
+    T extends RegisteredService<any>,
     U extends keyof T["definition"]["functions"]
   >(
     fn: U,
@@ -583,7 +583,7 @@ export class Differential {
   }
 
   private async createJob<
-    T extends RegisteredService,
+    T extends RegisteredService<any>,
     U extends keyof T["definition"]["functions"]
   >(
     fn: string | number | symbol,
