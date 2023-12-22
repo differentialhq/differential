@@ -515,6 +515,22 @@ export class Differential {
     };
   }
 
+  /**
+   * Provides a type safe client for performing calls to a registered service.
+   * Waits for the function to complete before returning, and returns the result of the function call.
+   * @returns ServiceClient<T>
+   * @example
+   * ```ts
+   * import { d } from "./differential";
+   * import { helloService } from "./hello-service";
+   *
+   * const client = d.buildClient<typeof helloService>();
+   *
+   * // Client usage
+   * const result = client.hello("world");
+   * console.log(result); // "Hello world"
+   * ```
+   */
   buildClient<T extends RegisteredService<any>>(): ServiceClient<T> {
     const d = this
     return new Proxy({} as ServiceClient<T>, {
