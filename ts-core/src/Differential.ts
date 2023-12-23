@@ -4,6 +4,7 @@ import { contract } from "./contract";
 import { pack, unpack } from "./serialize";
 import { AsyncFunction } from "./types";
 import { Result, TaskQueue } from "./task-queue";
+import { getTTLForFunction } from "./utils";
 
 const log = debug("differential:client");
 
@@ -222,6 +223,7 @@ class PollingAgent {
                     body: {
                       result: pack(result.content),
                       resultType: result.type,
+                      cacheTTL: getTTLForFunction(registered.fn),
                     },
                     params: {
                       jobId: job.id,

@@ -4,7 +4,7 @@
   "description": "Javascript SDK for differential.dev",
   "main": "bin/index.js",
   "scripts": {
-    "test": "jest ./src --runInBand",
+    "test": "jest ./src --runInBand --setupFiles dotenv/config",
     "build": "make update-contract && tsc",
     "clean": "rm -rf ./bin",
     "prepare": "npm run clean && make update-contract && npm run build",

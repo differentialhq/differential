@@ -208,7 +208,6 @@ export const contract = c.router({
           z.object({
             name: z.string(),
             description: z.string().nullable(),
-            cacheKeyGenerator: z.string().nullable(),
           })
         ),
       }),
@@ -228,7 +227,6 @@ export const contract = c.router({
           z.object({
             name: z.string(),
             description: z.string().nullable(),
-            cacheKeyGenerator: z.string().nullable(),
           })
         ),
       }),

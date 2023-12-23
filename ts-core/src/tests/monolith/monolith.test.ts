@@ -66,4 +66,32 @@ describe("monolith", () => {
 
     await expertService.stop();
   });
+
+  it("should adhere to caching rules", async () => {
+    await expertService.start();
+
+    const result = await d.call<typeof dbService, "veryExpensiveLookup">(
+      "veryExpensiveLookup",
+      10
+    );
+
+    expect(result).toBeGreaterThan(0);
+
+    const again = await d.call<typeof dbService, "veryExpensiveLookup">(
+      "veryExpensiveLookup",
+      10
+    );
+
+    // call it a few times, it should be cached
+    for (let i = 0; i < 5; i++) {
+      const again = await d.call<typeof dbService, "veryExpensiveLookup">(
+        "veryExpensiveLookup",
+        10
+      );
+
+      expect(again).toBe(result);
+    }
+
+    await expertService.stop();
+  });
 });

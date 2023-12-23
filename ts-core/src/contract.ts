@@ -43,7 +43,6 @@ export const contract = c.router({
       targetFn: z.string(),
       targetArgs: z.string(),
       service: z.string().default("unknown"),
-      cacheExpiryAt: z.date().optional(),
     }),
   },
   getJobStatus: {
@@ -81,6 +80,7 @@ export const contract = c.router({
     body: z.object({
       result: z.string(),
       resultType: z.enum(["resolution", "rejection"]),
+      cacheTTL: z.number().optional(),
     }),
   },
   live: {
@@ -208,7 +208,6 @@ export const contract = c.router({
           z.object({
             name: z.string(),
             description: z.string().nullable(),
-            cacheKeyGenerator: z.string().nullable(),
           })
         ),
       }),
@@ -228,7 +227,6 @@ export const contract = c.router({
           z.object({
             name: z.string(),
             description: z.string().nullable(),
-            cacheKeyGenerator: z.string().nullable(),
           })
         ),
       }),

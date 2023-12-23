@@ -10,7 +10,6 @@ type ServiceDefinition = {
     [key: string]: {
       name: string;
       description: string | null;
-      cacheKeyGenerator: string | null;
     };
   };
 };
