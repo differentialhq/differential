@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { QueryResult } from "pg";
 import * as data from "./data";
 import { ulid } from "ulid";
@@ -15,26 +15,79 @@ export async function selfHealJobsHack() {
   );
 }
 
+export const putJobResult = async ({
+  jobId,
+  result,
+  resultType,
+  clusterId,
+  cacheTTL,
+}: {
+  jobId: string;
+  result: string;
+  resultType: "resolution" | "rejection";
+  clusterId: string;
+  cacheTTL?: number;
+}) => {
+  await data.db
+    .update(data.jobs)
+    .set({
+      result,
+      result_type: resultType,
+      status: "success",
+      // add the cacheTTL seconds to the current time
+      cache_expiry_at: cacheTTL
+        ? new Date(new Date().getTime() + (cacheTTL || 0) * 1000)
+        : undefined,
+    })
+    .where(and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, clusterId)));
+};
+
 export const createJob = async ({
   targetFn,
   targetArgs,
   owner,
-  pool,
+  service,
 }: {
   targetFn: string;
   targetArgs: string;
   owner: { clusterId: string };
-  pool?: string;
+  service: string;
 }) => {
+  // let's look for a job that's already been created with the same cache key
+  // and is complete, resolved and not timed out
+
+  // TODO: this check slows everything down. we should consult the service def metadata to see if the function is cacheable, first. good thing is the service metadata is available and cacheable in the control plane
+  const existingJob = await data.db
+    .select({
+      id: data.jobs.id,
+    })
+    .from(data.jobs)
+    .where(
+      and(
+        eq(data.jobs.target_fn, targetFn),
+        eq(data.jobs.target_args, targetArgs),
+        eq(data.jobs.status, "success"),
+        eq(data.jobs.owner_hash, owner.clusterId),
+        eq(data.jobs.service, service),
+        eq(data.jobs.result_type, "resolution"),
+        gte(data.jobs.cache_expiry_at, new Date())
+      )
+    )
+    .orderBy(desc(data.jobs.created_at))
+    .limit(1);
+
+  if (existingJob.length > 0) {
+    console.log("Resolving from cache", existingJob[0].id);
+
+    return { id: existingJob[0].id };
+  }
+
   const id = `exec-${targetFn.substring(0, 8)}-${ulid()}`;
 
   console.log("Creating job", {
     id,
-    target_fn: targetFn,
-    target_args: targetArgs,
-    idempotency_key: `1`,
-    status: "pending",
-    pool,
+    targetFn,
+    service,
   });
 
   await data.db.insert(data.jobs).values({
@@ -44,7 +97,7 @@ export const createJob = async ({
     idempotency_key: `ik_${crypto.randomBytes(64).toString("hex")}`,
     status: "pending",
     owner_hash: owner.clusterId,
-    machine_type: pool,
+    service,
   });
 
   return { id };

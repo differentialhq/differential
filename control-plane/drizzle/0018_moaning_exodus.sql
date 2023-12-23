@@ -1,0 +1,1 @@
+ALTER TABLE "jobs" ADD COLUMN "service" varchar(1024);

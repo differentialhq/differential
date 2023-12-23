@@ -8,7 +8,7 @@ import * as auth from "./auth";
 import * as cluster from "./cluster";
 import { contract } from "./contract";
 import * as data from "./data";
-import { createJob, nextJobs, selfHealJobsHack } from "./jobs";
+import { createJob, nextJobs, putJobResult, selfHealJobsHack } from "./jobs";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -69,18 +69,15 @@ export const router = s.router(contract, {
     }
 
     const { jobId } = request.params;
-    const { result, resultType } = request.body;
+    const { result, resultType, cacheTTL } = request.body;
 
-    await data.db
-      .update(data.jobs)
-      .set({
-        result,
-        result_type: resultType,
-        status: "success",
-      })
-      .where(
-        and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId))
-      );
+    await putJobResult({
+      jobId,
+      result,
+      resultType,
+      clusterId: owner.clusterId,
+      cacheTTL,
+    });
 
     return {
       status: 204,
@@ -96,13 +93,13 @@ export const router = s.router(contract, {
       };
     }
 
-    const { targetFn, targetArgs, pool } = request.body;
+    const { targetFn, targetArgs, service } = request.body;
 
     const { id } = await createJob({
       targetFn,
       targetArgs,
       owner,
-      pool,
+      service,
     });
 
     return {

@@ -44,6 +44,7 @@ pool.on("connect", (client) => {
 
 export const jobs = pgTable("jobs", {
   id: varchar("id", { length: 1024 }).primaryKey(),
+  // TODO(good-first-issue): rename this column to cluster_id
   owner_hash: text("owner_hash").notNull(),
   target_fn: varchar("target_fn", { length: 1024 }).notNull(),
   target_args: text("target_args").notNull(),
@@ -55,6 +56,7 @@ export const jobs = pgTable("jobs", {
   result_type: text("result_type", {
     enum: ["resolution", "rejection"],
   }),
+  // TODO(good-first-issue): deprecate this column, and generate a migration to remove it from the database
   machine_type: text("machine_type"),
   remaining: integer("remaining").default(1),
   created_at: timestamp("created_at", { withTimezone: true })
@@ -67,6 +69,8 @@ export const jobs = pgTable("jobs", {
     sql`now() + interval '300 seconds'`
   ),
   timeout_interval_seconds: integer("timeout_interval").default(300),
+  service: varchar("service", { length: 1024 }),
+  cache_expiry_at: timestamp("cache_expiry_at", { withTimezone: true }),
 });
 
 export const machines = pgTable("machines", {

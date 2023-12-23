@@ -42,7 +42,7 @@ export const contract = c.router({
     body: z.object({
       targetFn: z.string(),
       targetArgs: z.string(),
-      pool: z.string().optional(),
+      service: z.string().default("unknown"),
     }),
   },
   getJobStatus: {
@@ -80,6 +80,7 @@ export const contract = c.router({
     body: z.object({
       result: z.string(),
       resultType: z.enum(["resolution", "rejection"]),
+      cacheTTL: z.number().optional(),
     }),
   },
   live: {
