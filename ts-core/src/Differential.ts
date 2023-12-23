@@ -533,10 +533,10 @@ export class Differential {
    *
    * // Client usage
    * const result = client.hello("world");
-   * const jobId = client.background.hello("world");
+   * const backgroundResult = client.background.hello("world");
    *
    * console.log(result); // "Hello world"
-   * console.log(jobId); // "1"
+   * console.log(backgroundResult.jobId); // "1"
    * ```
    */
   buildClient<T extends RegisteredService<any>>(): ServiceClient<T> {

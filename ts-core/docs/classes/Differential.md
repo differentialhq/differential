@@ -60,7 +60,7 @@ Initializes a new Differential instance.
 
 #### Defined in
 
-[src/Differential.ts:383](https://github.com/differentialhq/differential/blob/b31721b/ts-core/src/Differential.ts#L383)
+[src/Differential.ts:383](https://github.com/differentialhq/differential/blob/1699ef0/ts-core/src/Differential.ts#L383)
 
 ## Methods
 
@@ -103,7 +103,7 @@ console.log(result.id); //
 
 #### Defined in
 
-[src/Differential.ts:625](https://github.com/differentialhq/differential/blob/b31721b/ts-core/src/Differential.ts#L625)
+[src/Differential.ts:625](https://github.com/differentialhq/differential/blob/1699ef0/ts-core/src/Differential.ts#L625)
 
 ___
 
@@ -136,15 +136,15 @@ const client = d.buildClient<typeof helloService>();
 
 // Client usage
 const result = client.hello("world");
-const jobId = client.background.hello("world");
+const backgroundResult = client.background.hello("world");
 
 console.log(result); // "Hello world"
-console.log(jobId); // "1"
+console.log(backgroundResult.jobId); // "1"
 ```
 
 #### Defined in
 
-[src/Differential.ts:542](https://github.com/differentialhq/differential/blob/b31721b/ts-core/src/Differential.ts#L542)
+[src/Differential.ts:542](https://github.com/differentialhq/differential/blob/1699ef0/ts-core/src/Differential.ts#L542)
 
 ___
 
@@ -188,7 +188,7 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[src/Differential.ts:582](https://github.com/differentialhq/differential/blob/b31721b/ts-core/src/Differential.ts#L582)
+[src/Differential.ts:582](https://github.com/differentialhq/differential/blob/1699ef0/ts-core/src/Differential.ts#L582)
 
 ___
 
@@ -240,4 +240,4 @@ process.on("beforeExit", async () => {
 
 #### Defined in
 
-[src/Differential.ts:500](https://github.com/differentialhq/differential/blob/b31721b/ts-core/src/Differential.ts#L500)
+[src/Differential.ts:500](https://github.com/differentialhq/differential/blob/1699ef0/ts-core/src/Differential.ts#L500)
