@@ -20,7 +20,7 @@ export const contract = c.router({
     query: z.object({
       pools: z.string().optional(),
       limit: z.coerce.number().default(1),
-      functions: z.string().optional(),
+      functions: z.string(),
     }),
     responses: {
       200: z.array(NextJobSchema),
@@ -42,7 +42,7 @@ export const contract = c.router({
     body: z.object({
       targetFn: z.string(),
       targetArgs: z.string(),
-      pool: z.string().optional(),
+      service: z.string().default("unknown"),
     }),
   },
   getJobStatus: {
@@ -80,6 +80,7 @@ export const contract = c.router({
     body: z.object({
       result: z.string(),
       resultType: z.enum(["resolution", "rejection"]),
+      cacheTTL: z.number().optional(),
     }),
   },
   live: {
@@ -184,6 +185,57 @@ export const contract = c.router({
     responses: {
       201: z.string(),
     },
+  },
+  putServiceDefinition: {
+    method: "PUT",
+    path: "/organizations/:organizationId/clusters/:clusterId/service-definition",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      204: z.undefined(),
+      401: z.undefined(),
+    },
+    pathParams: z.object({
+      organizationId: z.string(),
+      clusterId: z.string(),
+    }),
+    body: z.object({
+      serviceDefinition: z.object({
+        name: z.string(),
+        functions: z.record(
+          z.string(),
+          z.object({
+            name: z.string(),
+            description: z.string().nullable(),
+          })
+        ),
+      }),
+    }),
+  },
+  getServiceDefinition: {
+    method: "GET",
+    path: "/organizations/:organizationId/clusters/:clusterId/service-definition",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.object({
+        name: z.string(),
+        functions: z.record(
+          z.string(),
+          z.object({
+            name: z.string(),
+            description: z.string().nullable(),
+          })
+        ),
+      }),
+      401: z.undefined(),
+    },
+    pathParams: z.object({
+      organizationId: z.string(),
+      clusterId: z.string(),
+    }),
   },
 });
 
