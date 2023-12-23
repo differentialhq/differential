@@ -38,10 +38,22 @@ describe("monolith", () => {
       "Can't touch this"
     );
 
+
     const client = d.buildClient<typeof expertService>()
     const clientResult = await client.callExpert("Can't touch this")
 
     expect(clientResult).toBe(result);
+
+    await expertService.stop();
+  }, 10000);
+
+  it("service background client should return job id", async () => {
+    await expertService.start();
+
+    const client = d.buildClient<typeof expertService>()
+    const clientResult = await client.background.callExpert("Can't touch this")
+
+    expect(clientResult).toHaveProperty('id')
 
     await expertService.stop();
   }, 10000);

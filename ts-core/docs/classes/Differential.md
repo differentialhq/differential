@@ -36,6 +36,7 @@ console.log(result); // "Hello world"
 ### Methods
 
 - [background](Differential.md#background)
+- [buildClient](Differential.md#buildclient)
 - [call](Differential.md#call)
 - [service](Differential.md#service)
 
@@ -59,13 +60,13 @@ Initializes a new Differential instance.
 
 #### Defined in
 
-[src/Differential.ts:374](https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L374)
+[src/Differential.ts:383](https://github.com/differentialhq/differential/blob/b31721b/ts-core/src/Differential.ts#L383)
 
 ## Methods
 
 ### background
 
-▸ **background**\<`T`, `U`\>(`fn`, `...args`): `Promise`\<\{ `id`: `string`  }\>
+▸ **background**\<`T`, `U`\>(`fn`, `...args`): `Promise`\<`BackgroundJobResult`\>
 
 Calls a function on a registered service, while ensuring the type safety of the function call through generics.
 Returns the job id of the function call, and doesn't wait for the function to complete.
@@ -74,7 +75,7 @@ Returns the job id of the function call, and doesn't wait for the function to co
 
 | Name | Type |
 | :------ | :------ |
-| `T` | extends `RegisteredService` |
+| `T` | extends `RegisteredService`\<`any`\> |
 | `U` | extends `string` \| `number` \| `symbol` |
 
 #### Parameters
@@ -86,7 +87,7 @@ Returns the job id of the function call, and doesn't wait for the function to co
 
 #### Returns
 
-`Promise`\<\{ `id`: `string`  }\>
+`Promise`\<`BackgroundJobResult`\>
 
 The job id of the function call.
 
@@ -102,7 +103,48 @@ console.log(result.id); //
 
 #### Defined in
 
-[src/Differential.ts:572](https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L572)
+[src/Differential.ts:625](https://github.com/differentialhq/differential/blob/b31721b/ts-core/src/Differential.ts#L625)
+
+___
+
+### buildClient
+
+▸ **buildClient**\<`T`\>(): `ServiceClient`\<`T`\>
+
+Provides a type safe client for performing calls to a registered service.
+Background calls are also supported through the `background` property on the client object.
+
+#### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `T` | extends `RegisteredService`\<`any`\> |
+
+#### Returns
+
+`ServiceClient`\<`T`\>
+
+A client object with all service functions available
+
+**`Example`**
+
+```ts
+import { d } from "./differential";
+import type { helloService } from "./hello-service";
+
+const client = d.buildClient<typeof helloService>();
+
+// Client usage
+const result = client.hello("world");
+const jobId = client.background.hello("world");
+
+console.log(result); // "Hello world"
+console.log(jobId); // "1"
+```
+
+#### Defined in
+
+[src/Differential.ts:542](https://github.com/differentialhq/differential/blob/b31721b/ts-core/src/Differential.ts#L542)
 
 ___
 
@@ -117,7 +159,7 @@ Waits for the function to complete before returning, and returns the result of t
 
 | Name | Type |
 | :------ | :------ |
-| `T` | extends `RegisteredService` |
+| `T` | extends `RegisteredService`\<`any`\> |
 | `U` | extends `string` \| `number` \| `symbol` |
 
 #### Parameters
@@ -146,13 +188,13 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[src/Differential.ts:529](https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L529)
+[src/Differential.ts:582](https://github.com/differentialhq/differential/blob/b31721b/ts-core/src/Differential.ts#L582)
 
 ___
 
 ### service
 
-▸ **service**\<`T`\>(`service`): `RegisteredService`
+▸ **service**\<`T`\>(`service`): `RegisteredService`\<`T`\>
 
 Registers a service with Differential. This will register all functions on the service.
 
@@ -170,7 +212,7 @@ Registers a service with Differential. This will register all functions on the s
 
 #### Returns
 
-`RegisteredService`
+`RegisteredService`\<`T`\>
 
 A registered service instance.
 
@@ -198,4 +240,4 @@ process.on("beforeExit", async () => {
 
 #### Defined in
 
-[src/Differential.ts:491](https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L491)
+[src/Differential.ts:500](https://github.com/differentialhq/differential/blob/b31721b/ts-core/src/Differential.ts#L500)

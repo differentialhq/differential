@@ -9,10 +9,14 @@ const log = debug("differential:client");
 
 const { serializeError, deserializeError } = require("./errors");
 
-
-type ServiceClient<T extends RegisteredService<any>> = {    
-  [K in keyof T['definition']['functions']]: T['definition']['functions'][K];
+type ServiceClient<T extends RegisteredService<any>> = {
+  [K in keyof T['definition']['functions']]: T['definition']['functions'][K]
+} & {
+  background: {
+    [K in keyof T['definition']['functions']]: (...args: Parameters<T['definition']['functions'][K]>) => Promise<BackgroundJobResult>
+  }
 };
+type BackgroundJobResult = { id: string }
 
 export type ServiceDefinition = {
   name: string;
@@ -517,8 +521,9 @@ export class Differential {
 
   /**
    * Provides a type safe client for performing calls to a registered service.
-   * Waits for the function to complete before returning, and returns the result of the function call.
-   * @returns ServiceClient<T>
+   * Background calls are also supported through the `background` property on the client object.
+   *
+   * @returns A client object with all service functions available
    * @example
    * ```ts
    * import { d } from "./differential";
@@ -528,13 +533,31 @@ export class Differential {
    *
    * // Client usage
    * const result = client.hello("world");
+   * const jobId = client.background.hello("world");
+   *
    * console.log(result); // "Hello world"
+   * console.log(jobId); // "1"
    * ```
    */
   buildClient<T extends RegisteredService<any>>(): ServiceClient<T> {
     const d = this
+
+    const backgroundClient = new Proxy({}, {
+      get(_target, property, _receiver) {
+         return (...args: any[]) => { return d.background(property, ...args) };
+      }
+    });
+
     return new Proxy({} as ServiceClient<T>, {
       get(_target, property, _receiver) {
+        if (typeof property !== "string") {
+          return undefined
+        }
+
+        if (property === "background") {
+          return backgroundClient
+        }
+
         return (...args: any[]) => { return d.call(property, ...args) }
       }
     });
@@ -605,7 +628,7 @@ export class Differential {
   >(
     fn: U,
     ...args: Parameters<T["definition"]["functions"][U]>
-  ): Promise<{ id: string }> {
+  ): Promise<BackgroundJobResult> {
     // create a job
     const id = await this.createJob<T, U>(fn, args);
 
