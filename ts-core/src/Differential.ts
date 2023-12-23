@@ -9,9 +9,14 @@ const log = debug("differential:client");
 
 const { serializeError, deserializeError } = require("./errors");
 
+type ServiceClient<T extends RegisteredService<any>> = {
+  [K in keyof T["definition"]["functions"]]: T["definition"]["functions"][K];
+};
 
-type ServiceClient<T extends RegisteredService<any>> = {    
-  [K in keyof T['definition']['functions']]: T['definition']['functions'][K];
+type BackgroundServiceClient<T extends RegisteredService<any>> = {
+  [K in keyof T["definition"]["functions"]]: (
+    ...args: Parameters<T["definition"]["functions"][K]>
+  ) => Promise<{ id: string }>;
 };
 
 export type ServiceDefinition = {
@@ -121,7 +126,7 @@ class PollingAgent {
   };
 
   constructor(
-    private client: ReturnType<typeof createClient>,
+    private controlPlaneClient: ReturnType<typeof createClient>,
     private authHeader: string,
     private service: {
       name: string;
@@ -149,7 +154,7 @@ class PollingAgent {
     }
 
     try {
-      const pollResult = await this.client
+      const pollResult = await this.controlPlaneClient
         .getNextJobs({
           query: {
             limit: Math.ceil(
@@ -222,7 +227,7 @@ class PollingAgent {
                   resultType: result.type,
                 });
 
-                await this.client
+                await this.controlPlaneClient
                   .persistJobResult({
                     body: {
                       result: pack(result.content),
@@ -368,7 +373,7 @@ export class Differential {
   private authHeader: string;
   private endpoint: string;
   private machineId: string;
-  private client: ReturnType<typeof createClient>;
+  private controlPlaneClient: ReturnType<typeof createClient>;
 
   private pollingAgents: PollingAgent[] = [];
 
@@ -383,12 +388,12 @@ export class Differential {
       "https://api.differential.dev";
     this.machineId = Math.random().toString(36).substring(7);
 
-    log("Initializing client", {
+    log("Initializing control plane client", {
       endpoint: this.endpoint,
       machineId: this.machineId,
     });
 
-    this.client = createClient(this.endpoint, this.machineId);
+    this.controlPlaneClient = createClient(this.endpoint, this.machineId);
   }
 
   /**
@@ -417,9 +422,13 @@ export class Differential {
   // };
 
   private async listen(service: string) {
-    const pollingAgent = new PollingAgent(this.client, this.authHeader, {
-      name: service,
-    });
+    const pollingAgent = new PollingAgent(
+      this.controlPlaneClient,
+      this.authHeader,
+      {
+        name: service,
+      }
+    );
 
     if (
       this.pollingAgents.find((p) => p.serviceName === service && p.polling)
@@ -515,6 +524,16 @@ export class Differential {
     };
   }
 
+  client<
+    T extends RegisteredService<ServiceDefinition>,
+    N extends T["definition"]["name"]
+  >(service: T["definition"]["name"]): ServiceClient<T>;
+
+  client<T extends RegisteredService<any>>(
+    service: T["definition"]["name"],
+    options: { background: true }
+  ): BackgroundServiceClient<T>;
+
   /**
    * Provides a type safe client for performing calls to a registered service.
    * Waits for the function to complete before returning, and returns the result of the function call.
@@ -532,15 +551,19 @@ export class Differential {
    * ```
    */
   buildClient<T extends RegisteredService<any>>(): ServiceClient<T> {
-    const d = this
+    const d = this;
     return new Proxy({} as ServiceClient<T>, {
       get(_target, property, _receiver) {
-        return (...args: any[]) => { return d.call(property, ...args) }
-      }
+        return (...args: any[]) => {
+          return d.call(property, ...args);
+        };
+      },
     });
   }
 
   /**
+   * @deprecated Use `buildClient` instead.
+   *
    * Calls a function on a registered service, while ensuring the type safety of the function call through generics.
    * Waits for the function to complete before returning, and returns the result of the function call.
    * @param fn The function name to call.
@@ -568,7 +591,7 @@ export class Differential {
 
     // wait for the job to complete
     const result = await pollForJob(
-      this.client,
+      this.controlPlaneClient,
       { jobId: id },
       this.authHeader
     );
@@ -585,6 +608,8 @@ export class Differential {
   }
 
   /**
+   * @deprecated Use `buildClient` instead.
+   *
    * Calls a function on a registered service, while ensuring the type safety of the function call through generics.
    * Returns the job id of the function call, and doesn't wait for the function to complete.
    * @param fn The function name to call.
@@ -619,7 +644,7 @@ export class Differential {
     fn: string | number | symbol,
     args: Parameters<T["definition"]["functions"][U]>
   ) {
-    return await this.client
+    return await this.controlPlaneClient
       .createJob({
         body: {
           targetFn: fn as string,

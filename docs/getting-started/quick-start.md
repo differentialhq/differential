@@ -93,11 +93,13 @@ import { d } from "../d";
 import type { helloService } from "../services/hello";
 import { starting } from "../utls/cmd";
 
+const helloClient = d.buildClient<typeof helloService>();
+
 async function greet(name: string = "World", language: string = "english") {
-  const result = await d.call<typeof helloService, "helloInAnotherLanguage">(
-    "helloInAnotherLanguage",
-    { from: name, language }
-  );
+  const result = await helloClient.helloInAnotherLanguage({
+    from: name,
+    language,
+  });
 
   console.log(`Received response: ${result.message}`);
 }

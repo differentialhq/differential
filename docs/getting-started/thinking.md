@@ -81,6 +81,8 @@ import { d } from "../d";
 import type { emailService } from "./services/email";
 import type { authService } from "./services/email";
 
+const emailServiceClient = d.createClient<typeof emailService>();
+
 async function confirmUserSignup(email: string) {
   await d.call<"emailService", "scheduleOnboardingEmails">("emailService", "scheduleOnboardingEmails", email);
   await d.call<"authService", "onUserSignup">("authService", "onUserSignup", email);
