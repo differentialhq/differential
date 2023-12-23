@@ -38,7 +38,7 @@ describe("monolith", () => {
       "Can't touch this"
     );
 
-    const client = d.buildClient<typeof expertService>();
+    const client = d.buildClient<typeof expertService>("expert");
     const clientResult = await client.callExpert("Can't touch this");
 
     expect(clientResult).toBe(result);
