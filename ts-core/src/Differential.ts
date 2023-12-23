@@ -14,14 +14,14 @@ type ServiceClient<T extends RegisteredService<any>> = {
   [K in keyof T['definition']['functions']]: T['definition']['functions'][K];
 };
 
-export type ServiceDefinition = {
-  name: string;
+export type ServiceDefinition<T extends string> = {
+  name: T;
   functions: {
     [key: string]: AsyncFunction;
   };
 };
 
-export type RegisteredService<T extends ServiceDefinition> = {
+export type RegisteredService<T extends ServiceDefinition<any>> = {
   definition: T;
   start: () => Promise<void>;
   stop: () => Promise<void>;
@@ -493,7 +493,7 @@ export class Differential {
    * });
    * ```
    */
-  service<T extends ServiceDefinition>(service: T): RegisteredService<T> {
+  service<T extends ServiceDefinition<N>, N extends string>(service: T): RegisteredService<T> {
     for (const [key, value] of Object.entries(service.functions)) {
       if (functionRegistry[key]) {
         throw new DifferentialError(
@@ -531,7 +531,7 @@ export class Differential {
    * console.log(result); // "Hello world"
    * ```
    */
-  buildClient<T extends RegisteredService<any>>(): ServiceClient<T> {
+  buildClient<T extends RegisteredService<any> >(service: T['definition']['name']): ServiceClient<T> {
     const d = this
     return new Proxy({} as ServiceClient<T>, {
       get(_target, property, _receiver) {

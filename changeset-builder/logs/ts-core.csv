@@ -1,3 +1,4 @@
+439e942, 2023-12-24, Enforce service name param
 a218b31, 2023-12-23, release: 3.1.0
 f191698, 2023-12-23, Add service client builder (#2)
 e74b43b, 2023-12-22, Fix: Persist ServiceDefinition type information (#1)
