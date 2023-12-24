@@ -32,3 +32,8 @@ jobs:
         run: npm test --prefix control-plane
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Check conventional commits
+        uses: beemojs/conventional-pr-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
