@@ -345,14 +345,23 @@ type WorkerPool = {
 /**
  * The Differential client. This is the main entry point for using Differential.
  *
+ * Differential client exposes two main methods:
+ * * `service` - Registers a service with Differential. This will register all functions on the service.
+ * * `client` - Provides a type safe client for performing calls to a registered service.
+ *
  * @example Basic usage
  * ```ts
- *  const d = new Differential("API_SECRET");
+ * // src/service.ts
+ *
+ * // create a new Differential instance
+ * const d = new Differential("API_SECRET");
  *
  * const myService = d.service({
  *   name: "my-service",
  *   functions: {
- *     hello: async (name: string) => { ... }
+ *     hello: async (name: string) => {
+ *       return `Hello ${name}`;
+ *     },
  *   },
  * });
  *
@@ -362,6 +371,8 @@ type WorkerPool = {
  * process.on("beforeExit", async () => {
  *   await myService.stop();
  * });
+ *
+ * // src/client.ts
  *
  * // create a client for the service
  * const client = d.client<typeof myService>("my-service");
@@ -382,7 +393,7 @@ export class Differential {
 
   /**
    * Initializes a new Differential instance.
-   * @param apiSecret The API Secret for your Differential cluster. Obtain this from [your Differential dashboard](https://admin.differential.dev/dashboard).
+   * @param apiSecret The API Secret for your Differential cluster. You can obtain one from https://api.differential.dev/demo/token.
    */
   constructor(private apiSecret: string) {
     this.authHeader = `Basic ${this.apiSecret}`;
@@ -398,31 +409,6 @@ export class Differential {
 
     this.controlPlaneClient = createClient(this.endpoint, this.machineId);
   }
-
-  /**
-   * waking up is done by sending a request to the health check url directly
-   * so that the network doesn't have to be configured to allow incoming requests.
-   * from the outside.
-   */
-  // TODO: call this
-  // private onWork = async (pool?: string): Promise<void> => {
-  //   if (!pool) {
-  //     // execute all pools
-
-  //     const pools = this.workerPools
-  //       ? Object.values(this.workerPools)
-  //       : undefined;
-
-  //     for (const listener of pools ?? []) {
-  //       listener.onWork?.();
-  //     }
-  //   } else {
-  //     // execute specific pool
-  //     const listener = this.workerPools?.[pool];
-
-  //     listener?.onWork?.();
-  //   }
-  // };
 
   private async listen(service: string) {
     const pollingAgent = new PollingAgent(
@@ -580,22 +566,8 @@ export class Differential {
   }
 
   /**
-   * @deprecated Use `buildClient` instead.
-   *
-   * Calls a function on a registered service, while ensuring the type safety of the function call through generics.
-   * Waits for the function to complete before returning, and returns the result of the function call.
-   * @param fn The function name to call.
-   * @param args The arguments to pass to the function.
-   * @returns The return value of the function.
-   * @example
-   * ```ts
-   * import { d } from "./differential";
-   * import { helloService } from "./hello-service";
-   *
-   * const result = await d.call<typeof helloService, "hello">("hello", "world");
-   *
-   * console.log(result); // "Hello world"
-   * ```
+   * @ignore
+   * @deprecated Use `d.client` instead.
    */
   async call<
     T extends RegisteredService<any>,
@@ -627,21 +599,8 @@ export class Differential {
   }
 
   /**
-   * @deprecated Use `buildClient` instead.
-   *
-   * Calls a function on a registered service, while ensuring the type safety of the function call through generics.
-   * Returns the job id of the function call, and doesn't wait for the function to complete.
-   * @param fn The function name to call.
-   * @param args The arguments to pass to the function.
-   * @returns The job id of the function call.
-   * @example
-   * ```ts
-   * import { d } from "./differential";
-   *
-   * const result = await d.background<typeof helloService, "hello">("hello", "world");
-   *
-   * console.log(result.id); //
-   * ```
+   * @ignore
+   * @deprecated Use `d.client` instead.
    */
   async background<
     T extends RegisteredService<any>,

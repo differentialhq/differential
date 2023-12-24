@@ -2,27 +2,41 @@
 
 The Differential client. This is the main entry point for using Differential.
 
+Differential client exposes two main methods:
+* `service` - Registers a service with Differential. This will register all functions on the service.
+* `client` - Provides a type safe client for performing calls to a registered service.
+
 **`Example`**
 
 ```ts
-const d = new Differential("API_SECRET"); // obtain this from your Differential dashboard
+// src/service.ts
+
+// create a new Differential instance
+const d = new Differential("API_SECRET");
 
 const myService = d.service({
   name: "my-service",
   functions: {
-    hello: async (name: string) => { ... }
+    hello: async (name: string) => {
+      return `Hello ${name}`;
+    },
   },
 });
 
-await d.listen("my-service");
+await myService.start();
 
 // stop the service on shutdown
 process.on("beforeExit", async () => {
-  await d.quit();
+  await myService.stop();
 });
 
+// src/client.ts
+
+// create a client for the service
+const client = d.client<typeof myService>("my-service");
+
 // call a function on the service
-const result = await d.call<typeof myService, "hello">("hello", "world");
+const result = await client.hello("world");
 
 console.log(result); // "Hello world"
 ```
@@ -35,8 +49,7 @@ console.log(result); // "Hello world"
 
 ### Methods
 
-- [background](Differential.md#background)
-- [call](Differential.md#call)
+- [client](Differential.md#client)
 - [service](Differential.md#service)
 
 ## Constructors
@@ -51,7 +64,7 @@ Initializes a new Differential instance.
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `apiSecret` | `string` | The API Secret for your Differential cluster. Obtain this from [your Differential dashboard](https://admin.differential.dev/dashboard). |
+| `apiSecret` | `string` | The API Secret for your Differential cluster. You can obtain one from https://api.differential.dev/demo/token. |
 
 #### Returns
 
@@ -59,100 +72,99 @@ Initializes a new Differential instance.
 
 #### Defined in
 
-[src/Differential.ts:374](https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L374)
+[src/Differential.ts:398](https://github.com/differentialHQ/differential/blob/44e4229/ts-core/src/Differential.ts#L398)
 
 ## Methods
 
-### background
+### client
 
-▸ **background**\<`T`, `U`\>(`fn`, `...args`): `Promise`\<\{ `id`: `string`  }\>
+▸ **client**\<`T`\>(`service`): `ServiceClient`\<`T`\>
 
-Calls a function on a registered service, while ensuring the type safety of the function call through generics.
-Returns the job id of the function call, and doesn't wait for the function to complete.
-
-#### Type parameters
-
-| Name | Type |
-| :------ | :------ |
-| `T` | extends `RegisteredService` |
-| `U` | extends `string` \| `number` \| `symbol` |
-
-#### Parameters
-
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `fn` | `U` | The function name to call. |
-| `...args` | `Parameters`\<`T`[``"definition"``][``"functions"``][`U`]\> | The arguments to pass to the function. |
-
-#### Returns
-
-`Promise`\<\{ `id`: `string`  }\>
-
-The job id of the function call.
-
-**`Example`**
-
-```ts
-import { d } from "./differential";
-
-const result = await d.background<typeof helloService, "hello">("hello", "world");
-
-console.log(result.id); //
-```
-
-#### Defined in
-
-[src/Differential.ts:572](https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L572)
-
-___
-
-### call
-
-▸ **call**\<`T`, `U`\>(`fn`, `...args`): `Promise`\<`ReturnType`\<`T`[``"definition"``][``"functions"``][`U`]\>\>
-
-Calls a function on a registered service, while ensuring the type safety of the function call through generics.
+Provides a type safe client for performing calls to a registered service.
 Waits for the function to complete before returning, and returns the result of the function call.
 
 #### Type parameters
 
 | Name | Type |
 | :------ | :------ |
-| `T` | extends `RegisteredService` |
-| `U` | extends `string` \| `number` \| `symbol` |
+| `T` | extends `RegisteredService`\<`any`\> |
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `fn` | `U` | The function name to call. |
-| `...args` | `Parameters`\<`T`[``"definition"``][``"functions"``][`U`]\> | The arguments to pass to the function. |
+| Name | Type |
+| :------ | :------ |
+| `service` | `T`[``"definition"``][``"name"``] |
 
 #### Returns
 
-`Promise`\<`ReturnType`\<`T`[``"definition"``][``"functions"``][`U`]\>\>
+`ServiceClient`\<`T`\>
 
-The return value of the function.
+ServiceClient<T>
 
 **`Example`**
 
 ```ts
 import { d } from "./differential";
-import { helloService } from "./hello-service";
+import type { helloService } from "./hello-service";
 
-const result = await d.call<typeof helloService, "hello">("hello", "world");
+const client = d.buildClient<typeof helloService>();
 
+// Client usage
+const result = client.hello("world");
 console.log(result); // "Hello world"
 ```
 
 #### Defined in
 
-[src/Differential.ts:529](https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L529)
+[src/Differential.ts:518](https://github.com/differentialHQ/differential/blob/44e4229/ts-core/src/Differential.ts#L518)
+
+▸ **client**\<`T`\>(`service`, `options`): `BackgroundServiceClient`\<`T`\>
+
+Provides a type safe client for performing calls to a registered service.
+Waits for the function to complete before returning, and returns the result of the function call.
+
+#### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `T` | extends `RegisteredService`\<`any`\> |
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `service` | `T`[``"definition"``][``"name"``] |
+| `options` | `Object` |
+| `options.background` | ``true`` |
+
+#### Returns
+
+`BackgroundServiceClient`\<`T`\>
+
+ServiceClient<T>
+
+**`Example`**
+
+```ts
+import { d } from "./differential";
+import type { helloService } from "./hello-service";
+
+const client = d.buildClient<typeof helloService>();
+
+// Client usage
+const result = client.hello("world");
+console.log(result); // "Hello world"
+```
+
+#### Defined in
+
+[src/Differential.ts:522](https://github.com/differentialHQ/differential/blob/44e4229/ts-core/src/Differential.ts#L522)
 
 ___
 
 ### service
 
-▸ **service**\<`T`\>(`service`): `RegisteredService`
+▸ **service**\<`T`, `N`\>(`service`): `RegisteredService`\<`T`\>
 
 Registers a service with Differential. This will register all functions on the service.
 
@@ -160,7 +172,8 @@ Registers a service with Differential. This will register all functions on the s
 
 | Name | Type |
 | :------ | :------ |
-| `T` | extends `ServiceDefinition` |
+| `T` | extends `ServiceDefinition`\<`N`\> |
+| `N` | extends `string` |
 
 #### Parameters
 
@@ -170,7 +183,7 @@ Registers a service with Differential. This will register all functions on the s
 
 #### Returns
 
-`RegisteredService`
+`RegisteredService`\<`T`\>
 
 A registered service instance.
 
@@ -198,4 +211,4 @@ process.on("beforeExit", async () => {
 
 #### Defined in
 
-[src/Differential.ts:491](https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L491)
+[src/Differential.ts:494](https://github.com/differentialHQ/differential/blob/44e4229/ts-core/src/Differential.ts#L494)
