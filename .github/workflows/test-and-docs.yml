@@ -28,7 +28,7 @@ jobs:
         run: npm install
 
       - name: Run tests
-        run: npx leran run test
+        run: npx lerna run test
         env:
           DIFFERENTIAL_API_SECRET: ${{ secrets.DIFFERENTIAL_API_SECRET }}
 
