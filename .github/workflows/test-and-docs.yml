@@ -39,7 +39,7 @@ jobs:
           git config --global user.email "ci@differential.dev"
 
       - name: Version and publish packages
-        run: npx lerna publish --conventional-commits --yes --no-private
+        run: npx lerna publish --conventional-commits --yes --no-private --registry https://registry.npmjs.org
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
