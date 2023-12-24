@@ -72,7 +72,7 @@ Initializes a new Differential instance.
 
 #### Defined in
 
-[src/Differential.ts:398](https://github.com/differentialHQ/differential/blob/44e4229/ts-core/src/Differential.ts#L398)
+[src/Differential.ts:398](https://github.com/differentialHQ/differential/blob/bc48554/ts-core/src/Differential.ts#L398)
 
 ## Methods
 
@@ -107,7 +107,7 @@ ServiceClient<T>
 import { d } from "./differential";
 import type { helloService } from "./hello-service";
 
-const client = d.buildClient<typeof helloService>();
+const client = d.client<helloService>("hello");
 
 // Client usage
 const result = client.hello("world");
@@ -116,7 +116,7 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[src/Differential.ts:518](https://github.com/differentialHQ/differential/blob/44e4229/ts-core/src/Differential.ts#L518)
+[src/Differential.ts:518](https://github.com/differentialHQ/differential/blob/bc48554/ts-core/src/Differential.ts#L518)
 
 ▸ **client**\<`T`\>(`service`, `options`): `BackgroundServiceClient`\<`T`\>
 
@@ -149,7 +149,7 @@ ServiceClient<T>
 import { d } from "./differential";
 import type { helloService } from "./hello-service";
 
-const client = d.buildClient<typeof helloService>();
+const client = d.client<helloService>("hello");
 
 // Client usage
 const result = client.hello("world");
@@ -158,7 +158,7 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[src/Differential.ts:522](https://github.com/differentialHQ/differential/blob/44e4229/ts-core/src/Differential.ts#L522)
+[src/Differential.ts:522](https://github.com/differentialHQ/differential/blob/bc48554/ts-core/src/Differential.ts#L522)
 
 ___
 
@@ -211,4 +211,4 @@ process.on("beforeExit", async () => {
 
 #### Defined in
 
-[src/Differential.ts:494](https://github.com/differentialHQ/differential/blob/44e4229/ts-core/src/Differential.ts#L494)
+[src/Differential.ts:494](https://github.com/differentialHQ/differential/blob/bc48554/ts-core/src/Differential.ts#L494)

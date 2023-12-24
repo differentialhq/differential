@@ -533,7 +533,7 @@ export class Differential {
    * import { d } from "./differential";
    * import type { helloService } from "./hello-service";
    *
-   * const client = d.buildClient<typeof helloService>();
+   * const client = d.client<helloService>("hello");
    *
    * // Client usage
    * const result = client.hello("world");
