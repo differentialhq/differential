@@ -347,7 +347,7 @@ type WorkerPool = {
  *
  * @example Basic usage
  * ```ts
- *  const d = new Differential("API_SECRET"); // obtain this from your Differential dashboard
+ *  const d = new Differential("API_SECRET");
  *
  * const myService = d.service({
  *   name: "my-service",
@@ -356,15 +356,18 @@ type WorkerPool = {
  *   },
  * });
  *
- * await d.listen("my-service");
+ * await myService.start();
  *
  * // stop the service on shutdown
  * process.on("beforeExit", async () => {
- *   await d.quit();
+ *   await myService.stop();
  * });
  *
+ * // create a client for the service
+ * const client = d.client<typeof myService>("my-service");
+ *
  * // call a function on the service
- * const result = await d.call<typeof myService, "hello">("hello", "world");
+ * const result = await client.hello("world");
  *
  * console.log(result); // "Hello world"
  * ```
