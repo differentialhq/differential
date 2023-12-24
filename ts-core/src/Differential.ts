@@ -526,10 +526,9 @@ export class Differential {
     };
   }
 
-  client<
-    T extends RegisteredService<ServiceDefinition>,
-    N extends T["definition"]["name"]
-  >(service: T["definition"]["name"]): ServiceClient<T>;
+  client<T extends RegisteredService<any>>(
+    service: T["definition"]["name"]
+  ): ServiceClient<T>;
 
   client<T extends RegisteredService<any>>(
     service: T["definition"]["name"],
@@ -552,17 +551,29 @@ export class Differential {
    * console.log(result); // "Hello world"
    * ```
    */
-  buildClient<T extends RegisteredService<any>>(
-    service: T["definition"]["name"]
+  client<T extends RegisteredService<any>>(
+    service: T["definition"]["name"],
+    options?: {
+      background?: boolean;
+    }
   ): ServiceClient<T> {
     const d = this;
-    return new Proxy({} as ServiceClient<T>, {
-      get(_target, property, _receiver) {
-        return (...args: any[]) => {
-          return d.call(property, ...args);
-        };
-      },
-    });
+
+    if (options?.background === true) {
+      return new Proxy({} as BackgroundServiceClient<T>, {
+        get(_target, property, _receiver) {
+          return (...args: any[]) =>
+            d.background(service, property, ...(args as any));
+        },
+      });
+    } else {
+      return new Proxy({} as ServiceClient<T>, {
+        get(_target, property, _receiver) {
+          return (...args: any[]) =>
+            d.call(service, property, ...(args as any));
+        },
+      });
+    }
   }
 
   /**
@@ -587,11 +598,12 @@ export class Differential {
     T extends RegisteredService<any>,
     U extends keyof T["definition"]["functions"]
   >(
+    service: T["definition"]["name"],
     fn: U,
     ...args: Parameters<T["definition"]["functions"][U]>
   ): Promise<ReturnType<T["definition"]["functions"][U]>> {
     // create a job
-    const id = await this.createJob<T, U>(fn, args);
+    const id = await this.createJob<T, U>(service, fn, args);
 
     // wait for the job to complete
     const result = await pollForJob(
@@ -632,11 +644,12 @@ export class Differential {
     T extends RegisteredService<any>,
     U extends keyof T["definition"]["functions"]
   >(
+    service: T["definition"]["name"],
     fn: U,
     ...args: Parameters<T["definition"]["functions"][U]>
   ): Promise<{ id: string }> {
     // create a job
-    const id = await this.createJob<T, U>(fn, args);
+    const id = await this.createJob<T, U>(service, fn, args);
 
     return { id };
   }
@@ -645,12 +658,16 @@ export class Differential {
     T extends RegisteredService<any>,
     U extends keyof T["definition"]["functions"]
   >(
+    service: T["definition"]["name"],
     fn: string | number | symbol,
     args: Parameters<T["definition"]["functions"][U]>
   ) {
+    log("Creating job", { service, fn, args });
+
     return await this.controlPlaneClient
       .createJob({
         body: {
+          service,
           targetFn: fn as string,
           targetArgs: pack(args),
         },

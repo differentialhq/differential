@@ -14,6 +14,8 @@ export const cowSay = async ({ cowText }: { cowText: string }) => {
     `;
 };
 
+const expertClient = d.client<typeof expertService>("expert");
+
 export const interFunctionCall = async ({
   expertText,
   cowText,
@@ -21,10 +23,7 @@ export const interFunctionCall = async ({
   expertText: string;
   cowText: string;
 }) => {
-  const result = await d.call<typeof expertService, "callExpert">(
-    "callExpert",
-    expertText
-  );
+  const result = await expertClient.callExpert(expertText);
 
   return Promise.all([cowSay({ cowText }), result]);
 };
