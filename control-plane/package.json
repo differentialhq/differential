@@ -1,6 +1,6 @@
 {
-  "name": "vincent",
-  "version": "1.0.0",
+  "name": "@differentialhq/control-plane",
+  "version": "0.0.16",
   "description": "",
   "scripts": {
     "test": "jest src --setupFiles dotenv/config --forceExit",

@@ -1,0 +1,13 @@
+{
+  "name": "root",
+  "private": true,
+  "workspaces": [
+    "ts-core",
+    "control-plane",
+    "docs"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "lerna": "^8.0.1"
+  }
+}
