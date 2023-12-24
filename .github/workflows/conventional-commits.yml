@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - main
-    types: [edited]
+    types: [opened, edited, reopened, synchronize, ready_for_review]
 
 jobs:
   default:
