@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.756698177390">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.756699130741">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -30,12 +30,12 @@
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../../resources/css/retype.css?v=3.5.0.756698177390" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.756699130741" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.756698177390" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.756699130741" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.756698177390" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.756698177390" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.756699130741" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.756699130741" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.5.0" defer></script>
 
     <script>
@@ -237,9 +237,7 @@ export async function sendWeeklyNewsletterToAll() {
 <p><strong>4. Starting a service is as simple as calling <code v-pre>d.start()</code>. Stopping is done via a <code v-pre>d.stop()</code></strong>.</p>
 <p>You can have 1:1 services to processes, or you can have multiple services running in the same process. It&#x27;s up to you. You can also start and stop services dynamically at runtime.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-typescript"><code v-pre class="language-typescript">// src/index.ts
-
-import { emailService } from &quot;./services/email&quot;;
+<pre class="language-typescript"><code v-pre class="language-typescript">import { emailService } from &quot;./services/email&quot;;
 
 d.start(emailService);</code></pre>
 </doc-codeblock></div>
@@ -256,12 +254,9 @@ d.start(emailService);</code></pre>
 import type { emailService } from &quot;./services/email&quot;;
 import type { authService } from &quot;./services/email&quot;;
 
-const email = d.client&lt;typeof emailService&gt;(&quot;email&quot;);
-const auth = d.client&lt;typeof authService&gt;(&quot;auth&quot;);
-
 async function confirmUserSignup(email: string) {
-  await email.scheduleOnboardingEmails(email);
-  await auth.onUserSignup(email);
+  await d.call&lt;&quot;emailService&quot;, &quot;scheduleOnboardingEmails&quot;&gt;(&quot;emailService&quot;, &quot;scheduleOnboardingEmails&quot;, email);
+  await d.call&lt;&quot;authService&quot;, &quot;onUserSignup&quot;&gt;(&quot;authService&quot;, &quot;onUserSignup&quot;, email);
 }</code></pre>
 </doc-codeblock></div>
 <p><strong>7. Thanks to co-located code, your function calls are type-safe</strong></p>
@@ -271,14 +266,11 @@ async function confirmUserSignup(email: string) {
 import type { emailService } from &quot;./services/email&quot;;
 import type { authService } from &quot;./services/email&quot;;
 
-const email = d.client&lt;typeof emailService&gt;(&quot;email&quot;);
-const auth = d.client&lt;typeof authService&gt;(&quot;auth&quot;);
-
 async function confirmUserSignup(email: string) {
-  await email.foo(&quot;bar&quot;);
-  // ⛔️ Error: Property 'foo' does not exist on type 'ServiceClient&lt;RegisteredService&lt;{...}&gt;&gt;'.
+  await d.call&lt;&quot;emailService&quot;, &quot;foo&quot;&gt;(&quot;emailService&quot;, &quot;foo&quot;, &quot;bar&quot;); 
+  // ⛔️ Error: foo does not satisfy the constraint of &quot;sendPasswordResetEmail&quot; | &quot;scheduleOnboardingEmails&quot; ...
   
-  await email.scheduleOnboardingEmails({ foo: &quot;bar&quot; });
+  await d.call&lt;&quot;authService&quot;, &quot;onUserSignup&quot;&gt;(&quot;authService&quot;, &quot;onUserSignup&quot;, { foo: &quot;bar&quot; }); 
   // ⛔️ Error: Argument of type '{ foo: string; }' is not assignable to parameter of type 'string'.
 }</code></pre>
 </doc-codeblock></div>
