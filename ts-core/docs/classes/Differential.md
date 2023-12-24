@@ -36,6 +36,7 @@ console.log(result); // "Hello world"
 ### Methods
 
 - [background](Differential.md#background)
+- [buildClient](Differential.md#buildclient)
 - [call](Differential.md#call)
 - [service](Differential.md#service)
 
@@ -59,7 +60,7 @@ Initializes a new Differential instance.
 
 #### Defined in
 
-[src/Differential.ts:374](https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L374)
+[ts-core/src/Differential.ts:379](https://github.com/differentialHQ/differential/blob/c622890/ts-core/src/Differential.ts#L379)
 
 ## Methods
 
@@ -74,7 +75,7 @@ Returns the job id of the function call, and doesn't wait for the function to co
 
 | Name | Type |
 | :------ | :------ |
-| `T` | extends `RegisteredService` |
+| `T` | extends `RegisteredService`\<`any`\> |
 | `U` | extends `string` \| `number` \| `symbol` |
 
 #### Parameters
@@ -102,7 +103,51 @@ console.log(result.id); //
 
 #### Defined in
 
-[src/Differential.ts:572](https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L572)
+[ts-core/src/Differential.ts:602](https://github.com/differentialHQ/differential/blob/c622890/ts-core/src/Differential.ts#L602)
+
+___
+
+### buildClient
+
+▸ **buildClient**\<`T`\>(`service`): `ServiceClient`\<`T`\>
+
+Provides a type safe client for performing calls to a registered service.
+Waits for the function to complete before returning, and returns the result of the function call.
+
+#### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `T` | extends `RegisteredService`\<`any`\> |
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `service` | `T`[``"definition"``][``"name"``] |
+
+#### Returns
+
+`ServiceClient`\<`T`\>
+
+ServiceClient<T>
+
+**`Example`**
+
+```ts
+import { d } from "./differential";
+import type { helloService } from "./hello-service";
+
+const client = d.buildClient<typeof helloService>();
+
+// Client usage
+const result = client.hello("world");
+console.log(result); // "Hello world"
+```
+
+#### Defined in
+
+[ts-core/src/Differential.ts:534](https://github.com/differentialHQ/differential/blob/c622890/ts-core/src/Differential.ts#L534)
 
 ___
 
@@ -117,7 +162,7 @@ Waits for the function to complete before returning, and returns the result of t
 
 | Name | Type |
 | :------ | :------ |
-| `T` | extends `RegisteredService` |
+| `T` | extends `RegisteredService`\<`any`\> |
 | `U` | extends `string` \| `number` \| `symbol` |
 
 #### Parameters
@@ -146,13 +191,13 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[src/Differential.ts:529](https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L529)
+[ts-core/src/Differential.ts:559](https://github.com/differentialHQ/differential/blob/c622890/ts-core/src/Differential.ts#L559)
 
 ___
 
 ### service
 
-▸ **service**\<`T`\>(`service`): `RegisteredService`
+▸ **service**\<`T`, `N`\>(`service`): `RegisteredService`\<`T`\>
 
 Registers a service with Differential. This will register all functions on the service.
 
@@ -160,7 +205,8 @@ Registers a service with Differential. This will register all functions on the s
 
 | Name | Type |
 | :------ | :------ |
-| `T` | extends `ServiceDefinition` |
+| `T` | extends `ServiceDefinition`\<`N`\> |
+| `N` | extends `string` |
 
 #### Parameters
 
@@ -170,7 +216,7 @@ Registers a service with Differential. This will register all functions on the s
 
 #### Returns
 
-`RegisteredService`
+`RegisteredService`\<`T`\>
 
 A registered service instance.
 
@@ -198,4 +244,4 @@ process.on("beforeExit", async () => {
 
 #### Defined in
 
-[src/Differential.ts:491](https://github.com/differentialHQ/differential/blob/b306aab/ts-core/src/Differential.ts#L491)
+[ts-core/src/Differential.ts:496](https://github.com/differentialHQ/differential/blob/c622890/ts-core/src/Differential.ts#L496)

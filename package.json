@@ -1,0 +1,15 @@
+{
+  "name": "root",
+  "private": true,
+  "workspaces": [
+    "ts-core",
+    "control-plane",
+    "docs"
+  ],
+  "devDependencies": {
+    "conventional-changelog-cli": "^4.1.0",
+    "lerna": "^8.0.1",
+    "lerna-changelog": "^2.2.0"
+  },
+  "repository": "https://github.com/differentialhq/differential"
+}

@@ -14,7 +14,4 @@ update-examples:
 	cd examples/1_greet && npm i @differentialhq/core@latest && cd ..
 	cd examples/2_api && npm i @differentialhq/core@latest && cd ..
 
-typedoc:
-	npx typedoc --plugin typedoc-plugin-markdown --out docs src/index.ts --excludePrivate --hideBreadcrumbs
-
 .PHONY: all fetch clean
