@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  test:
+  main:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,14 +21,10 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: cd ts-core && npm install && cd .. && cd control-plane && npm install && cd ..
+        run: npm install
 
-      - name: Run tests for ts-core
-        run: npm test --prefix ts-core
+      - name: Run tests
+        run: npx lerna run test
         env:
           DIFFERENTIAL_API_SECRET: ${{ secrets.DIFFERENTIAL_API_SECRET }}
-
-      - name: Run tests for control-plane
-        run: npm test --prefix control-plane
-        env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

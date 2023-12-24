@@ -22,28 +22,25 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 20
+          registry-url: 'https://registry.npmjs.org'
 
-      - name: Install dependencies
-        run: cd ts-core && npm install && cd .. && cd control-plane && npm install && cd ..
+      - name: Install dependencies on root
+        run: npm install
 
-      - name: Run tests for ts-core
-        run: npm test --prefix ts-core
+      - name: Run tests
+        run: npx lerna run test
         env:
           DIFFERENTIAL_API_SECRET: ${{ secrets.DIFFERENTIAL_API_SECRET }}
 
-      - name: Run tests for control-plane
-        run: npm test --prefix control-plane
+      - name: Configure Git User
+        run: |
+          git config --global user.name "Differential CI"
+          git config --global user.email "ci@differential.dev"
+
+      - name: Version packages
+        run: npx lerna version --conventional-commits --yes --no-private
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
-      - name: Generate changelogs
-        run: cd changeset-builder && npm install && npm i -g tsx && sh src/log.sh
-
-      - name: Commit changelogs
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: Update changelogs [skip ci]
-          file_pattern: '*.md *.csv'
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - uses: retypeapp/action-build@latest
         with:

@@ -1,0 +1,25 @@
+name: Check conventional commits
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [edited]
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 20
+
+      - name: Check conventional commits
+        uses: beemojs/conventional-pr-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
