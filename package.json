@@ -6,8 +6,9 @@
     "control-plane",
     "docs"
   ],
-  "dependencies": {},
   "devDependencies": {
-    "lerna": "^8.0.1"
-  }
+    "lerna": "^8.0.1",
+    "lerna-changelog": "^2.2.0"
+  },
+  "repository": "https://github.com/differentialhq/differential"
 }
