@@ -60,7 +60,7 @@ Initializes a new Differential instance.
 
 #### Defined in
 
-[ts-core/src/Differential.ts:379](https://github.com/differentialHQ/differential/blob/d326d55/ts-core/src/Differential.ts#L379)
+[ts-core/src/Differential.ts:379](https://github.com/differentialHQ/differential/blob/c622890/ts-core/src/Differential.ts#L379)
 
 ## Methods
 
@@ -103,7 +103,7 @@ console.log(result.id); //
 
 #### Defined in
 
-[ts-core/src/Differential.ts:602](https://github.com/differentialHQ/differential/blob/d326d55/ts-core/src/Differential.ts#L602)
+[ts-core/src/Differential.ts:602](https://github.com/differentialHQ/differential/blob/c622890/ts-core/src/Differential.ts#L602)
 
 ___
 
@@ -147,7 +147,7 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[ts-core/src/Differential.ts:534](https://github.com/differentialHQ/differential/blob/d326d55/ts-core/src/Differential.ts#L534)
+[ts-core/src/Differential.ts:534](https://github.com/differentialHQ/differential/blob/c622890/ts-core/src/Differential.ts#L534)
 
 ___
 
@@ -191,7 +191,7 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[ts-core/src/Differential.ts:559](https://github.com/differentialHQ/differential/blob/d326d55/ts-core/src/Differential.ts#L559)
+[ts-core/src/Differential.ts:559](https://github.com/differentialHQ/differential/blob/c622890/ts-core/src/Differential.ts#L559)
 
 ___
 
@@ -244,4 +244,4 @@ process.on("beforeExit", async () => {
 
 #### Defined in
 
-[ts-core/src/Differential.ts:496](https://github.com/differentialHQ/differential/blob/d326d55/ts-core/src/Differential.ts#L496)
+[ts-core/src/Differential.ts:496](https://github.com/differentialHQ/differential/blob/c622890/ts-core/src/Differential.ts#L496)

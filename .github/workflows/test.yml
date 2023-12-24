@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  main:
+  default:
     runs-on: ubuntu-latest
 
     steps:

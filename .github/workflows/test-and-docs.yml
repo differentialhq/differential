@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  test:
+  default:
     runs-on: ubuntu-latest
 
     permissions:
@@ -31,6 +31,7 @@ jobs:
         run: npx lerna run test
         env:
           DIFFERENTIAL_API_SECRET: ${{ secrets.DIFFERENTIAL_API_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Configure Git User
         run: |
@@ -38,7 +39,7 @@ jobs:
           git config --global user.email "ci@differential.dev"
 
       - name: Version packages
-        run: npx lerna version --conventional-commits --yes --no-private
+        run: git status && npx lerna version --conventional-commits --yes --no-private
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
