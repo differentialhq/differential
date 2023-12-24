@@ -1,9 +1,3 @@
-9eb39b4, 2023-12-24, Complete all docs generation
-44e4229, 2023-12-24, release: 3.2.0
-8e4f245, 2023-12-24, Fix up the references to docs
-a02bd7b, 2023-12-24, Passing tests
-5e69cf0, 2023-12-24, Merge branch 'main' into docs-for-build-client
-40c87a1, 2023-12-24, WIP
 b0aadd7, 2023-12-24, fix: Enforce service name param (#5)
 a218b31, 2023-12-23, release: 3.1.0
 f191698, 2023-12-23, Add service client builder (#2)
