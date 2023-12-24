@@ -1,0 +1,54 @@
+name: Run Tests and Generate Changelogs
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: '0' # fetch all history for all tags and branches so that changeset-builder can generate changelogs
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: cd ts-core && npm install && cd .. && cd control-plane && npm install && cd ..
+
+      - name: Run tests for ts-core
+        run: npm test --prefix ts-core
+        env:
+          DIFFERENTIAL_API_SECRET: ${{ secrets.DIFFERENTIAL_API_SECRET }}
+
+      - name: Run tests for control-plane
+        run: npm test --prefix control-plane
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Generate changelogs
+        run: cd changeset-builder && npm install && npm i -g tsx && sh src/log.sh
+
+      - name: Commit changelogs
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Update changelogs [skip ci]
+          file_pattern: '*.md *.csv'
+
+      - uses: retypeapp/action-build@latest
+        with:
+          config: docs
+
+      - uses: retypeapp/action-github-pages@latest
+        with:
+          update-branch: true
