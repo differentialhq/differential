@@ -93,11 +93,13 @@ import { d } from "../d";
 import type { helloService } from "../services/hello";
 import { starting } from "../utls/cmd";
 
+const client = d.client<typeof helloService>("hello");
+
 async function greet(name: string = "World", language: string = "english") {
-  const result = await d.call<typeof helloService, "helloInAnotherLanguage">(
-    "helloInAnotherLanguage",
-    { from: name, language }
-  );
+  const result = await client.helloInAnotherLanguage({
+    from: name,
+    language,
+  });
 
   console.log(`Received response: ${result.message}`);
 }
@@ -113,6 +115,10 @@ if (starting()) {
 
 ```bash
 npm run command --name=greet -- "Dali" "spanish"
+# => Received response: Hola Dali! I'm a service running on pid 1234!
+
 npm run command --name=greet -- "Mario" "italian"
+# => Received response: Ciao Mario! I'm a service running on pid 1234!
+
 # try other languages!
 ```

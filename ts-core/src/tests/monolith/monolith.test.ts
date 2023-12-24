@@ -5,11 +5,9 @@ import { facadeService } from "./facade";
 
 describe("monolith", () => {
   it("should not import a service, if we're just consuming it", async () => {
-    const result = await d.background<typeof dbService, "getNumberFromDB">(
-      "getNumberFromDB",
-      10,
-      2
-    );
+    const db = d.client<typeof dbService>("db", { background: true });
+
+    const result = await db.getNumberFromDB(1, 2);
 
     expect(result.id).toBeDefined();
 
@@ -20,10 +18,9 @@ describe("monolith", () => {
   it("should be able to call a service", async () => {
     await expertService.start();
 
-    const result = await d.call<typeof expertService, "callExpert">(
-      "callExpert",
-      "Can't touch this"
-    );
+    const result = await d
+      .client<typeof expertService>("expert")
+      .callExpert("Can't touch this");
 
     expect(result).toBe("Expert says: Can't touch this");
 
@@ -34,12 +31,13 @@ describe("monolith", () => {
     await expertService.start();
 
     const result = await d.call<typeof expertService, "callExpert">(
+      "expert",
       "callExpert",
       "Can't touch this"
     );
 
-    const client = d.buildClient<typeof expertService>('expert')
-    const clientResult = await client.callExpert("Can't touch this")
+    const client = d.client<typeof expertService>("expert");
+    const clientResult = await client.callExpert("Can't touch this");
 
     expect(clientResult).toBe(result);
 
@@ -50,13 +48,12 @@ describe("monolith", () => {
     await facadeService.start();
     await expertService.start();
 
-    const result = await d.call<typeof facadeService, "interFunctionCall">(
-      "interFunctionCall",
-      {
+    const result = await d
+      .client<typeof facadeService>("facade")
+      .interFunctionCall({
         expertText: "foobar",
         cowText: "foobar",
-      }
-    );
+      });
 
     expect(result).toMatchInlineSnapshot(`
 [

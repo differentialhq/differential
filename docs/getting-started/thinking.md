@@ -56,6 +56,8 @@ src/
 You can have 1:1 services to processes, or you can have multiple services running in the same process. It's up to you. You can also start and stop services dynamically at runtime.
 
 ```ts
+// src/index.ts
+
 import { emailService } from "./services/email";
 
 d.start(emailService);
@@ -81,9 +83,12 @@ import { d } from "../d";
 import type { emailService } from "./services/email";
 import type { authService } from "./services/email";
 
+const email = d.client<typeof emailService>("email");
+const auth = d.client<typeof authService>("auth");
+
 async function confirmUserSignup(email: string) {
-  await d.call<"emailService", "scheduleOnboardingEmails">("emailService", "scheduleOnboardingEmails", email);
-  await d.call<"authService", "onUserSignup">("authService", "onUserSignup", email);
+  await email.scheduleOnboardingEmails(email);
+  await auth.onUserSignup(email);
 }
 ```
 
@@ -96,11 +101,14 @@ import { d } from "../d";
 import type { emailService } from "./services/email";
 import type { authService } from "./services/email";
 
+const email = d.client<typeof emailService>("email");
+const auth = d.client<typeof authService>("auth");
+
 async function confirmUserSignup(email: string) {
-  await d.call<"emailService", "foo">("emailService", "foo", "bar"); 
-  // ⛔️ Error: foo does not satisfy the constraint of "sendPasswordResetEmail" | "scheduleOnboardingEmails" ...
+  await email.foo("bar");
+  // ⛔️ Error: Property 'foo' does not exist on type 'ServiceClient<RegisteredService<{...}>>'.
   
-  await d.call<"authService", "onUserSignup">("authService", "onUserSignup", { foo: "bar" }); 
+  await email.scheduleOnboardingEmails({ foo: "bar" });
   // ⛔️ Error: Argument of type '{ foo: string; }' is not assignable to parameter of type 'string'.
 }
 ```

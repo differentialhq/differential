@@ -9,9 +9,14 @@ const log = debug("differential:client");
 
 const { serializeError, deserializeError } = require("./errors");
 
+type ServiceClient<T extends RegisteredService<any>> = {
+  [K in keyof T["definition"]["functions"]]: T["definition"]["functions"][K];
+};
 
-type ServiceClient<T extends RegisteredService<any>> = {    
-  [K in keyof T['definition']['functions']]: T['definition']['functions'][K];
+type BackgroundServiceClient<T extends RegisteredService<any>> = {
+  [K in keyof T["definition"]["functions"]]: (
+    ...args: Parameters<T["definition"]["functions"][K]>
+  ) => Promise<{ id: string }>;
 };
 
 export type ServiceDefinition<T extends string> = {
@@ -123,7 +128,7 @@ class PollingAgent {
   };
 
   constructor(
-    private client: ReturnType<typeof createClient>,
+    private controlPlaneClient: ReturnType<typeof createClient>,
     private authHeader: string,
     private service: {
       name: string;
@@ -151,7 +156,7 @@ class PollingAgent {
     }
 
     try {
-      const pollResult = await this.client
+      const pollResult = await this.controlPlaneClient
         .getNextJobs({
           query: {
             limit: Math.ceil(
@@ -224,7 +229,7 @@ class PollingAgent {
                   resultType: result.type,
                 });
 
-                await this.client
+                await this.controlPlaneClient
                   .persistJobResult({
                     body: {
                       result: pack(result.content),
@@ -344,26 +349,40 @@ type WorkerPool = {
 /**
  * The Differential client. This is the main entry point for using Differential.
  *
+ * Differential client exposes two main methods:
+ * * `service` - Registers a service with Differential. This will register all functions on the service.
+ * * `client` - Provides a type safe client for performing calls to a registered service.
+ *
  * @example Basic usage
  * ```ts
- *  const d = new Differential("API_SECRET"); // obtain this from your Differential dashboard
+ * // src/service.ts
+ *
+ * // create a new Differential instance
+ * const d = new Differential("API_SECRET");
  *
  * const myService = d.service({
  *   name: "my-service",
  *   functions: {
- *     hello: async (name: string) => { ... }
+ *     hello: async (name: string) => {
+ *       return `Hello ${name}`;
+ *     },
  *   },
  * });
  *
- * await d.listen("my-service");
+ * await myService.start();
  *
  * // stop the service on shutdown
  * process.on("beforeExit", async () => {
- *   await d.quit();
+ *   await myService.stop();
  * });
  *
+ * // src/client.ts
+ *
+ * // create a client for the service
+ * const client = d.client<typeof myService>("my-service");
+ *
  * // call a function on the service
- * const result = await d.call<typeof myService, "hello">("hello", "world");
+ * const result = await client.hello("world");
  *
  * console.log(result); // "Hello world"
  * ```
@@ -372,13 +391,13 @@ export class Differential {
   private authHeader: string;
   private endpoint: string;
   private machineId: string;
-  private client: ReturnType<typeof createClient>;
+  private controlPlaneClient: ReturnType<typeof createClient>;
 
   private pollingAgents: PollingAgent[] = [];
 
   /**
    * Initializes a new Differential instance.
-   * @param apiSecret The API Secret for your Differential cluster. Obtain this from [your Differential dashboard](https://admin.differential.dev/dashboard).
+   * @param apiSecret The API Secret for your Differential cluster. You can obtain one from https://api.differential.dev/demo/token.
    */
   constructor(private apiSecret: string) {
     this.authHeader = `Basic ${this.apiSecret}`;
@@ -387,43 +406,22 @@ export class Differential {
       "https://api.differential.dev";
     this.machineId = Math.random().toString(36).substring(7);
 
-    log("Initializing client", {
+    log("Initializing control plane client", {
       endpoint: this.endpoint,
       machineId: this.machineId,
     });
 
-    this.client = createClient(this.endpoint, this.machineId);
+    this.controlPlaneClient = createClient(this.endpoint, this.machineId);
   }
 
-  /**
-   * waking up is done by sending a request to the health check url directly
-   * so that the network doesn't have to be configured to allow incoming requests.
-   * from the outside.
-   */
-  // TODO: call this
-  // private onWork = async (pool?: string): Promise<void> => {
-  //   if (!pool) {
-  //     // execute all pools
-
-  //     const pools = this.workerPools
-  //       ? Object.values(this.workerPools)
-  //       : undefined;
-
-  //     for (const listener of pools ?? []) {
-  //       listener.onWork?.();
-  //     }
-  //   } else {
-  //     // execute specific pool
-  //     const listener = this.workerPools?.[pool];
-
-  //     listener?.onWork?.();
-  //   }
-  // };
-
   private async listen(service: string) {
-    const pollingAgent = new PollingAgent(this.client, this.authHeader, {
-      name: service,
-    });
+    const pollingAgent = new PollingAgent(
+      this.controlPlaneClient,
+      this.authHeader,
+      {
+        name: service,
+      }
+    );
 
     if (
       this.pollingAgents.find((p) => p.serviceName === service && p.polling)
@@ -497,7 +495,9 @@ export class Differential {
    * });
    * ```
    */
-  service<T extends ServiceDefinition<N>, N extends string>(service: T): RegisteredService<T> {
+  service<T extends ServiceDefinition<N>, N extends string>(
+    service: T
+  ): RegisteredService<T> {
     for (const [key, value] of Object.entries(service.functions)) {
       if (functionRegistry[key]) {
         throw new DifferentialError(
@@ -519,6 +519,15 @@ export class Differential {
     };
   }
 
+  client<T extends RegisteredService<any>>(
+    service: T["definition"]["name"]
+  ): ServiceClient<T>;
+
+  client<T extends RegisteredService<any>>(
+    service: T["definition"]["name"],
+    options: { background: true }
+  ): BackgroundServiceClient<T>;
+
   /**
    * Provides a type safe client for performing calls to a registered service.
    * Waits for the function to complete before returning, and returns the result of the function call.
@@ -528,51 +537,56 @@ export class Differential {
    * import { d } from "./differential";
    * import type { helloService } from "./hello-service";
    *
-   * const client = d.buildClient<typeof helloService>();
+   * const client = d.client<helloService>("hello");
    *
    * // Client usage
    * const result = client.hello("world");
    * console.log(result); // "Hello world"
    * ```
    */
-  buildClient<T extends RegisteredService<any> >(service: T['definition']['name']): ServiceClient<T> {
-    const d = this
-    return new Proxy({} as ServiceClient<T>, {
-      get(_target, property, _receiver) {
-        return (...args: any[]) => { return d.call(property, ...args) }
-      }
-    });
+  client<T extends RegisteredService<any>>(
+    service: T["definition"]["name"],
+    options?: {
+      background?: boolean;
+    }
+  ): ServiceClient<T> {
+    const d = this;
+
+    if (options?.background === true) {
+      return new Proxy({} as BackgroundServiceClient<T>, {
+        get(_target, property, _receiver) {
+          return (...args: any[]) =>
+            d.background(service, property, ...(args as any));
+        },
+      });
+    } else {
+      return new Proxy({} as ServiceClient<T>, {
+        get(_target, property, _receiver) {
+          return (...args: any[]) =>
+            d.call(service, property, ...(args as any));
+        },
+      });
+    }
   }
 
   /**
-   * Calls a function on a registered service, while ensuring the type safety of the function call through generics.
-   * Waits for the function to complete before returning, and returns the result of the function call.
-   * @param fn The function name to call.
-   * @param args The arguments to pass to the function.
-   * @returns The return value of the function.
-   * @example
-   * ```ts
-   * import { d } from "./differential";
-   * import { helloService } from "./hello-service";
-   *
-   * const result = await d.call<typeof helloService, "hello">("hello", "world");
-   *
-   * console.log(result); // "Hello world"
-   * ```
+   * @ignore
+   * @deprecated Use `d.client` instead.
    */
   async call<
     T extends RegisteredService<any>,
     U extends keyof T["definition"]["functions"]
   >(
+    service: T["definition"]["name"],
     fn: U,
     ...args: Parameters<T["definition"]["functions"][U]>
   ): Promise<ReturnType<T["definition"]["functions"][U]>> {
     // create a job
-    const id = await this.createJob<T, U>(fn, args);
+    const id = await this.createJob<T, U>(service, fn, args);
 
     // wait for the job to complete
     const result = await pollForJob(
-      this.client,
+      this.controlPlaneClient,
       { jobId: id },
       this.authHeader
     );
@@ -589,29 +603,19 @@ export class Differential {
   }
 
   /**
-   * Calls a function on a registered service, while ensuring the type safety of the function call through generics.
-   * Returns the job id of the function call, and doesn't wait for the function to complete.
-   * @param fn The function name to call.
-   * @param args The arguments to pass to the function.
-   * @returns The job id of the function call.
-   * @example
-   * ```ts
-   * import { d } from "./differential";
-   *
-   * const result = await d.background<typeof helloService, "hello">("hello", "world");
-   *
-   * console.log(result.id); //
-   * ```
+   * @ignore
+   * @deprecated Use `d.client` instead.
    */
   async background<
     T extends RegisteredService<any>,
     U extends keyof T["definition"]["functions"]
   >(
+    service: T["definition"]["name"],
     fn: U,
     ...args: Parameters<T["definition"]["functions"][U]>
   ): Promise<{ id: string }> {
     // create a job
-    const id = await this.createJob<T, U>(fn, args);
+    const id = await this.createJob<T, U>(service, fn, args);
 
     return { id };
   }
@@ -620,12 +624,16 @@ export class Differential {
     T extends RegisteredService<any>,
     U extends keyof T["definition"]["functions"]
   >(
+    service: T["definition"]["name"],
     fn: string | number | symbol,
     args: Parameters<T["definition"]["functions"][U]>
   ) {
-    return await this.client
+    log("Creating job", { service, fn, args });
+
+    return await this.controlPlaneClient
       .createJob({
         body: {
+          service,
           targetFn: fn as string,
           targetArgs: pack(args),
         },
