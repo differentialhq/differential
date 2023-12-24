@@ -1,4 +1,7 @@
 # Changelog
+## 2023-12-24
+- Fixes
+  - Enforce service name param (#5) [b0aadd7](https://github.com/differentialhq/differential/commit/b0aadd7)
 ## 2023-12-18
 - Releases
   - 3.0.6 [2db47ff](https://github.com/differentialhq/differential/commit/2db47ff)
