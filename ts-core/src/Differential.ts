@@ -41,6 +41,8 @@ const createClient = (baseUrl: string, machineId: string) =>
   });
 
 class DifferentialError extends Error {
+  static UNAUTHORISED = "Invalid API Key or API Secret. Make sure you are using the correct API Key and API Secret.";
+
   constructor(message: string, meta?: { [key: string]: unknown }) {
     super(message);
     this.name = "DifferentialError";
@@ -266,6 +268,8 @@ class PollingAgent {
         return {
           jobCount: jobs.length,
         };
+      } else if (pollResult.status === 401) {
+        throw new DifferentialError(DifferentialError.UNAUTHORISED)
       } else {
         log("Error polling for next job", { pollResult });
       }
@@ -641,9 +645,7 @@ export class Differential {
         if (res.status === 201) {
           return res.body.id;
         } else if (res.status === 401) {
-          throw new DifferentialError(
-            "Invalid API Key or API Secret. Make sure you are using the correct API Key and API Secret."
-          );
+          throw new DifferentialError(DifferentialError.UNAUTHORISED)
         } else {
           throw new DifferentialError(`Failed to create job: ${res.status}`);
         }

@@ -1,0 +1,16 @@
+{
+  "name": "@differentialhq/docs",
+  "version": "0.0.36",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "exit 0",
+    "build": "make sync-api-docs"
+  },
+  "dependencies": {
+    "@differentialhq/core": "latest"
+  },
+  "author": "",
+  "license": "ISC",
+  "private": true
+}
