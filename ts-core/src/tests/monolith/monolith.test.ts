@@ -3,7 +3,7 @@ import type { dbService } from "./db";
 import { expertService } from "./expert";
 import { facadeService } from "./facade";
 
-describe.only("monolith", () => {
+describe("monolith", () => {
   it("should not import a service, if we're just consuming it", async () => {
     const db = d.client<typeof dbService>("db", { background: true });
 
@@ -44,7 +44,7 @@ describe.only("monolith", () => {
     await expertService.stop();
   }, 10000);
 
-  it.only("should be able to call a service from another service", async () => {
+  it("should be able to call a service from another service", async () => {
     await facadeService.start();
     await expertService.start();
 

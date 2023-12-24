@@ -66,8 +66,10 @@ When calling the service, use the typeof generic to ensure type safety. This can
 import { d } from "./d";
 import type { helloWorldService } from "./service";
 
+const client = d.client<typeof helloWorldService>("helloWorld");
+
 async function test() {
-  const greeting = await d.call<typeof helloWorldService>("sayHello", "World");
+  const greeting = await client.sayHello("World");
   console.log(greeting); // Outputs: Hello, World!
 }
 

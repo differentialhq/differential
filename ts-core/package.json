@@ -10,7 +10,8 @@
     "prepare": "npm run clean && make update-contract && npm run build",
     "release:major": "npm version major && git push origin && git push origin --tags",
     "release:minor": "npm version minor && git push origin && git push origin --tags && npm publish && git add . && git commit -m \"release: $(cat package.json | jq -r '.version')\"",
-    "release:patch": "npm version patch && git push origin && git push origin --tags && npm publish && git add . && git commit -m \"release: $(cat package.json | jq -r '.version')\""
+    "release:patch": "npm version patch && git push origin && git push origin --tags && npm publish && git add . && git commit -m \"release: $(cat package.json | jq -r '.version')\"",
+    "docs": "typedoc --plugin typedoc-plugin-markdown --out docs src/index.ts --excludePrivate --hideBreadcrumbs"
   },
   "author": "",
   "license": "ISC",
