@@ -38,8 +38,8 @@ jobs:
           git config --global user.name "Differential CI"
           git config --global user.email "ci@differential.dev"
 
-      - name: Version packages
-        run: git status && npx lerna version --conventional-commits --yes --no-private
+      - name: Version and publish packages
+        run: npx lerna publish --conventional-commits --yes --no-private
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
