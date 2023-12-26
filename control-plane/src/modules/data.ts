@@ -80,11 +80,22 @@ export const machines = pgTable("machines", {
 export const clusters = pgTable("clusters", {
   id: varchar("id", { length: 1024 }).primaryKey(),
   api_secret: varchar("api_secret", { length: 1024 }).notNull(),
-  organization_id: varchar("organization_id").notNull(),
+  description: varchar("description", { length: 1024 }),
+  // TODO: deprecate this
+  organization_id: varchar("organization_id"),
   created_at: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
   wake_up_config: json("wake_up_config"),
+  owner_id: varchar("owner_id").references(() => users.id),
+});
+
+export const users = pgTable("users", {
+  id: varchar("id", { length: 1024 }).primaryKey(),
+  email: varchar("email", { length: 1024 }).notNull(),
+  created_at: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 
 export const db = drizzle(pool);
@@ -97,5 +108,4 @@ export const db = drizzle(pool);
     console.error("Error migrating database", e);
     process.exit(1);
   }
-  console.log("Database migrated");
 })();

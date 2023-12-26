@@ -1,0 +1,34 @@
+{
+  "name": "admin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "update-contract": "mkdir -p client && cp ../control-plane/src/modules/contract.ts client/"
+  },
+  "dependencies": {
+    "@clerk/clerk-sdk-node": "^4.13.4",
+    "@clerk/nextjs": "^4.29.1",
+    "@ts-rest/core": "^3.30.5",
+    "@ts-rest/react-query": "^3.30.5",
+    "jwks-rsa": "^3.1.0",
+    "next": "14.0.4",
+    "react": "^18",
+    "react-dom": "^18",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.4",
+    "postcss": "^8",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5"
+  }
+}

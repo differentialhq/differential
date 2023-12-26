@@ -4,6 +4,7 @@
   "description": "",
   "scripts": {
     "test": "jest src --setupFiles dotenv/config --forceExit",
+    "test:dev": "jest --watch src --setupFiles dotenv/config --forceExit --onlyChanged",
     "dev": "nodemon src/index.ts",
     "migrations": "node_modules/.bin/drizzle-kit generate:pg --schema src/modules/data.ts",
     "build": "tsc",
@@ -25,6 +26,7 @@
     "fastify": "^4.21.0",
     "jest": "^29.6.4",
     "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^3.1.0",
     "msgpackr": "^1.9.7",
     "nodemon": "^3.0.1",
     "pg": "^8.11.2",
