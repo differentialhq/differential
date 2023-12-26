@@ -117,9 +117,17 @@ export const contract = c.router({
     }),
     body: z.object({}),
   },
-  getClusters: {
+  getTemporaryToken: {
     method: "GET",
-    path: "/organizations/:organizationId/clusters",
+    path: "/demo/token",
+    responses: {
+      201: z.string(),
+    },
+  },
+  // management routes
+  getClustersForUser: {
+    method: "GET",
+    path: "/clusters",
     headers: z.object({
       authorization: z.string(),
     }),
@@ -128,21 +136,29 @@ export const contract = c.router({
         z.object({
           id: z.string(),
           apiSecret: z.string(),
-          organizationId: z.string(),
           createdAt: z.date(),
-          machineCount: z.number(),
-          lastPingAt: z.date().nullable(),
+          description: z.string().nullable(),
         })
       ),
       401: z.undefined(),
     },
-    pathParams: z.object({
-      organizationId: z.string(),
+  },
+  createClusterForUser: {
+    method: "POST",
+    path: "/clusters",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      204: z.undefined(),
+    },
+    body: z.object({
+      description: z.string(),
     }),
   },
-  getClusterDetails: {
+  getClusterDetailsForUser: {
     method: "GET",
-    path: "/organizations/:organizationId/clusters/:clusterId",
+    path: "/clusters/:clusterId",
     headers: z.object({
       authorization: z.string(),
     }),
@@ -150,7 +166,6 @@ export const contract = c.router({
       200: z.object({
         id: z.string(),
         apiSecret: z.string(),
-        organizationId: z.string(),
         createdAt: z.date(),
         machines: z.array(
           z.object({
@@ -159,7 +174,6 @@ export const contract = c.router({
             pool: z.string().nullable(),
             lastPingAt: z.date().nullable(),
             ip: z.string().nullable(),
-            organizationId: z.string(),
           })
         ),
         jobs: z.array(
@@ -172,17 +186,10 @@ export const contract = c.router({
         ),
       }),
       401: z.undefined(),
+      404: z.undefined(),
     },
     pathParams: z.object({
-      organizationId: z.string(),
       clusterId: z.string(),
     }),
-  },
-  getTemporaryToken: {
-    method: "GET",
-    path: "/demo/token",
-    responses: {
-      201: z.string(),
-    },
   },
 });

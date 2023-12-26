@@ -87,15 +87,7 @@ export const clusters = pgTable("clusters", {
     .defaultNow()
     .notNull(),
   wake_up_config: json("wake_up_config"),
-  owner_id: varchar("owner_id").references(() => users.id),
-});
-
-export const users = pgTable("users", {
-  id: varchar("id", { length: 1024 }).primaryKey(),
-  email: varchar("email", { length: 1024 }).notNull(),
-  created_at: timestamp("created_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
+  owner_id: varchar("owner_id"),
 });
 
 export const db = drizzle(pool);
