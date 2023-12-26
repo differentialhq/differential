@@ -59,7 +59,7 @@ export const helloWorldService = d.service({
 
 ### 3. Calling the Service
 
-When calling the service, use the typeof generic to ensure type safety. This can be done in any file where you need to call the service, like a test file or another service file.
+Use the typeof generic to generate a typesafe client for calling the service. This can be done in any file where you need to call the service, like a test file or another service file.
 
 ```typescript
 // service-consumer.ts
@@ -67,8 +67,12 @@ When calling the service, use the typeof generic to ensure type safety. This can
 import { d } from "./d";
 import type { helloWorldService } from "./service";
 
+// Generate a typesafe client for calling the `helloWorld` service
+const client = d.client<typeof helloWorldService>("helloWorld");
+
 async function test() {
-  const greeting = await d.call<typeof helloWorldService>("sayHello", "World");
+  // Call the `sayHello` function on the `helloWorld` service
+  const greeting = await client.sayHello("World");
   console.log(greeting); // Outputs: Hello, World!
 }
 
