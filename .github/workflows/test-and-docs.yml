@@ -23,6 +23,7 @@ jobs:
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
+          scope: '@differentialhq'
 
       - name: Install dependencies on root
         run: npm install
@@ -42,7 +43,7 @@ jobs:
       - name: Version and publish packages
         run: npx lerna publish --conventional-commits --yes --no-private --registry https://registry.npmjs.org
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - uses: retypeapp/action-build@latest
         with:
