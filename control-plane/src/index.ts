@@ -4,6 +4,7 @@ import { initServer } from "@ts-rest/fastify";
 import fastify from "fastify";
 import process from "process";
 import * as router from "./modules/router";
+import cors from "@fastify/cors";
 
 const app = fastify({
   // logger: true,
@@ -12,6 +13,10 @@ const app = fastify({
 const s = initServer();
 
 app.register(s.plugin(router.router));
+
+app.register(cors, {
+  origin: process.env.CONSOLE_ORIGIN || "https://console.differential.dev",
+});
 
 app.setErrorHandler((error, request, reply) => {
   console.error(error);

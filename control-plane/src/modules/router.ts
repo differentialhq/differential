@@ -11,6 +11,7 @@ import * as auth from "./auth";
 import * as admin from "./admin";
 import { QueryResult } from "pg";
 import { createJob, nextJobs } from "./jobs";
+import * as management from "./management";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -187,17 +188,19 @@ export const router = s.router(contract, {
       },
     };
   },
-  getClusters: async (request) => {
-    if (!auth.machineAuthSuccess(request.headers.authorization)) {
-      return {
-        status: 401,
-      };
-    }
+  getTemporaryToken: async () => {
+    const created = await admin.createTemporaryCredential();
 
-    const { organizationId } = request.params;
+    return {
+      status: 201,
+      body: created.apiSecret,
+    };
+  },
+  getClustersForUser: async (request) => {
+    const managementToken = request.headers.authorization.split(" ")[1];
 
-    const clusters = await admin.getClusters({
-      organizationId,
+    const clusters = await management.getClusters({
+      managementToken,
     });
 
     return {
@@ -205,16 +208,28 @@ export const router = s.router(contract, {
       body: clusters,
     };
   },
-  getClusterDetails: async (request) => {
-    if (!auth.machineAuthSuccess(request.headers.authorization)) {
-      return {
-        status: 401,
-      };
-    }
+  createClusterForUser: async (request) => {
+    const managementToken = request.headers.authorization.split(" ")[1];
+
+    const { description } = request.body;
+
+    await management.createCluster({
+      managementToken,
+      description,
+    });
+
+    return {
+      status: 204,
+      body: undefined,
+    };
+  },
+  getClusterDetailsForUser: async (request) => {
+    const managementToken = request.headers.authorization.split(" ")[1];
 
     const { clusterId } = request.params;
 
-    const cluster = await admin.getClusterDetails({
+    const cluster = await management.getClusterDetailsForUser({
+      managementToken,
       clusterId,
     });
 
@@ -227,14 +242,6 @@ export const router = s.router(contract, {
     return {
       status: 200,
       body: cluster,
-    };
-  },
-  getTemporaryToken: async () => {
-    const created = await admin.createTemporaryCredential();
-
-    return {
-      status: 201,
-      body: created.apiSecret,
     };
   },
 });
