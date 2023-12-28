@@ -51,7 +51,11 @@ export default async function Page() {
               );
             })
             .map((cluster, i) => (
-              <a href={`/clusters/${cluster.id}`} className="mr-4 mb-4 w-96">
+              <a
+                href={`/clusters/${cluster.id}`}
+                className="mr-4 mb-4 w-96"
+                key={i}
+              >
                 <Card>
                   <CardHeader>
                     <CardTitle>{`${cluster.id.split("-")[1]}-${
