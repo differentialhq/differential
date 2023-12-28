@@ -8,7 +8,7 @@ import logo from "./logo.png";
 import { Inter as FontSans } from "next/font/google";
 import { cn } from "@/lib/utils";
 
-export const fontSans = FontSans({
+const fontSans = FontSans({
   subsets: ["latin"],
   variable: "--font-sans",
 });
