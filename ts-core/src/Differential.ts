@@ -399,12 +399,17 @@ export class Differential {
   /**
    * Initializes a new Differential instance.
    * @param apiSecret The API Secret for your Differential cluster. You can obtain one from https://api.differential.dev/demo/token.
+   * @param options Additional options for the Differential client.
+   * @param options.endpoint The endpoint for the Differential cluster. Defaults to https://api.differential.dev.
    */
-  constructor(private apiSecret: string) {
+  constructor(
+    private apiSecret: string,
+    options?: {
+      endpoint?: string;
+    }
+  ) {
     this.authHeader = `Basic ${this.apiSecret}`;
-    this.endpoint =
-      process.env.DIFFERENTIAL_API_ENDPOINT_OVERRIDE ??
-      "https://api.differential.dev";
+    this.endpoint = options?.endpoint || "https://api.differential.dev";
     this.machineId = Math.random().toString(36).substring(7);
 
     log("Initializing control plane client", {
