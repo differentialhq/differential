@@ -32,7 +32,7 @@ export default async function Page() {
       <div className="mt-8">
         {clusterResult.body?.length === 0 && (
           <div className="flex flex-col items-center justify-center w-full h-full p-8 border border-dashed rounded-lg">
-            <p>You don't have any clusters yet. Create one to get started.</p>
+            <p>You do not have any clusters yet. Create one to get started.</p>
           </div>
         )}
         <div className="flex flex-wrap">
