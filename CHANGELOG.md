@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.2.0](https://github.com/differentialhq/differential/compare/v3.1.4...v3.2.0) (2023-12-28)
+
+
+### Bug Fixes
+
+* add registry to the publish command ([f100c98](https://github.com/differentialhq/differential/commit/f100c9855e7c546c6665d7ba1866717aa0ddffbf))
+* use workspace dependency rather than registry ([#14](https://github.com/differentialhq/differential/issues/14)) ([45d833e](https://github.com/differentialhq/differential/commit/45d833e13a1b359b5ec776d074da878762255b65))
+
+
+### Features
+
+* Admin console v1 ([#15](https://github.com/differentialhq/differential/issues/15)) ([9ec8db9](https://github.com/differentialhq/differential/commit/9ec8db9122a8d1de4fa6ad7f3965ec09871652cc))
+* conventional commit validator ([#11](https://github.com/differentialhq/differential/issues/11)) ([7221156](https://github.com/differentialhq/differential/commit/7221156c4969e4c5da415c1774a5395cc08c77d8))
+
+
+
+
+
 ## [3.1.4](https://github.com/differentialhq/differential/compare/v3.1.3...v3.1.4) (2023-12-24)
 
 **Note:** Version bump only for package root
