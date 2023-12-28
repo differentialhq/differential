@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "flowbite-react";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 
@@ -48,7 +48,7 @@ export const SecretKeyReveal = ({ secretKey }: { secretKey: string }) => {
         {/* Revoke */}
         <Button
           size="sm"
-          color="red"
+          variant="destructive"
           onClick={() => {
             toast.error(
               "Revoking is not supported yet through the UI. Please use the CLI."

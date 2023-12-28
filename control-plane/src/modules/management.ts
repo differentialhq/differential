@@ -1,5 +1,5 @@
 import * as data from "./data";
-import { and, eq } from "drizzle-orm";
+import { and, eq, gte } from "drizzle-orm";
 import { randomName } from "./names";
 import crypto from "crypto";
 import * as jwt from "./jwt";
@@ -84,6 +84,8 @@ export const getClusterDetailsForUser = async ({
 > => {
   const verified = await jwt.verifyManagementToken({ managementToken });
 
+  // TODO: make this a single query
+
   const clusters = await data.db
     .select({
       id: data.clusters.id,
@@ -112,7 +114,16 @@ export const getClusterDetailsForUser = async ({
       ip: data.machines.ip,
     })
     .from(data.machines)
-    .where(eq(data.machines.cluster_id, clusterId));
+    .where(
+      and(
+        eq(data.machines.cluster_id, clusterId),
+        // in the last 12 hours
+        gte(
+          data.machines.last_ping_at,
+          new Date(Date.now() - 1000 * 60 * 60 * 12)
+        )
+      )
+    );
 
   const jobs = await data.db
     .select({
@@ -122,7 +133,13 @@ export const getClusterDetailsForUser = async ({
       createdAt: data.jobs.created_at,
     })
     .from(data.jobs)
-    .where(eq(data.jobs.owner_hash, clusterId));
+    .where(
+      and(
+        eq(data.jobs.owner_hash, clusterId),
+        // in the last 12 hours
+        gte(data.jobs.created_at, new Date(Date.now() - 1000 * 60 * 60 * 12))
+      )
+    );
 
   return {
     ...clusters[0],

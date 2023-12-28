@@ -1,7 +1,14 @@
 import { client } from "@/client/client";
 import { auth } from "@clerk/nextjs";
 import { CreateClusterButton } from "./CreateClusterButton";
-import { Card } from "flowbite-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { format, formatDistance, formatRelative, subDays } from "date-fns";
 
 export default async function Page() {
@@ -44,30 +51,22 @@ export default async function Page() {
               );
             })
             .map((cluster, i) => (
-              <Card
-                href={`/clusters/${cluster.id}`}
-                className="mr-4 mb-4 w-96"
-                key={cluster.id}
-              >
-                <p className="font-mono text-gray-700 dark:text-gray-400">
-                  {cluster.id}
-                </p>
-                <h5 className="text-xl tracking-tight text-gray-900 dark:text-white">
-                  {cluster.id
-                    .split("-")
-                    .filter((s, i) => i === 1 || i === 2)
-                    .join("-")}
-                </h5>
-                <p className="-mt-4 text-gray-500">
-                  {cluster.description || "No description"}
-                </p>
-                <div className="flex flex-col text-gray-400">
-                  <div>
-                    Created{" "}
-                    {formatRelative(new Date(cluster.createdAt), new Date())}
-                  </div>
-                </div>
-              </Card>
+              <a href={`/clusters/${cluster.id}`} className="mr-4 mb-4 w-96">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{`${cluster.id.split("-")[1]}-${
+                      cluster.id.split("-")[2]
+                    }`}</CardTitle>
+                    <CardDescription>{cluster.id}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p>
+                      Created{" "}
+                      {formatRelative(new Date(cluster.createdAt), new Date())}
+                    </p>
+                  </CardContent>
+                </Card>
+              </a>
             ))}
         </div>
       </div>
