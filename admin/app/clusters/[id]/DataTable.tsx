@@ -3,106 +3,83 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableHeadCell,
+  TableHeader,
   TableRow,
-} from "flowbite-react";
+} from "@/components/ui/table";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 
-{
-  /* <div className="overflow-x-auto">
-      <Table>
-        <Table.Head>
-          <Table.HeadCell>Product name</Table.HeadCell>
-          <Table.HeadCell>Color</Table.HeadCell>
-          <Table.HeadCell>Category</Table.HeadCell>
-          <Table.HeadCell>Price</Table.HeadCell>
-          <Table.HeadCell>
-            <span className="sr-only">Edit</span>
-          </Table.HeadCell>
-        </Table.Head>
-        <Table.Body className="divide-y">
-          <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              {'Apple MacBook Pro 17"'}
-            </Table.Cell>
-            <Table.Cell>Sliver</Table.Cell>
-            <Table.Cell>Laptop</Table.Cell>
-            <Table.Cell>$2999</Table.Cell>
-            <Table.Cell>
-              <a href="#" className="font-medium text-cyan-600 hover:underline dark:text-cyan-500">
-                Edit
-              </a>
-            </Table.Cell>
-          </Table.Row>
-          <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Microsoft Surface Pro
-            </Table.Cell>
-            <Table.Cell>White</Table.Cell>
-            <Table.Cell>Laptop PC</Table.Cell>
-            <Table.Cell>$1999</Table.Cell>
-            <Table.Cell>
-              <a href="#" className="font-medium text-cyan-600 hover:underline dark:text-cyan-500">
-                Edit
-              </a>
-            </Table.Cell>
-          </Table.Row>
-          <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">Magic Mouse 2</Table.Cell>
-            <Table.Cell>Black</Table.Cell>
-            <Table.Cell>Accessories</Table.Cell>
-            <Table.Cell>$99</Table.Cell>
-            <Table.Cell>
-              <a href="#" className="font-medium text-cyan-600 hover:underline dark:text-cyan-500">
-                Edit
-              </a>
-            </Table.Cell>
-          </Table.Row>
-        </Table.Body>
-      </Table>
-    </div> */
-}
-
-export const DataTable = ({
+export const DataTable = <T = any,>({
   data,
   noDataMessage = "No data present",
+  columnDef,
 }: {
   data: Array<{ [key: string]: any }>;
   noDataMessage?: string;
+  columnDef?: ColumnDef<T>[];
 }) => {
-  if (data.length === 0) {
-    return <p className="text-gray-400 mt-2">{noDataMessage}</p>;
-  }
-
   const keys = Object.keys(data[0]);
 
+  const columns: ColumnDef<any>[] =
+    columnDef ||
+    keys.map((key) => ({
+      accessorKey: key,
+      header: key,
+    }));
+
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    manualSorting: true,
+  });
+
   return (
-    <div className="flex mt-8">
+    <div className="rounded-md border">
       <Table>
-        <TableHead>
-          {keys.map((key) => (
-            <TableHeadCell key={key}>{key}</TableHeadCell>
-          ))}
-        </TableHead>
-        <TableBody className="divide-y">
-          {data.map((row, i) => (
-            <TableRow
-              key={i}
-              className="bg-white dark:border-gray-700 dark:bg-gray-800"
-            >
-              {keys.map((key, j) => (
-                <TableCell
-                  className={
-                    j === 0
-                      ? `whitespace-nowrap font-medium text-white`
-                      : `whitespace-nowrap font-medium text-gray-400`
-                  }
-                  key={key}
-                >
-                  {row[key]}
-                </TableCell>
-              ))}
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                return (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                );
+              })}
             </TableRow>
           ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </div>

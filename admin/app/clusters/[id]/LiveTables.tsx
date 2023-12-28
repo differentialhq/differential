@@ -93,7 +93,7 @@ export function LiveTables({
         )}
         <DataTable
           data={data.machines
-            .sort((a, b) => (a.id > b.id ? 1 : 1))
+            .sort((a, b) => (a.lastPingAt! > b.lastPingAt! ? -1 : 1))
             .map((s) => ({
               machineId: s.id,
               ip: s.ip,
@@ -102,14 +102,38 @@ export function LiveTables({
                 new Date()
               )}`,
               status:
-                new Date().getTime() - new Date(s.lastPingAt!).getTime() <
-                30000 ? (
+                new Date().getTime() - new Date(s.lastPingAt!).getTime() < 30000
+                  ? "live"
+                  : "dead",
+            }))}
+          noDataMessage="No machines have been detected in the cluster lately."
+          columnDef={[
+            {
+              accessorKey: "machineId",
+              header: "Machine ID",
+            },
+            {
+              accessorKey: "ip",
+              header: "IP Address",
+            },
+            {
+              accessorKey: "ping",
+              header: "Last Ping",
+            },
+            {
+              accessorKey: "status",
+              header: "Status",
+              cell: ({ row }) => {
+                const status = row.getValue("status");
+
+                return status === "live" ? (
                   <LiveGreenCircle />
                 ) : (
                   <DeadGrayCircle />
-                ),
-            }))}
-          noDataMessage="No machines have been detected in the cluster lately."
+                );
+              },
+            },
+          ]}
         />
       </div>
       <div className="mt-12">
