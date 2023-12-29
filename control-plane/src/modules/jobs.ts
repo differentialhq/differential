@@ -5,11 +5,13 @@ import { ulid } from "ulid";
 import crypto from "crypto";
 
 export const createJob = async ({
+  service,
   targetFn,
   targetArgs,
   owner,
   pool,
 }: {
+  service: string | null;
   targetFn: string;
   targetArgs: string;
   owner: { clusterId: string };
@@ -34,12 +36,14 @@ export const createJob = async ({
     status: "pending",
     owner_hash: owner.clusterId,
     machine_type: pool,
+    service,
   });
 
   return { id };
 };
 
 export const nextJobs = async ({
+  service,
   functions,
   pools,
   owner,
@@ -47,6 +51,7 @@ export const nextJobs = async ({
   machineId,
   ip,
 }: {
+  service: string | null;
   functions?: string;
   pools?: string;
   owner: { clusterId: string };
@@ -58,7 +63,11 @@ export const nextJobs = async ({
 
   const pool = pools || "*";
 
-  if (functions) {
+  if (service) {
+    results = await data.db.execute(
+      sql`UPDATE jobs SET status = 'running', remaining = remaining - 1 WHERE id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining > 0)) AND owner_hash = ${owner.clusterId} AND service = ${service} LIMIT ${limit}) RETURNING *`
+    );
+  } else if (functions) {
     const targetFns = functions.split(",");
 
     results = await data.db.execute(

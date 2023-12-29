@@ -66,6 +66,7 @@ export const jobs = pgTable("jobs", {
     sql`now() + interval '300 seconds'`
   ),
   timeout_interval_seconds: integer("timeout_interval").default(300),
+  service: varchar("service", { length: 1024 }),
 });
 
 export const machines = pgTable("machines", {

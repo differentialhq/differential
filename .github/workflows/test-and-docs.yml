@@ -40,6 +40,9 @@ jobs:
           git config --global user.name "Differential CI"
           git config --global user.email "ci@differential.dev"
 
+      - name: Build packages
+        run: npx lerna run build
+
       - name: Version and publish packages
         run: npx lerna publish --conventional-commits --yes --no-private --registry https://registry.npmjs.org
         env:

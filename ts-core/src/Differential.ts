@@ -167,6 +167,7 @@ class PollingAgent {
               .filter((s) => s[1].serviceName === this.service.name)
               .map((s) => s[0])
               .join(","),
+            service: this.service.name,
           },
           headers: {
             authorization: this.authHeader,
