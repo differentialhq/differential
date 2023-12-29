@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.2.2](https://github.com/differentialhq/differential/compare/v3.2.1...v3.2.2) (2023-12-29)
+
+
+### Bug Fixes
+
+* Remove extraneous dependencies ([56eeb7f](https://github.com/differentialhq/differential/commit/56eeb7f0b2bbc379c8cf16f3be13f5c81f9e4c50))
+
+
+### Features
+
+* Admin console provides better telemetry on clusters ([#17](https://github.com/differentialhq/differential/issues/17)) ([b96b809](https://github.com/differentialhq/differential/commit/b96b809db6e785354343c754d9fd59d16f499632))
+
+
+
+
+
 ## [3.2.1](https://github.com/differentialhq/differential/compare/v3.2.0...v3.2.1) (2023-12-28)
 
 
