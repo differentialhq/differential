@@ -80,13 +80,15 @@ export const router = s.router(contract, {
     }
 
     const { jobId } = request.params;
-    const { result, resultType } = request.body;
+    const { result, resultType, runtimeLatencyMs } = request.body;
 
     await data.db
       .update(data.jobs)
       .set({
         result,
         result_type: resultType,
+        resulted_at: sql`now()`,
+        runtime_latency_ms: runtimeLatencyMs,
         status: "success",
       })
       .where(
