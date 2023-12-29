@@ -21,6 +21,7 @@ export const contract = c.router({
       pools: z.string().optional(),
       limit: z.coerce.number().default(1),
       functions: z.string().optional(),
+      service: z.string().optional(),
     }),
     responses: {
       200: z.array(NextJobSchema),
@@ -43,6 +44,7 @@ export const contract = c.router({
       targetFn: z.string(),
       targetArgs: z.string(),
       pool: z.string().optional(),
+      service: z.string().optional(),
     }),
   },
   getJobStatus: {
