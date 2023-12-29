@@ -3,38 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.757113264151">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.757131663666">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
 
     <!-- Primary Meta Tags -->
-    <title>Explain like I&#39;m</title>
-    <meta name="title" content="Explain like I'm">
-    <meta name="description" content="Framework Nature: Differential is a Service Orchestration Framework, focusing on easing the transition from monolithic codebases to a...">
+    <title>Concepts</title>
+    <meta name="title" content="Concepts">
+    <meta name="description" content="A collection of functions that can be called by a consumer using the differential client. Defined using the SDK.">
 
     <!-- Canonical -->
-    <link rel="canonical" href="https://docs.differential.dev/learning/eli/">
+    <link rel="canonical" href="https://docs.differential.dev/advanced/concepts/">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://docs.differential.dev/learning/eli/">
-    <meta property="og:title" content="Explain like I'm">
-    <meta property="og:description" content="Framework Nature: Differential is a Service Orchestration Framework, focusing on easing the transition from monolithic codebases to a...">
+    <meta property="og:url" content="https://docs.differential.dev/advanced/concepts/">
+    <meta property="og:title" content="Concepts">
+    <meta property="og:description" content="A collection of functions that can be called by a consumer using the differential client. Defined using the SDK.">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://docs.differential.dev/learning/eli/">
-    <meta property="twitter:title" content="Explain like I'm">
-    <meta property="twitter:description" content="Framework Nature: Differential is a Service Orchestration Framework, focusing on easing the transition from monolithic codebases to a...">
+    <meta property="twitter:url" content="https://docs.differential.dev/advanced/concepts/">
+    <meta property="twitter:title" content="Concepts">
+    <meta property="twitter:description" content="A collection of functions that can be called by a consumer using the differential client. Defined using the SDK.">
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../../resources/css/retype.css?v=3.5.0.757113264151" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.757131663666" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.757113264151" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.757131663666" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.757113264151" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.757131663666" data-turbo-eval="false" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -184,108 +184,40 @@
                                 <!-- Rendered if sidebar right is enabled -->
                                 <div id="docs-sidebar-right-toggle"></div>
                                 <!-- Page content  -->
-<doc-anchor-target id="explain-like-im" class="break-words">
+<doc-anchor-target id="concepts" class="break-words">
     <h1>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#explain-like-im">#</doc-anchor-trigger>
-        <span>Explain like I&#x27;m</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#concepts">#</doc-anchor-trigger>
+        <span>Concepts</span>
     </h1>
 </doc-anchor-target>
-<doc-anchor-target id="a-distributed-systems-expert">
+<doc-anchor-target id="service">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#a-distributed-systems-expert">#</doc-anchor-trigger>
-        <span>A distributed systems expert</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#service">#</doc-anchor-trigger>
+        <span>Service</span>
     </h2>
 </doc-anchor-target>
-<ul>
-<li><p>Framework Nature: Differential is a Service Orchestration Framework, focusing on easing the transition from monolithic codebases to a service-oriented architecture.</p>
-</li>
-<li><p>Monolithic Development, Distributed Deployment: Enables writing code in a monolithic style while facilitating deployment as distributed, independent services.</p>
-</li>
-<li><p>Functional Service Definition: Services are defined as collections of functions, abstracting away the typical complexities of defining and managing network-level service contracts.</p>
-</li>
-<li><p>Type Safety and Code Co-location: All services coexist within the same codebase, allowing shared code and types, ensuring type-safe inter-service communication.</p>
-</li>
-<li><p>Runtime Service Orchestration: Provides mechanisms (d.start(), d.stop()) for dynamic service management, enabling runtime flexibility in service deployment and scalability.</p>
-</li>
-<li><p>Centralized Control Plane: Implements a control plane for service registry, health monitoring, and as a service bus, centralizing cross-cutting concerns (authentication, authorization, rate limiting, observability).</p>
-</li>
-<li><p>Transparent Inter-Service Communication: Facilitates calling functions across services transparently, similar to local function invocations, abstracting the underlying network communication.</p>
-</li>
-<li><p>First-Class TypeScript Support: Leveraging TypeScript&#x27;s type system for type-safe interactions and reducing runtime errors, enhancing developer productivity.</p>
-</li>
-<li><p>Opinionated Trade-offs: Emphasizes certain trade-offs (e.g., centralized control plane vs decentralized discovery) to streamline development and maintenance of distributed services.</p>
-</li>
-</ul>
-<doc-anchor-target id="a-commercial-software-developer">
+<p>A collection of functions that can be called by a consumer using the differential client. Defined using the SDK.</p>
+<doc-anchor-target id="host">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#a-commercial-software-developer">#</doc-anchor-trigger>
-        <span>A commercial software developer</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#host">#</doc-anchor-trigger>
+        <span>Host</span>
     </h2>
 </doc-anchor-target>
-<ul>
-<li><p>Service Orchestration Framework: Differential is a framework designed to simplify turning functions into services, akin to how frameworks like Express.js streamline web server creation.</p>
-</li>
-<li><p>Monolithic Code, Distributed Deployment: You can write code as if it were a monolith (similar to a single Node.js app) but deploy it as separate, scalable services, much like Docker containers in a microservices architecture. Differential is deployment-agnostic, so you can deploy to a single server, multiple servers, or a serverless environment.</p>
-</li>
-<li><p>Services as Function Collections: Define services as groups of functions (resembling AWS Lambda), focusing on business logic without the overhead of traditional service contracts. These services exist as a single codebase, allowing shared code and types.</p>
-</li>
-<li><p>Shared Codebase, Type Safety: All services are in one codebase (think monorepo style, like with Yarn Workspaces), ensuring shared code and type consistency across services.</p>
-</li>
-<li><p>Dynamic Service Lifecycle: Services can be dynamically started and stopped at runtime (similar to starting/stopping Docker containers) using simple d.start() and d.stop() methods.</p>
-</li>
-<li><p>Central Control Plane: Functions as a service registry and bus, like a combination of Eureka for service discovery and Kafka for message passing, centralizing service management.</p>
-</li>
-<li><p>Transparent Inter-Service Communication: Allows function calls between services without worrying about network details, much like calling a local function, simplifying the typical REST or gRPC communication patterns.</p>
-</li>
-<li><p>Simplifies Service-Oriented Architecture: Aims to lower the barrier and cost of running a service-oriented architecture, addressing common challenges you might face with traditional microservices frameworks. (It&#x27;s not FaaS)</p>
-</li>
-</ul>
-<doc-anchor-target id="a-high-school-student-with-some-programming-experience">
+<p>A computer that you operate and own, that runs your services.</p>
+<doc-anchor-target id="cluster">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#a-high-school-student-with-some-programming-experience">#</doc-anchor-trigger>
-        <span>A high school student with some programming experience</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#cluster">#</doc-anchor-trigger>
+        <span>Cluster</span>
     </h2>
 </doc-anchor-target>
-<ul>
-<li><p>Framework for Building Web Services: Differential is a tool that helps developers turn parts of their code into web services easily. It&#x27;s like how frameworks like Flask or Express help you build web applications, but for creating services.</p>
-</li>
-<li><p>Write Once, Deploy Many: You can write your code in one big piece (like a single project or app), but when you&#x27;re ready to run it, Differential lets you break it into smaller, independent parts (services). This is a bit like building a big project for a class and then breaking it into smaller, more manageable pieces for presentation.</p>
-</li>
-<li><p>Services Are Just Functions: In Differential, services are made up of functions (like the functions you write in Python or JavaScript). There&#x27;s no need for complex setups or configurations – it&#x27;s about focusing on the code that does the work.</p>
-</li>
-<li><p>Shared Codebase: All your services live in the same project (think of it as one big folder with all your code). This makes it easier to share code and ensures everything works well together, similar to how you might structure a final year project with different modules.</p>
-</li>
-<li><p>Easy to Start and Stop Services: Just like you can start a local server for a web app, Differential allows you to easily start or stop these services with simple commands.</p>
-</li>
-<li><p>Central Hub for Managing Services: There&#x27;s a central place that keeps track of all your different services, much like how a project dashboard might show you different components of your project and their status.</p>
-</li>
-<li><p>Easy Communication Between Services: Services can talk to each other very easily, without needing to know complex details about where they are or how they&#x27;re connected. It&#x27;s like calling a function in one part of your code from another part, but these parts can be running separately.</p>
-</li>
-<li><p>Great for TypeScript Users: If you&#x27;ve used TypeScript, Differential is designed to work really well with it, making sure your code is correct and doing what it&#x27;s supposed to do.</p>
-</li>
-</ul>
-<doc-anchor-target id="a-five-year-old">
+<p>A group services that are running on a host. An API key is required to join a cluster.</p>
+<doc-anchor-target id="control-plane">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#a-five-year-old">#</doc-anchor-trigger>
-        <span>A five-year-old</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#control-plane">#</doc-anchor-trigger>
+        <span>Control Plane</span>
     </h2>
 </doc-anchor-target>
-<ul>
-<li><p>Special Lego Rules: Think of Differential like a special set of rules for playing with LEGOs. You can build many different things like cars, houses, or spaceships using the same LEGO blocks, but each one is its own cool toy.</p>
-</li>
-<li><p>Building Big Toys in Pieces: It&#x27;s like when you build a big toy, but you can take apart different pieces and they still work like smaller toys. You can mix and match parts to make new toys!</p>
-</li>
-<li><p>Magic Box for Toys: Imagine you have a magic box where you put your LEGO toys. The box helps you find the right pieces and tells them how to work together, so your toys always turn out great.</p>
-</li>
-<li><p>Easy to Change Toys: If you want to change a part of your toy, like putting a new wheel on a car or adding a window to a house, it&#x27;s super easy. The magic box helps you do it without having to rebuild the whole toy.</p>
-</li>
-<li><p>Playing with Others: If your friends have toys made with the same magic box, all of your toys can talk to each other and play together, making fun new games.</p>
-</li>
-<li><p>Special Toy Language: The magic box is really good at understanding a special toy language, making sure that all your toys understand each other perfectly.</p>
-</li>
-<li><p>Making Toy Building Fun: This magic box makes building complicated toys as fun and easy as playing with your simplest LEGO sets, so you can make amazing things without getting frustrated.</p>
-</li>
-</ul>
+<p>A central service that keeps track of all the services that are running, and their health. It acts as a service registry, and a service bus.</p>
 
                                 
                                 <!-- Required only on API pages -->
@@ -295,20 +227,20 @@
                             
                                 <nav class="flex mt-14">
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../learning/concepts/">
+                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../getting-started/thinking/">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                             <span>
                                                 <span class="block text-xs font-normal text-gray-400 dark:text-dark-400">Previous</span>
-                                                <span class="block mt-1">Concepts</span>
+                                                <span class="block mt-1">Thinking in Differential</span>
                                             </span>
                                         </a>
                                     </div>
                             
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../changelog/">
+                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../advanced/comparisons/">
                                             <span>
                                                 <span class="block text-xs font-normal text-right text-gray-400 dark:text-dark-400">Next</span>
-                                                <span class="block mt-1">CHANGELOG</span>
+                                                <span class="block mt-1">Comparisons</span>
                                             </span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                         </a>
@@ -352,6 +284,6 @@
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": "Explain like I'm", level: 2, icon: "file", hasPrism: false, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": "Concepts", level: 2, icon: "file", hasPrism: false, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
 </body>
 </html>

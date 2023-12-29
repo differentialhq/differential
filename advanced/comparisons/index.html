@@ -3,38 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.757113264151">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.757131663666">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
 
     <!-- Primary Meta Tags -->
-    <title>Concepts</title>
-    <meta name="title" content="Concepts">
-    <meta name="description" content="A collection of functions that can be called by a consumer using the differential client. Defined using the SDK.">
+    <title>Comparisons</title>
+    <meta name="title" content="Comparisons">
+    <meta name="description" content="Unlike REST APIs, with Differential, you don't need to cocern yourself with the HTTP status codes, serialization, or deserialization.">
 
     <!-- Canonical -->
-    <link rel="canonical" href="https://docs.differential.dev/learning/concepts/">
+    <link rel="canonical" href="https://docs.differential.dev/advanced/comparisons/">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://docs.differential.dev/learning/concepts/">
-    <meta property="og:title" content="Concepts">
-    <meta property="og:description" content="A collection of functions that can be called by a consumer using the differential client. Defined using the SDK.">
+    <meta property="og:url" content="https://docs.differential.dev/advanced/comparisons/">
+    <meta property="og:title" content="Comparisons">
+    <meta property="og:description" content="Unlike REST APIs, with Differential, you don't need to cocern yourself with the HTTP status codes, serialization, or deserialization.">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://docs.differential.dev/learning/concepts/">
-    <meta property="twitter:title" content="Concepts">
-    <meta property="twitter:description" content="A collection of functions that can be called by a consumer using the differential client. Defined using the SDK.">
+    <meta property="twitter:url" content="https://docs.differential.dev/advanced/comparisons/">
+    <meta property="twitter:title" content="Comparisons">
+    <meta property="twitter:description" content="Unlike REST APIs, with Differential, you don't need to cocern yourself with the HTTP status codes, serialization, or deserialization.">
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../../resources/css/retype.css?v=3.5.0.757113264151" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.757131663666" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.757113264151" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.757131663666" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.757113264151" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.757131663666" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.757131663666" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -184,40 +185,141 @@
                                 <!-- Rendered if sidebar right is enabled -->
                                 <div id="docs-sidebar-right-toggle"></div>
                                 <!-- Page content  -->
-<doc-anchor-target id="concepts" class="break-words">
+<doc-anchor-target id="comparisons" class="break-words">
     <h1>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#concepts">#</doc-anchor-trigger>
-        <span>Concepts</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#comparisons">#</doc-anchor-trigger>
+        <span>Comparisons</span>
     </h1>
 </doc-anchor-target>
-<doc-anchor-target id="service">
+<doc-anchor-target id="comparisons-with-http--rest-apis">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#service">#</doc-anchor-trigger>
-        <span>Service</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#comparisons-with-http--rest-apis">#</doc-anchor-trigger>
+        <span>Comparisons with HTTP / REST APIs</span>
     </h2>
 </doc-anchor-target>
-<p>A collection of functions that can be called by a consumer using the differential client. Defined using the SDK.</p>
-<doc-anchor-target id="host">
+<doc-anchor-target id="working-with-data">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#working-with-data">#</doc-anchor-trigger>
+        <span>Working with Data</span>
+    </h3>
+</doc-anchor-target>
+<p>Unlike REST APIs, with Differential, you don&#x27;t need to cocern yourself with the HTTP status codes, serialization, or deserialization. Differential works with native data types, and provide type-safe interfaces for you to work with.</p>
+<p>This prevents the developer from having to deal with the conversion overhead between programming constructs and HTTP constructs.</p>
+<p>With differential, the equivalent code here:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-typescript"><code v-pre class="language-typescript">// server.ts
+const server = new HttpServer();
+const userController = new UserController();
+
+server.get('/users', (req, res) =&gt; {
+  const users = userController.getUsers({
+    searchQuery: req.query.searchQuery
+  });
+
+  res.status(200).json({ users });
+});
+
+// client.ts
+function getNames(users: User[]) {
+  const result = await fetch('/users', {
+    searchQuery: 'John'
+  });
+
+  const data = await result.json();
+
+  if (data.status === 200) {
+    return data.users.map(user =&gt; user.name);
+  } else {
+    throw new Error('Failed to get users');
+  }
+}</code></pre>
+</doc-codeblock></div>
+<p>becomes:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-typescript"><code v-pre class="language-typescript">// service.ts
+const { d } = require('./d.ts');
+const userController = new UserController();
+
+export const userService = d.service('users', {
+  functions: {
+    getUsers: userController.getUsers
+  }
+})
+
+// client.ts
+const client = d.client&lt;typeof userService&gt;(&quot;users&quot;); // lightweight proxy
+
+function getNames(users: User[]) {
+  // this is fully type-safe
+  const users = await client.getUsers({
+    searchQuery: 'John'
+  }); 
+
+  return users.map(user =&gt; user.name);
+}</code></pre>
+</doc-codeblock></div>
+<doc-anchor-target id="working-with-multiple-services">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#working-with-multiple-services">#</doc-anchor-trigger>
+        <span>Working with Multiple Services</span>
+    </h3>
+</doc-anchor-target>
+<p>In a service-oriented architecture, you may have multiple services that you need to communicate with. These will be exposed as different REST APIs, and your clients will communicate with them in a m:m fashion.</p>
+<p>With Differential, all your services and clients connect to a single cluster. Clients can access any service that connects to the cluster. How the connections are mapped out, can be traced via the source code without an additional layer of network that gets in the way.</p>
+<p>Differential becomes your service gateway and an elegant service discovery mechanism.</p>
+<doc-anchor-target id="exposure-of-internal-functions">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#exposure-of-internal-functions">#</doc-anchor-trigger>
+        <span>Exposure of Internal Functions</span>
+    </h3>
+</doc-anchor-target>
+<p>A traditional REST service will require you to implement authentication, so your clients have a trusted relationship with your server. This is usually done via a token-based authentication scheme, and middleware that checks for the token on every request. This is especially true if you can&#x27;t trust the network that your clients are connecting from, such as outside of your VPC.</p>
+<p>With Differential, your internal services are only exposed to the control-plane via a secure connection. This means that you don&#x27;t need to implement authentication for your internal services, as they are not exposed to the outside world. Differential clients can only access the functions that you explicitly expose to them.</p>
+<doc-anchor-target id="type-safety">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#type-safety">#</doc-anchor-trigger>
+        <span>Type Safety</span>
+    </h3>
+</doc-anchor-target>
+<p>Differential provides type-safe interfaces for your clients to interact with your services, without a compile step. This also means that you don&#x27;t have to worry about intermediate representations like OpenAPI, and the overhead of maintaining them.</p>
+<doc-anchor-target id="language-agnosticism">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#language-agnosticism">#</doc-anchor-trigger>
+        <span>Language Agnosticism</span>
+    </h3>
+</doc-anchor-target>
+<p>Differential is not language agnostic. If you need to connect two services written in different languages, you will need to implement a shim layer in Typescript, and connect them to the same cluster. Depending on your use case, this may be additional complexity that you don&#x27;t need.</p>
+<p>This is in stark contrast to something like a REST service that can publish a intermediary representation of its API, such as OpenAPI, and allow clients to generate code from it. This is a tradeoff that we have made, as we believe that the benefits of type safety outweigh the benefits of language agnosticism.</p>
+<doc-anchor-target id="comparisons-with-grpc--protocol-buffers">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#host">#</doc-anchor-trigger>
-        <span>Host</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#comparisons-with-grpc--protocol-buffers">#</doc-anchor-trigger>
+        <span>Comparisons with gRPC / Protocol Buffers</span>
     </h2>
 </doc-anchor-target>
-<p>A computer that you operate and own, that runs your services.</p>
-<doc-anchor-target id="cluster">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#cluster">#</doc-anchor-trigger>
-        <span>Cluster</span>
-    </h2>
+<doc-anchor-target id="working-with-data-1">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#working-with-data-1">#</doc-anchor-trigger>
+        <span>Working with Data</span>
+    </h3>
 </doc-anchor-target>
-<p>A group services that are running on a host. An API key is required to join a cluster.</p>
-<doc-anchor-target id="control-plane">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#control-plane">#</doc-anchor-trigger>
-        <span>Control Plane</span>
-    </h2>
+<p>gRPC uses Protocol Buffers as its serialization format. This means that you need to define your data structures in a separate file, and compile them into your language of choice. This is an additional step that you need to perform, and build tooling towards.</p>
+<p>Every change that is made to the data structures will require a recompilation of the data structures, and a redeployment of the service.</p>
+<p>Differential uses native programming constructs, and does not require you to have a comparative <code v-pre>.proto</code> file or a complilation step. Compatibility of contracts is enforced by the type system. However, you do lose out on some of the gurantees that Protocol Buffers provides, such as backwards compatibility.</p>
+<p>However, we do plan to support additional developer tooling that will optionally verify and protect against breaking changes in contracts.</p>
+<doc-anchor-target id="serialization">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#serialization">#</doc-anchor-trigger>
+        <span>Serialization</span>
+    </h3>
 </doc-anchor-target>
-<p>A central service that keeps track of all the services that are running, and their health. It acts as a service registry, and a service bus.</p>
+<p>Protocol Buffers uses its knowledge about the data structure to optimize the serialization, deserialization, and the message size over the wire. Differential does not have this knowledge, and uses msgpack (a binary serialization format) to serialize and deserialize data. This means that the message size over the wire will be typically larger than gRPC, but smaller than JSON.</p>
+<doc-anchor-target id="other-notes">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#other-notes">#</doc-anchor-trigger>
+        <span>Other notes</span>
+    </h3>
+</doc-anchor-target>
+<p>The same notes that apply to REST APIs also apply to gRPC APIs for Working with Multiple Services, Exposure of Internal Functions, Type Safety, and Language Agnosticism.</p>
 
                                 
                                 <!-- Required only on API pages -->
@@ -227,20 +329,20 @@
                             
                                 <nav class="flex mt-14">
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../api/differential/">
+                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../advanced/concepts/">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                             <span>
                                                 <span class="block text-xs font-normal text-gray-400 dark:text-dark-400">Previous</span>
-                                                <span class="block mt-1">Class: Differential</span>
+                                                <span class="block mt-1">Concepts</span>
                                             </span>
                                         </a>
                                     </div>
                             
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../learning/eli/">
+                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../advanced/limitations/">
                                             <span>
                                                 <span class="block text-xs font-normal text-right text-gray-400 dark:text-dark-400">Next</span>
-                                                <span class="block mt-1">Explain like I'm</span>
+                                                <span class="block mt-1">Limitations</span>
                                             </span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                         </a>
@@ -284,6 +386,6 @@
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": "Concepts", level: 2, icon: "file", hasPrism: false, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": "Comparisons", level: 2, icon: "file", hasPrism: true, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
 </body>
 </html>

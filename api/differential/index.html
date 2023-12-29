@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.757113264151">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.757131663666">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -30,12 +30,12 @@
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../../resources/css/retype.css?v=3.5.0.757113264151" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.757131663666" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.757113264151" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.757131663666" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.757113264151" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.757113264151" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.757131663666" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.757131663666" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -267,7 +267,7 @@ console.log(result); // &quot;Hello world&quot;</code></pre>
         <span>constructor</span>
     </h3>
 </doc-anchor-target>
-<p>• <strong>new Differential</strong>(<code v-pre>apiSecret</code>): <a href=""><code v-pre>Differential</code></a></p>
+<p>• <strong>new Differential</strong>(<code v-pre>apiSecret</code>, <code v-pre>options?</code>): <a href=""><code v-pre>Differential</code></a></p>
 <p>Initializes a new Differential instance.</p>
 <doc-anchor-target id="parameters">
     <h4>
@@ -290,6 +290,16 @@ console.log(result); // &quot;Hello world&quot;</code></pre>
 <td style="text-align: left;"><code v-pre>string</code></td>
 <td style="text-align: left;">The API Secret for your Differential cluster. You can obtain one from <a href="https://api.differential.dev/demo/token">https://api.differential.dev/demo/token</a>.</td>
 </tr>
+<tr>
+<td style="text-align: left;"><code v-pre>options?</code></td>
+<td style="text-align: left;"><code v-pre>Object</code></td>
+<td style="text-align: left;">Additional options for the Differential client.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>options.endpoint?</code></td>
+<td style="text-align: left;"><code v-pre>string</code></td>
+<td style="text-align: left;">The endpoint for the Differential cluster. Defaults to <a href="https://api.differential.dev">https://api.differential.dev</a>.</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -306,7 +316,7 @@ console.log(result); // &quot;Hello world&quot;</code></pre>
         <span>Defined in</span>
     </h4>
 </doc-anchor-target>
-<p><a href="https://github.com/differentialHQ/differential/blob/4f97b14/ts-core/src/Differential.ts#L402">ts-core/src/Differential.ts:402</a></p>
+<p><a href="https://github.com/differentialHQ/differential/blob/f29b990/ts-core/src/Differential.ts#L405">ts-core/src/Differential.ts:405</a></p>
 <doc-anchor-target id="methods-1">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#methods-1">#</doc-anchor-trigger>
@@ -391,7 +401,7 @@ console.log(result); // &quot;Hello world&quot;</code></pre>
         <span>Defined in</span>
     </h4>
 </doc-anchor-target>
-<p><a href="https://github.com/differentialHQ/differential/blob/4f97b14/ts-core/src/Differential.ts#L522">ts-core/src/Differential.ts:522</a></p>
+<p><a href="https://github.com/differentialHQ/differential/blob/f29b990/ts-core/src/Differential.ts#L528">ts-core/src/Differential.ts:528</a></p>
 <p>▸ <strong>client</strong>&lt;<code v-pre>T</code>&gt;(<code v-pre>service</code>, <code v-pre>options</code>): <code v-pre>BackgroundServiceClient</code>&lt;<code v-pre>T</code>&gt;</p>
 <p>Provides a type safe client for performing calls to a registered service.
 Waits for the function to complete before returning, and returns the result of the function call.</p>
@@ -472,7 +482,7 @@ console.log(result); // &quot;Hello world&quot;</code></pre>
         <span>Defined in</span>
     </h4>
 </doc-anchor-target>
-<p><a href="https://github.com/differentialHQ/differential/blob/4f97b14/ts-core/src/Differential.ts#L526">ts-core/src/Differential.ts:526</a></p>
+<p><a href="https://github.com/differentialHQ/differential/blob/f29b990/ts-core/src/Differential.ts#L532">ts-core/src/Differential.ts:532</a></p>
 <hr>
 <doc-anchor-target id="service">
     <h3>
@@ -566,7 +576,7 @@ process.on(&quot;beforeExit&quot;, async () =&gt; {
         <span>Defined in</span>
     </h4>
 </doc-anchor-target>
-<p><a href="https://github.com/differentialHQ/differential/blob/4f97b14/ts-core/src/Differential.ts#L498">ts-core/src/Differential.ts:498</a></p>
+<p><a href="https://github.com/differentialHQ/differential/blob/f29b990/ts-core/src/Differential.ts#L504">ts-core/src/Differential.ts:504</a></p>
 
                                 
                                 <!-- Required only on API pages -->
@@ -586,10 +596,10 @@ process.on(&quot;beforeExit&quot;, async () =&gt; {
                                     </div>
                             
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../learning/concepts/">
+                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../changelog/">
                                             <span>
                                                 <span class="block text-xs font-normal text-right text-gray-400 dark:text-dark-400">Next</span>
-                                                <span class="block mt-1">Concepts</span>
+                                                <span class="block mt-1">CHANGELOG</span>
                                             </span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                         </a>
