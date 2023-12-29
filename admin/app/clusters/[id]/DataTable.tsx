@@ -23,7 +23,7 @@ export const DataTable = <T = any,>({
   columnDef?: ColumnDef<T>[];
 }) => {
   if (data === undefined || data.length === 0) {
-    return <div className="text-center">{noDataMessage}</div>;
+    return <p className="text-gray-400 mt-2">{noDataMessage}</p>;
   }
 
   const keys = Object.keys(data[0]);
