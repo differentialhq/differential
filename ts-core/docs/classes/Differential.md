@@ -56,7 +56,7 @@ console.log(result); // "Hello world"
 
 ### constructor
 
-• **new Differential**(`apiSecret`): [`Differential`](Differential.md)
+• **new Differential**(`apiSecret`, `options?`): [`Differential`](Differential.md)
 
 Initializes a new Differential instance.
 
@@ -65,6 +65,8 @@ Initializes a new Differential instance.
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `apiSecret` | `string` | The API Secret for your Differential cluster. You can obtain one from https://api.differential.dev/demo/token. |
+| `options?` | `Object` | Additional options for the Differential client. |
+| `options.endpoint?` | `string` | The endpoint for the Differential cluster. Defaults to https://api.differential.dev. |
 
 #### Returns
 
@@ -72,7 +74,7 @@ Initializes a new Differential instance.
 
 #### Defined in
 
-[ts-core/src/Differential.ts:402](https://github.com/differentialHQ/differential/blob/4f97b14/ts-core/src/Differential.ts#L402)
+[ts-core/src/Differential.ts:405](https://github.com/differentialHQ/differential/blob/f29b990/ts-core/src/Differential.ts#L405)
 
 ## Methods
 
@@ -116,7 +118,7 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[ts-core/src/Differential.ts:522](https://github.com/differentialHQ/differential/blob/4f97b14/ts-core/src/Differential.ts#L522)
+[ts-core/src/Differential.ts:528](https://github.com/differentialHQ/differential/blob/f29b990/ts-core/src/Differential.ts#L528)
 
 ▸ **client**\<`T`\>(`service`, `options`): `BackgroundServiceClient`\<`T`\>
 
@@ -158,7 +160,7 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[ts-core/src/Differential.ts:526](https://github.com/differentialHQ/differential/blob/4f97b14/ts-core/src/Differential.ts#L526)
+[ts-core/src/Differential.ts:532](https://github.com/differentialHQ/differential/blob/f29b990/ts-core/src/Differential.ts#L532)
 
 ___
 
@@ -211,4 +213,4 @@ process.on("beforeExit", async () => {
 
 #### Defined in
 
-[ts-core/src/Differential.ts:498](https://github.com/differentialHQ/differential/blob/4f97b14/ts-core/src/Differential.ts#L498)
+[ts-core/src/Differential.ts:504](https://github.com/differentialHQ/differential/blob/f29b990/ts-core/src/Differential.ts#L504)
