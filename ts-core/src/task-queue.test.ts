@@ -97,4 +97,20 @@ describe("TaskQueue", () => {
 
     expect(t.fn).toHaveBeenCalledTimes(1);
   });
+
+  it("should record execution time", async () => {
+    const t = task();
+    const fn = () => new Promise((resolve) => { setTimeout(resolve, 102); })
+    TaskQueue.addTask(fn, t.args, t.resolve);
+
+    jest.runAllTimers();
+
+    // Wait for the task to be resolved
+    while (t.resolve.mock.calls.length === 0) {
+      await Promise.resolve();
+    }
+
+    expect(t.resolve).toHaveBeenCalledWith({type: "resolution", functionExecutionTime: 102})
+  });
+
 });
