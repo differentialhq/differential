@@ -16,6 +16,11 @@ primary_region = "lax"
   min_machines_running = 0
   processes = ["app"]
 
+[http_service.concurrency]
+  type = "connections"
+  hard_limit = 500
+  soft_limit = 400
+
 [[http_service.checks]]
   grace_period = "10s"
   interval = "30s"
