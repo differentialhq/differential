@@ -74,7 +74,7 @@ Initializes a new Differential instance.
 
 #### Defined in
 
-[ts-core/src/Differential.ts:406](https://github.com/differentialHQ/differential/blob/410a22c/ts-core/src/Differential.ts#L406)
+[ts-core/src/Differential.ts:406](https://github.com/differentialHQ/differential/blob/c4defa5/ts-core/src/Differential.ts#L406)
 
 ## Methods
 
@@ -118,7 +118,7 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[ts-core/src/Differential.ts:529](https://github.com/differentialHQ/differential/blob/410a22c/ts-core/src/Differential.ts#L529)
+[ts-core/src/Differential.ts:529](https://github.com/differentialHQ/differential/blob/c4defa5/ts-core/src/Differential.ts#L529)
 
 ▸ **client**\<`T`\>(`service`, `options`): `BackgroundServiceClient`\<`T`\>
 
@@ -160,7 +160,7 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[ts-core/src/Differential.ts:533](https://github.com/differentialHQ/differential/blob/410a22c/ts-core/src/Differential.ts#L533)
+[ts-core/src/Differential.ts:533](https://github.com/differentialHQ/differential/blob/c4defa5/ts-core/src/Differential.ts#L533)
 
 ___
 
@@ -213,4 +213,4 @@ process.on("beforeExit", async () => {
 
 #### Defined in
 
-[ts-core/src/Differential.ts:505](https://github.com/differentialHQ/differential/blob/410a22c/ts-core/src/Differential.ts#L505)
+[ts-core/src/Differential.ts:505](https://github.com/differentialHQ/differential/blob/c4defa5/ts-core/src/Differential.ts#L505)
