@@ -19,15 +19,6 @@ export const createJob = async ({
 }) => {
   const id = `exec-${targetFn.substring(0, 8)}-${ulid()}`;
 
-  console.log("Creating job", {
-    id,
-    target_fn: targetFn,
-    target_args: targetArgs,
-    idempotency_key: `1`,
-    status: "pending",
-    pool,
-  });
-
   await data.db.insert(data.jobs).values({
     id,
     target_fn: targetFn,

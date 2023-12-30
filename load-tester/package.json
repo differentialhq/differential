@@ -1,0 +1,30 @@
+{
+  "name": "@differentialhq/create-app",
+  "version": "0.0.4",
+  "description": "A scaffolding for differential.dev apps",
+  "bin": "setup.sh",
+  "type": "module",
+  "scripts": {
+    "test": "sh run.sh",
+    "service": "tsx src/services/$npm_config_name.ts --start",
+    "command": "tsx src/commands/$npm_config_name.ts --start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/differentialhq/differential.git"
+  },
+  "author": "differential.dev",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/differentialhq/differential/issues"
+  },
+  "homepage": "https://github.com/differentialhq/differential#readme",
+  "dependencies": {
+    "@differentialhq/core": "^3.2.3",
+    "tsx": "^4.6.2",
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.4"
+  }
+}
