@@ -229,6 +229,7 @@ class PollingAgent {
                 log("Persisting job result", {
                   id: job.id,
                   resultType: result.type,
+                  functionExecutionTime: result.functionExecutionTime,
                 });
 
                 await this.controlPlaneClient
@@ -236,6 +237,7 @@ class PollingAgent {
                     body: {
                       result: pack(result.content),
                       resultType: result.type,
+                      functionExecutionTime: result.functionExecutionTime,
                     },
                     params: {
                       jobId: job.id,
