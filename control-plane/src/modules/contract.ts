@@ -82,7 +82,7 @@ export const contract = c.router({
     body: z.object({
       result: z.string(),
       resultType: z.enum(["resolution", "rejection"]),
-      runtimeLatencyMs: z.number().optional(),
+      functionExecutionTime: z.number().optional(),
     }),
   },
   live: {

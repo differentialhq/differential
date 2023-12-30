@@ -1,1 +1,0 @@
-ALTER TABLE "jobs" ADD COLUMN "runtime_latency_ms" integer;

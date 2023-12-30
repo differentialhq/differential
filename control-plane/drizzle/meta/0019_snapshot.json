@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "pg",
-  "id": "d9ecea66-ed56-40bb-be38-41d303c9955b",
+  "id": "101dca60-ed57-4920-8c24-6559302a6a47",
   "prevId": "e3772b08-75b7-445e-b904-44dc26522bf3",
   "tables": {
     "clusters": {
@@ -139,6 +139,12 @@
         "resulted_at": {
           "name": "resulted_at",
           "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "function_execution_time_ms": {
+          "name": "function_execution_time_ms",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
