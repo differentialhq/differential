@@ -82,6 +82,7 @@ export const contract = c.router({
     body: z.object({
       result: z.string(),
       resultType: z.enum(["resolution", "rejection"]),
+      functionExecutionTime: z.number().optional(),
     }),
   },
   live: {
