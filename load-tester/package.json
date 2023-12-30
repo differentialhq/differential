@@ -1,11 +1,12 @@
 {
-  "name": "@differentialhq/create-app",
-  "version": "0.0.4",
-  "description": "A scaffolding for differential.dev apps",
+  "name": "@differentialhq/load-tester",
+  "version": "0.0.1",
+  "description": "Load testing tool for api.differential.dev",
   "bin": "setup.sh",
   "type": "module",
   "scripts": {
-    "test": "sh run.sh",
+    "test": "exit 0",
+    "load-test": "sh run.sh",
     "service": "tsx src/services/$npm_config_name.ts --start",
     "command": "tsx src/commands/$npm_config_name.ts --start"
   },

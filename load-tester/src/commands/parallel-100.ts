@@ -1,26 +1,8 @@
-import { assert } from "console";
 import { d } from "../d";
 import type { executorService } from "../services/executor";
 import { t } from "../t";
+import { parallel } from "./parallel";
 
-const executorClient = d.client<typeof executorService>("executor");
+export const executorClient = d.client<typeof executorService>("executor");
 
-t(async function parallel100() {
-  const input = Math.random().toString();
-
-  const promises = new Array(100).fill(null).map(() => {
-    return executorClient.exec({
-      wait: 0,
-      error: false,
-      input,
-      outputType: "string",
-      kill: false,
-    });
-  });
-
-  const outputs = await Promise.all(promises);
-
-  outputs.forEach((output) => {
-    assert(output === input);
-  });
-});
+t(() => parallel(100));
