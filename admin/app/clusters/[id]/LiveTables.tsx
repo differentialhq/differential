@@ -40,6 +40,7 @@ export function LiveTables({
       createdAt: Date;
       targetFn: string;
       status: string;
+      functionExecutionTime: number | null;
     }[];
   }>({
     machines: [],
@@ -152,8 +153,12 @@ export function LiveTables({
             .map((s) => ({
               "Execution id": s.id,
               Function: s.targetFn,
-              status: s.status,
-              called: formatRelative(new Date(s.createdAt), new Date()),
+              Status: s.status,
+              Called: formatRelative(new Date(s.createdAt), new Date()),
+              "Execution Time":
+                s.functionExecutionTime === null
+                  ? "N/A"
+                  : `${s.functionExecutionTime}ms`,
             }))}
           noDataMessage="No services with function calls have been detected in the cluster lately."
         />

@@ -185,6 +185,7 @@ export const contract = c.router({
             targetFn: z.string(),
             status: z.string(),
             createdAt: z.date(),
+            functionExecutionTime: z.number().nullable(),
           })
         ),
       }),

@@ -78,6 +78,7 @@ export const getClusterDetailsForUser = async ({
         targetFn: string;
         status: string;
         createdAt: Date;
+        functionExecutionTime: number | null;
       }>;
     }
   | undefined
@@ -131,6 +132,7 @@ export const getClusterDetailsForUser = async ({
       targetFn: data.jobs.target_fn,
       status: data.jobs.status,
       createdAt: data.jobs.created_at,
+      functionExecutionTime: data.jobs.function_execution_time_ms,
     })
     .from(data.jobs)
     .where(
