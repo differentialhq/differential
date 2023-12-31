@@ -18,10 +18,9 @@ export const contract = c.router({
       "x-machine-id": z.string(),
     }),
     query: z.object({
-      pools: z.string().optional(),
       limit: z.coerce.number().default(1),
-      functions: z.string().optional(),
       service: z.string().optional(),
+      ttl: z.coerce.number().min(5000).max(20000).default(20000),
     }),
     responses: {
       200: z.array(NextJobSchema),
@@ -52,6 +51,9 @@ export const contract = c.router({
     path: "/jobs/:jobId",
     pathParams: z.object({
       jobId: z.string(),
+    }),
+    query: z.object({
+      ttl: z.coerce.number().min(5000).max(20000).default(20000),
     }),
     headers: z.object({
       authorization: z.string(),
