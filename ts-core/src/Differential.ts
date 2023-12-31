@@ -394,7 +394,6 @@ export class Differential {
    * @param options.encryptionKeys An array of encryption keys to use for encrypting and decrypting data. These keys are never sent to the control-plane and allows you to encrypt function arguments and return values. If you do not provide any keys, Differential will not encrypt any data. Encryption has a performance impact on your functions. When you want to rotate keys, you can add new keys to the start of the array. Differential will try to decrypt data with each key in the array until it finds a key that works. Differential will encrypt data with the first key in the array. Each key must be 32 bytes long.
    * @example
    * ```ts
-   *
    * // Basic usage
    * const d = new Differential("API_SECRET");
    *
@@ -405,6 +404,7 @@ export class Differential {
    *    Buffer.from("abcdefghijklmnopqrstuvwxzy123old"), // previous key
    *  ],
    * });
+   * ```
    */
   constructor(
     private apiSecret: string,
