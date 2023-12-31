@@ -20,7 +20,8 @@ export const contract = c.router({
     query: z.object({
       pools: z.string().optional(),
       limit: z.coerce.number().default(1),
-      functions: z.string(),
+      functions: z.string().optional(),
+      service: z.string().optional(),
     }),
     responses: {
       200: z.array(NextJobSchema),
@@ -42,7 +43,8 @@ export const contract = c.router({
     body: z.object({
       targetFn: z.string(),
       targetArgs: z.string(),
-      service: z.string().default("unknown"),
+      pool: z.string().optional(),
+      service: z.string().optional(),
     }),
   },
   getJobStatus: {
@@ -80,7 +82,7 @@ export const contract = c.router({
     body: z.object({
       result: z.string(),
       resultType: z.enum(["resolution", "rejection"]),
-      cacheTTL: z.number().optional(),
+      functionExecutionTime: z.number().optional(),
     }),
   },
   live: {
@@ -118,9 +120,17 @@ export const contract = c.router({
     }),
     body: z.object({}),
   },
-  getClusters: {
+  getTemporaryToken: {
     method: "GET",
-    path: "/organizations/:organizationId/clusters",
+    path: "/demo/token",
+    responses: {
+      201: z.string(),
+    },
+  },
+  // management routes
+  getClustersForUser: {
+    method: "GET",
+    path: "/clusters",
     headers: z.object({
       authorization: z.string(),
     }),
@@ -129,21 +139,29 @@ export const contract = c.router({
         z.object({
           id: z.string(),
           apiSecret: z.string(),
-          organizationId: z.string(),
           createdAt: z.date(),
-          machineCount: z.number(),
-          lastPingAt: z.date().nullable(),
+          description: z.string().nullable(),
         })
       ),
       401: z.undefined(),
     },
-    pathParams: z.object({
-      organizationId: z.string(),
+  },
+  createClusterForUser: {
+    method: "POST",
+    path: "/clusters",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      204: z.undefined(),
+    },
+    body: z.object({
+      description: z.string(),
     }),
   },
-  getClusterDetails: {
+  getClusterDetailsForUser: {
     method: "GET",
-    path: "/organizations/:organizationId/clusters/:clusterId",
+    path: "/clusters/:clusterId",
     headers: z.object({
       authorization: z.string(),
     }),
@@ -151,7 +169,6 @@ export const contract = c.router({
       200: z.object({
         id: z.string(),
         apiSecret: z.string(),
-        organizationId: z.string(),
         createdAt: z.date(),
         machines: z.array(
           z.object({
@@ -160,7 +177,6 @@ export const contract = c.router({
             pool: z.string().nullable(),
             lastPingAt: z.date().nullable(),
             ip: z.string().nullable(),
-            organizationId: z.string(),
           })
         ),
         jobs: z.array(
@@ -169,71 +185,14 @@ export const contract = c.router({
             targetFn: z.string(),
             status: z.string(),
             createdAt: z.date(),
+            functionExecutionTime: z.number().nullable(),
           })
         ),
       }),
       401: z.undefined(),
+      404: z.undefined(),
     },
     pathParams: z.object({
-      organizationId: z.string(),
-      clusterId: z.string(),
-    }),
-  },
-  getTemporaryToken: {
-    method: "GET",
-    path: "/demo/token",
-    responses: {
-      201: z.string(),
-    },
-  },
-  putServiceDefinition: {
-    method: "PUT",
-    path: "/organizations/:organizationId/clusters/:clusterId/service-definition",
-    headers: z.object({
-      authorization: z.string(),
-    }),
-    responses: {
-      204: z.undefined(),
-      401: z.undefined(),
-    },
-    pathParams: z.object({
-      organizationId: z.string(),
-      clusterId: z.string(),
-    }),
-    body: z.object({
-      serviceDefinition: z.object({
-        name: z.string(),
-        functions: z.record(
-          z.string(),
-          z.object({
-            name: z.string(),
-            description: z.string().nullable(),
-          })
-        ),
-      }),
-    }),
-  },
-  getServiceDefinition: {
-    method: "GET",
-    path: "/organizations/:organizationId/clusters/:clusterId/service-definition",
-    headers: z.object({
-      authorization: z.string(),
-    }),
-    responses: {
-      200: z.object({
-        name: z.string(),
-        functions: z.record(
-          z.string(),
-          z.object({
-            name: z.string(),
-            description: z.string().nullable(),
-          })
-        ),
-      }),
-      401: z.undefined(),
-    },
-    pathParams: z.object({
-      organizationId: z.string(),
       clusterId: z.string(),
     }),
   },

@@ -34,7 +34,7 @@ const pool = new Pool({
 
 pool.on("error", (err) => {
   console.error("Unexpected error on idle client", err);
-  process.exit(-1);
+  process.exit(1);
 });
 
 pool.on("connect", (client) => {
@@ -62,10 +62,13 @@ export const jobs = pgTable("jobs", {
   updated_at: timestamp("updated_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
+  resulted_at: timestamp("resulted_at", { withTimezone: true }),
+  function_execution_time_ms: integer("function_execution_time_ms"),
   timing_out_at: timestamp("timed_out_at", { withTimezone: true }).default(
     sql`now() + interval '300 seconds'`
   ),
   timeout_interval_seconds: integer("timeout_interval").default(300),
+  service: varchar("service", { length: 1024 }),
 });
 
 export const machines = pgTable("machines", {

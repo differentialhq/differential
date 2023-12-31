@@ -22,7 +22,8 @@ export const DataTable = <T = any,>({
   noDataMessage?: string;
   columnDef?: ColumnDef<T>[];
 }) => {
-  const keys = Object.keys(data[0]);
+
+  const keys = data.length > 0 ? Object.keys(data[0]) : [];
 
   const columns: ColumnDef<any>[] =
     columnDef ||
@@ -37,6 +38,7 @@ export const DataTable = <T = any,>({
     getCoreRowModel: getCoreRowModel(),
     manualSorting: true,
   });
+
 
   return (
     <div className="rounded-md border">
@@ -76,7 +78,7 @@ export const DataTable = <T = any,>({
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+                  <p className="text-gray-400 mt-2">{noDataMessage}</p>
               </TableCell>
             </TableRow>
           )}

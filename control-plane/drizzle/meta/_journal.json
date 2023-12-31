@@ -127,6 +127,13 @@
       "when": 1703570915951,
       "tag": "0018_spooky_sasquatch",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1703894615082,
+      "tag": "0019_early_silver_sable",
+      "breakpoints": true
     }
   ]
 }

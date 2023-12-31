@@ -3,6 +3,52 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.3.1](https://github.com/differentialhq/differential/compare/v3.3.0...v3.3.1) (2023-12-30)
+
+
+### Bug Fixes
+
+* Add function execution time param ([ab67932](https://github.com/differentialhq/differential/commit/ab679328b06ac3a9761e2b76d115525719ff7615))
+
+
+### Features
+
+* Adding load testing improvements ([#32](https://github.com/differentialhq/differential/issues/32)) ([7427f88](https://github.com/differentialhq/differential/commit/7427f88e0ec84bac6562dc2c23da22e2c4dd7f99))
+* Render execution time in admin ([#31](https://github.com/differentialhq/differential/issues/31)) ([c3c1d31](https://github.com/differentialhq/differential/commit/c3c1d316d7becc44d5e180ab388d8b11e49fb597)), closes [#28](https://github.com/differentialhq/differential/issues/28)
+
+
+
+
+
+# [3.3.0](https://github.com/differentialhq/differential/compare/v3.2.3...v3.3.0) (2023-12-30)
+
+
+### Bug Fixes
+
+* Render noDataMessage on cluster tables ([#27](https://github.com/differentialhq/differential/issues/27)) ([bccae6e](https://github.com/differentialhq/differential/commit/bccae6e4c90a623ea550b5eddb7b8ec33e65c2ad))
+
+
+### Features
+
+* Add columns to track job execution time ([#28](https://github.com/differentialhq/differential/issues/28)) ([83afd89](https://github.com/differentialhq/differential/commit/83afd893b0a7b2188d00c7d87e3b9f8376dbebbe)), closes [#29](https://github.com/differentialhq/differential/issues/29)
+* Record function execution time ([#29](https://github.com/differentialhq/differential/issues/29)) ([6889495](https://github.com/differentialhq/differential/commit/68894954268babe6e826c6e0c507e17e066a6140)), closes [#28](https://github.com/differentialhq/differential/issues/28)
+
+
+
+
+
+## [3.2.3](https://github.com/differentialhq/differential/compare/v3.2.2...v3.2.3) (2023-12-29)
+
+
+### Bug Fixes
+
+* Build typescript sdk before publishing ([410a22c](https://github.com/differentialhq/differential/commit/410a22c4678785e1649051e5849cc76d12c63db9))
+* Shard jobs by the service name ([#26](https://github.com/differentialhq/differential/issues/26)) ([c4defa5](https://github.com/differentialhq/differential/commit/c4defa5d63119cc16fb0a1e01a5e7148aa043327))
+
+
+
+
+
 ## [3.2.2](https://github.com/differentialhq/differential/compare/v3.2.1...v3.2.2) (2023-12-29)
 
 

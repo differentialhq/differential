@@ -167,6 +167,7 @@ class PollingAgent {
               .filter((s) => s[1].serviceName === this.service.name)
               .map((s) => s[0])
               .join(","),
+            service: this.service.name,
           },
           headers: {
             authorization: this.authHeader,
@@ -228,6 +229,7 @@ class PollingAgent {
                 log("Persisting job result", {
                   id: job.id,
                   resultType: result.type,
+                  functionExecutionTime: result.functionExecutionTime,
                 });
 
                 await this.controlPlaneClient
@@ -235,6 +237,7 @@ class PollingAgent {
                     body: {
                       result: pack(result.content),
                       resultType: result.type,
+                      functionExecutionTime: result.functionExecutionTime,
                     },
                     params: {
                       jobId: job.id,

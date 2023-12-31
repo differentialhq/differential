@@ -1,21 +1,29 @@
 import { initServer } from "@ts-rest/fastify";
-import crypto from "crypto";
 import { and, eq, sql } from "drizzle-orm";
-import { ulid } from "ulid";
+import fs from "fs";
+import path from "path";
+import util from "util";
+import * as admin from "./admin";
+import * as auth from "./auth";
 import { contract } from "./contract";
 import * as data from "./data";
-import fs from "fs";
-import util from "util";
-import path from "path";
-import * as auth from "./auth";
-import * as admin from "./admin";
-import { QueryResult } from "pg";
 import { createJob, nextJobs } from "./jobs";
 import * as management from "./management";
 
 const readFile = util.promisify(fs.readFile);
 
 const s = initServer();
+
+async function selfHealJobsHack() {
+  await data.db.execute(
+    sql`UPDATE jobs SET status = 'failure' WHERE status = 'running' AND remaining = 0 AND timed_out_at < now()`
+  );
+
+  // make jobs that have failed but still have remaining attempts into pending jobs
+  await data.db.execute(
+    sql`UPDATE jobs SET status = 'pending' WHERE status = 'failure' AND remaining > 0`
+  );
+}
 
 export const router = s.router(contract, {
   getNextJobs: async (request) => {
@@ -49,6 +57,7 @@ export const router = s.router(contract, {
         limit,
         machineId: request.headers["x-machine-id"],
         ip: request.request.ip,
+        service: request.query.service || null,
       });
 
       if (jobs.length === 0) {
@@ -71,13 +80,15 @@ export const router = s.router(contract, {
     }
 
     const { jobId } = request.params;
-    const { result, resultType } = request.body;
+    const { result, resultType, functionExecutionTime } = request.body;
 
     await data.db
       .update(data.jobs)
       .set({
         result,
         result_type: resultType,
+        resulted_at: sql`now()`,
+        function_execution_time_ms: functionExecutionTime,
         status: "success",
       })
       .where(
@@ -98,9 +109,10 @@ export const router = s.router(contract, {
       };
     }
 
-    const { targetFn, targetArgs, pool } = request.body;
+    const { targetFn, targetArgs, pool, service } = request.body;
 
     const { id } = await createJob({
+      service: service || null,
       targetFn,
       targetArgs,
       owner,
@@ -245,13 +257,3 @@ export const router = s.router(contract, {
     };
   },
 });
-async function selfHealJobsHack() {
-  await data.db.execute(
-    sql`UPDATE jobs SET status = 'failure' WHERE status = 'running' AND remaining = 0 AND timed_out_at < now()`
-  );
-
-  // make jobs that have failed but still have remaining attempts into pending jobs
-  await data.db.execute(
-    sql`UPDATE jobs SET status = 'pending' WHERE status = 'failure' AND remaining > 0`
-  );
-}
