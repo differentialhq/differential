@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.757299232000">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.757326965107">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -30,12 +30,12 @@
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../../resources/css/retype.css?v=3.5.0.757299232000" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.757326965107" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.757299232000" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.757326965107" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.757299232000" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.757299232000" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.757326965107" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.757326965107" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -296,6 +296,11 @@ console.log(result); // &quot;Hello world&quot;</code></pre>
 <td style="text-align: left;">Additional options for the Differential client.</td>
 </tr>
 <tr>
+<td style="text-align: left;"><code v-pre>options.encryptionKeys?</code></td>
+<td style="text-align: left;"><code v-pre>Buffer</code>[]</td>
+<td style="text-align: left;">An array of encryption keys to use for encrypting and decrypting data. These keys are never sent to the control-plane and allows you to encrypt function arguments and return values. If you do not provide any keys, Differential will not encrypt any data. Encryption has a performance impact on your functions. When you want to rotate keys, you can add new keys to the start of the array. Differential will try to decrypt data with each key in the array until it finds a key that works. Differential will encrypt data with the first key in the array. Each key must be 32 bytes long.</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code v-pre>options.endpoint?</code></td>
 <td style="text-align: left;"><code v-pre>string</code></td>
 <td style="text-align: left;">The endpoint for the Differential cluster. Defaults to <a href="https://api.differential.dev">https://api.differential.dev</a>.</td>
@@ -310,26 +315,71 @@ console.log(result); // &quot;Hello world&quot;</code></pre>
     </h4>
 </doc-anchor-target>
 <p><a href=""><code v-pre>Differential</code></a></p>
+<p><strong><code v-pre>Example</code></strong></p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-typescript"><code v-pre class="language-typescript">
+// Basic usage
+const d = new Differential(&quot;API_SECRET&quot;);
+
+// With encryption
+const d = new Differential(&quot;API_SECRET&quot;, {
+ encryptionKeys: [
+   Buffer.from(&quot;abcdefghijklmnopqrstuvwxzy123456&quot;), // current key
+   Buffer.from(&quot;abcdefghijklmnopqrstuvwxzy123old&quot;), // previous key
+ ],
+});
+
+#### Defined in
+
+[ts-core/src/Differential.ts:409](https://github.com/differentialhq/differential/blob/834651d/ts-core/src/Differential.ts#L409)
+
+## Methods
+
+### client
+
+▸ **client**\&lt;`T`\&gt;(`service`): `ServiceClient`\&lt;`T`\&gt;
+
+Provides a type safe client for performing calls to a registered service.
+Waits for the function to complete before returning, and returns the result of the function call.
+
+#### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `T` | extends `RegisteredService`\&lt;`any`\&gt; |
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `service` | `T`[``&quot;definition&quot;``][``&quot;name&quot;``] |
+
+#### Returns
+
+`ServiceClient`\&lt;`T`\&gt;
+
+ServiceClient&lt;T&gt;
+
+**`Example`**
+
+```ts
+import { d } from &quot;./differential&quot;;
+import type { helloService } from &quot;./hello-service&quot;;
+
+const client = d.client&lt;helloService&gt;(&quot;hello&quot;);
+
+// Client usage
+const result = client.hello(&quot;world&quot;);
+console.log(result); // &quot;Hello world&quot;</code></pre>
+</doc-codeblock></div>
 <doc-anchor-target id="defined-in">
     <h4>
         <doc-anchor-trigger class="header-anchor-trigger" to="#defined-in">#</doc-anchor-trigger>
         <span>Defined in</span>
     </h4>
 </doc-anchor-target>
-<p><a href="https://github.com/differentialHQ/differential/blob/f29b990/ts-core/src/Differential.ts#L405">ts-core/src/Differential.ts:405</a></p>
-<doc-anchor-target id="methods-1">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#methods-1">#</doc-anchor-trigger>
-        <span>Methods</span>
-    </h2>
-</doc-anchor-target>
-<doc-anchor-target id="client">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#client">#</doc-anchor-trigger>
-        <span>client</span>
-    </h3>
-</doc-anchor-target>
-<p>▸ <strong>client</strong>&lt;<code v-pre>T</code>&gt;(<code v-pre>service</code>): <code v-pre>ServiceClient</code>&lt;<code v-pre>T</code>&gt;</p>
+<p><a href="https://github.com/differentialhq/differential/blob/834651d/ts-core/src/Differential.ts#L541">ts-core/src/Differential.ts:541</a></p>
+<p>▸ <strong>client</strong>&lt;<code v-pre>T</code>&gt;(<code v-pre>service</code>, <code v-pre>options</code>): <code v-pre>BackgroundServiceClient</code>&lt;<code v-pre>T</code>&gt;</p>
 <p>Provides a type safe client for performing calls to a registered service.
 Waits for the function to complete before returning, and returns the result of the function call.</p>
 <doc-anchor-target id="type-parameters">
@@ -373,6 +423,14 @@ Waits for the function to complete before returning, and returns the result of t
 <td style="text-align: left;"><code v-pre>service</code></td>
 <td style="text-align: left;"><code v-pre>T</code>[<code v-pre>&quot;definition&quot;</code>][<code v-pre>&quot;name&quot;</code>]</td>
 </tr>
+<tr>
+<td style="text-align: left;"><code v-pre>options</code></td>
+<td style="text-align: left;"><code v-pre>Object</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>options.background</code></td>
+<td style="text-align: left;"><code v-pre>true</code></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -382,7 +440,7 @@ Waits for the function to complete before returning, and returns the result of t
         <span>Returns</span>
     </h4>
 </doc-anchor-target>
-<p><code v-pre>ServiceClient</code>&lt;<code v-pre>T</code>&gt;</p>
+<p><code v-pre>BackgroundServiceClient</code>&lt;<code v-pre>T</code>&gt;</p>
 <p>ServiceClient<T></p>
 <p><strong><code v-pre>Example</code></strong></p>
 <div class="codeblock-wrapper"><doc-codeblock>
@@ -401,88 +459,7 @@ console.log(result); // &quot;Hello world&quot;</code></pre>
         <span>Defined in</span>
     </h4>
 </doc-anchor-target>
-<p><a href="https://github.com/differentialHQ/differential/blob/f29b990/ts-core/src/Differential.ts#L528">ts-core/src/Differential.ts:528</a></p>
-<p>▸ <strong>client</strong>&lt;<code v-pre>T</code>&gt;(<code v-pre>service</code>, <code v-pre>options</code>): <code v-pre>BackgroundServiceClient</code>&lt;<code v-pre>T</code>&gt;</p>
-<p>Provides a type safe client for performing calls to a registered service.
-Waits for the function to complete before returning, and returns the result of the function call.</p>
-<doc-anchor-target id="type-parameters-1">
-    <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#type-parameters-1">#</doc-anchor-trigger>
-        <span>Type parameters</span>
-    </h4>
-</doc-anchor-target>
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="comfortable">
-<thead>
-<tr>
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Type</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code v-pre>T</code></td>
-<td style="text-align: left;">extends <code v-pre>RegisteredService</code>&lt;<code v-pre>any</code>&gt;</td>
-</tr>
-</tbody>
-</table>
-</div>
-<doc-anchor-target id="parameters-2">
-    <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#parameters-2">#</doc-anchor-trigger>
-        <span>Parameters</span>
-    </h4>
-</doc-anchor-target>
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="comfortable">
-<thead>
-<tr>
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Type</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code v-pre>service</code></td>
-<td style="text-align: left;"><code v-pre>T</code>[<code v-pre>&quot;definition&quot;</code>][<code v-pre>&quot;name&quot;</code>]</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code v-pre>options</code></td>
-<td style="text-align: left;"><code v-pre>Object</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code v-pre>options.background</code></td>
-<td style="text-align: left;"><code v-pre>true</code></td>
-</tr>
-</tbody>
-</table>
-</div>
-<doc-anchor-target id="returns-2">
-    <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#returns-2">#</doc-anchor-trigger>
-        <span>Returns</span>
-    </h4>
-</doc-anchor-target>
-<p><code v-pre>BackgroundServiceClient</code>&lt;<code v-pre>T</code>&gt;</p>
-<p>ServiceClient<T></p>
-<p><strong><code v-pre>Example</code></strong></p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-typescript"><code v-pre class="language-typescript">import { d } from &quot;./differential&quot;;
-import type { helloService } from &quot;./hello-service&quot;;
-
-const client = d.client&lt;helloService&gt;(&quot;hello&quot;);
-
-// Client usage
-const result = client.hello(&quot;world&quot;);
-console.log(result); // &quot;Hello world&quot;</code></pre>
-</doc-codeblock></div>
-<doc-anchor-target id="defined-in-2">
-    <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#defined-in-2">#</doc-anchor-trigger>
-        <span>Defined in</span>
-    </h4>
-</doc-anchor-target>
-<p><a href="https://github.com/differentialHQ/differential/blob/f29b990/ts-core/src/Differential.ts#L532">ts-core/src/Differential.ts:532</a></p>
+<p><a href="https://github.com/differentialhq/differential/blob/834651d/ts-core/src/Differential.ts#L545">ts-core/src/Differential.ts:545</a></p>
 <hr>
 <doc-anchor-target id="service">
     <h3>
@@ -492,9 +469,9 @@ console.log(result); // &quot;Hello world&quot;</code></pre>
 </doc-anchor-target>
 <p>▸ <strong>service</strong>&lt;<code v-pre>T</code>, <code v-pre>N</code>&gt;(<code v-pre>service</code>): <code v-pre>RegisteredService</code>&lt;<code v-pre>T</code>&gt;</p>
 <p>Registers a service with Differential. This will register all functions on the service.</p>
-<doc-anchor-target id="type-parameters-2">
+<doc-anchor-target id="type-parameters-1">
     <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#type-parameters-2">#</doc-anchor-trigger>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#type-parameters-1">#</doc-anchor-trigger>
         <span>Type parameters</span>
     </h4>
 </doc-anchor-target>
@@ -518,9 +495,9 @@ console.log(result); // &quot;Hello world&quot;</code></pre>
 </tbody>
 </table>
 </div>
-<doc-anchor-target id="parameters-3">
+<doc-anchor-target id="parameters-2">
     <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#parameters-3">#</doc-anchor-trigger>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#parameters-2">#</doc-anchor-trigger>
         <span>Parameters</span>
     </h4>
 </doc-anchor-target>
@@ -542,9 +519,9 @@ console.log(result); // &quot;Hello world&quot;</code></pre>
 </tbody>
 </table>
 </div>
-<doc-anchor-target id="returns-3">
+<doc-anchor-target id="returns-2">
     <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#returns-3">#</doc-anchor-trigger>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#returns-2">#</doc-anchor-trigger>
         <span>Returns</span>
     </h4>
 </doc-anchor-target>
@@ -570,13 +547,13 @@ process.on(&quot;beforeExit&quot;, async () =&gt; {
   await service.stop();
 });</code></pre>
 </doc-codeblock></div>
-<doc-anchor-target id="defined-in-3">
+<doc-anchor-target id="defined-in-2">
     <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#defined-in-3">#</doc-anchor-trigger>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#defined-in-2">#</doc-anchor-trigger>
         <span>Defined in</span>
     </h4>
 </doc-anchor-target>
-<p><a href="https://github.com/differentialHQ/differential/blob/f29b990/ts-core/src/Differential.ts#L504">ts-core/src/Differential.ts:504</a></p>
+<p><a href="https://github.com/differentialhq/differential/blob/834651d/ts-core/src/Differential.ts#L517">ts-core/src/Differential.ts:517</a></p>
 
                                 
                                 <!-- Required only on API pages -->
