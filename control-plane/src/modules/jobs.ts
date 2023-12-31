@@ -1,6 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { QueryResult } from "pg";
 import * as data from "./data";
+import * as cron from "./cron";
 import { ulid } from "ulid";
 import crypto from "crypto";
 
@@ -106,7 +107,7 @@ export const getJobStatus = async ({
   return job;
 };
 
-export async function selfHealJobsHack() {
+export async function selfHealJobs() {
   await data.db.execute(
     sql`UPDATE jobs SET status = 'failure' WHERE status = 'running' AND remaining = 0 AND timed_out_at < now()`
   );
@@ -116,3 +117,5 @@ export async function selfHealJobsHack() {
     sql`UPDATE jobs SET status = 'pending' WHERE status = 'failure' AND remaining > 0`
   );
 }
+
+cron.registerCron(selfHealJobs, { interval: 1000 * 20 }); // 20 seconds

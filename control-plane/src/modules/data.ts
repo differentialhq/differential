@@ -30,15 +30,24 @@ const pool = new Pool({
     : {
         rejectUnauthorized: false,
       },
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 5_000,
 });
 
 pool.on("error", (err) => {
   console.error("Unexpected error on idle client", err);
-  process.exit(1);
 });
 
 pool.on("connect", (client) => {
-  console.log("Connected to database");
+  console.debug("Connected to database");
+});
+
+pool.on("release", () => {
+  console.debug("Database connection released");
+});
+
+pool.on("remove", () => {
+  console.debug("Database connection removed");
 });
 
 export const jobs = pgTable("jobs", {

@@ -7,7 +7,7 @@ import * as admin from "./admin";
 import * as auth from "./auth";
 import { contract } from "./contract";
 import * as data from "./data";
-import { createJob, getJobStatus, nextJobs, selfHealJobsHack } from "./jobs";
+import { createJob, getJobStatus, nextJobs } from "./jobs";
 import * as management from "./management";
 
 const readFile = util.promisify(fs.readFile);
@@ -25,9 +25,6 @@ export const router = s.router(contract, {
     }
 
     const limit = request.query.limit ?? 1;
-
-    // TODO: move this to a cron job
-    await selfHealJobsHack();
 
     let jobs: {
       id: string;
