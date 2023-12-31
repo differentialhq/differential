@@ -1,6 +1,7 @@
-import { sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { QueryResult } from "pg";
 import * as data from "./data";
+import * as cron from "./cron";
 import { ulid } from "ulid";
 import crypto from "crypto";
 
@@ -35,41 +36,20 @@ export const createJob = async ({
 
 export const nextJobs = async ({
   service,
-  functions,
-  pools,
   owner,
   limit,
   machineId,
   ip,
 }: {
   service: string | null;
-  functions?: string;
-  pools?: string;
   owner: { clusterId: string };
   limit: number;
   machineId: string;
   ip: string;
 }) => {
-  let results: QueryResult<Record<string, unknown>>;
-
-  const pool = pools || "*";
-
-  if (service) {
-    results = await data.db.execute(
-      sql`UPDATE jobs SET status = 'running', remaining = remaining - 1 WHERE id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining > 0)) AND owner_hash = ${owner.clusterId} AND service = ${service} LIMIT ${limit}) RETURNING *`
-    );
-  } else if (functions) {
-    const targetFns = functions.split(",");
-
-    results = await data.db.execute(
-      sql`UPDATE jobs SET status = 'running', remaining = remaining - 1 WHERE id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining > 0)) AND owner_hash = ${owner.clusterId} AND target_fn IN ${targetFns} LIMIT ${limit}) RETURNING *`
-    );
-  } else {
-    // drizzle raw query to update the status of the jobs
-    results = await data.db.execute(
-      sql`UPDATE jobs SET status = 'running', remaining = remaining - 1 WHERE id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining > 0)) AND owner_hash = ${owner.clusterId} AND (machine_type IS NULL OR machine_type = ${pool}) LIMIT ${limit}) RETURNING *`
-    );
-  }
+  const results = await data.db.execute(
+    sql`UPDATE jobs SET status = 'running', remaining = remaining - 1 WHERE id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining > 0)) AND owner_hash = ${owner.clusterId} AND service = ${service} LIMIT ${limit}) RETURNING *`
+  );
 
   // store machine info. needs to be backgrounded later
   await data.db
@@ -77,7 +57,6 @@ export const nextJobs = async ({
     .values({
       id: machineId,
       last_ping_at: new Date(),
-      machine_type: pool, // TODO: deprecate machine_type
       ip,
       cluster_id: owner.clusterId,
     })
@@ -85,9 +64,8 @@ export const nextJobs = async ({
       target: data.machines.id,
       set: {
         last_ping_at: new Date(),
-        machine_type: pool, // TODO: deprecate machine_type
         ip,
-        cluster_id: owner.clusterId, // beacuse we're using the secret key hash as the cluster id
+        cluster_id: owner.clusterId,
       },
     });
 
@@ -107,3 +85,37 @@ export const nextJobs = async ({
 
   return jobs;
 };
+
+export const getJobStatus = async ({
+  jobId,
+  owner,
+}: {
+  jobId: string;
+  owner: { clusterId: string };
+}) => {
+  const [job] = await data.db
+    .select({
+      status: data.jobs.status,
+      result: data.jobs.result,
+      resultType: data.jobs.result_type,
+    })
+    .from(data.jobs)
+    .where(
+      and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId))
+    );
+
+  return job;
+};
+
+export async function selfHealJobs() {
+  await data.db.execute(
+    sql`UPDATE jobs SET status = 'failure' WHERE status = 'running' AND remaining = 0 AND timed_out_at < now()`
+  );
+
+  // make jobs that have failed but still have remaining attempts into pending jobs
+  await data.db.execute(
+    sql`UPDATE jobs SET status = 'pending' WHERE status = 'failure' AND remaining > 0`
+  );
+}
+
+cron.registerCron(selfHealJobs, { interval: 1000 * 20 }); // 20 seconds
