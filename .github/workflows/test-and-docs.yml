@@ -40,6 +40,13 @@ jobs:
           git config --global user.name "Differential CI"
           git config --global user.email "ci@differential.dev"
 
+      - name: Generate docs
+        run: |
+          make docs
+          git add .
+          git commit -m "chore: Update documentation [skip ci]"
+          git push origin main
+
       - name: Build packages
         run: npx lerna run build
 

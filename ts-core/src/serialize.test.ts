@@ -1,7 +1,17 @@
 import { pack, unpack } from "./serialize";
+import crypto from "crypto";
 
-describe("it should serialise javascript well", () => {
-  const values = [1, "string", true, false, null, undefined];
+describe("serailizing and deserializing", () => {
+  const values = [
+    1,
+    "string",
+    true,
+    false,
+    null,
+    undefined,
+    { hello: "Bob" },
+    Buffer.from("hello"),
+  ];
 
   values.forEach((value) => {
     it(`should serialise ${value}`, () => {
@@ -10,20 +20,27 @@ describe("it should serialise javascript well", () => {
   });
 });
 
-// describe("it should be able to unfurl promisis", () => {
-//   it("when it succeeds", async () => {
-//     const value = await unpack(pack(Promise.resolve(1)));
-//     expect(value).toEqual(1);
-//   });
+describe("encryption", () => {
+  const cryptoSettings = {
+    keys: [Buffer.from("abcdefghijklmnopqrstuvwxzy123456")],
+  };
 
-//   it("when it fails", async () => {
-//     const fn = async () => {
-//       throw new Error("fail");
-//     };
+  it("should encrypt and decrypt", () => {
+    const encrypted = pack({ hello: "Bob" }, { cryptoSettings });
+    const decrypted = unpack(encrypted, { cryptoSettings });
 
-//     const value = fn
+    expect(decrypted).toEqual({ hello: "Bob" });
+  });
 
-//     const value = await unpack(pack(Promise.reject(new Error("fail"))));
-//     expect(value).toEqual(new Error("fail"));
-//   });
-// });
+  it("should be able to encrypt and decrypt when keys roll", () => {
+    const encrypted = pack({ hello: "Bob" }, { cryptoSettings });
+
+    const newCryptoSettings = {
+      keys: [crypto.randomBytes(32), ...cryptoSettings.keys],
+    };
+
+    const decrypted = unpack(encrypted, { cryptoSettings: newCryptoSettings });
+
+    expect(decrypted).toEqual({ hello: "Bob" });
+  });
+});
