@@ -35,7 +35,7 @@
     "typescript": "^5.1.6",
     "ulid": "^2.3.0",
     "ws": "^8.13.0",
-    "zod": "^3.21.4"
+    "zod": "^3.22.3"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.2",
