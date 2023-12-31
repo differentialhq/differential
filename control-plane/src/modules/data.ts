@@ -104,6 +104,10 @@ export const clusters = pgTable("clusters", {
 
 export const db = drizzle(pool);
 
+export const isAlive = async () => {
+  await db.execute(sql`select 1`);
+};
+
 (async function () {
   console.log("Migrating database...");
   try {

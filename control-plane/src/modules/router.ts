@@ -147,6 +147,8 @@ export const router = s.router(contract, {
     };
   },
   live: async () => {
+    await data.isAlive();
+
     return {
       status: 200,
       body: {
