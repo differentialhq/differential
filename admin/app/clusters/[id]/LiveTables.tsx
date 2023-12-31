@@ -42,9 +42,20 @@ export function LiveTables({
       status: string;
       functionExecutionTime: number | null;
     }[];
+    services: Array<{
+      name: string;
+      functions: Array<{
+        name: string;
+        totalSuccess: number;
+        totalFailure: number;
+        avgExecutionTimeSuccess: number | null;
+        avgExecutionTimeFailure: number | null;
+      }>;
+    }>;
   }>({
     machines: [],
     jobs: [],
+    services: [],
   });
 
   useEffect(() => {
@@ -66,6 +77,7 @@ export function LiveTables({
         setData({
           machines: clusterResult.body.machines,
           jobs: clusterResult.body.jobs,
+          services: clusterResult.body.services,
         });
       } else {
         toast.error("Failed to fetch cluster details.");
@@ -162,6 +174,28 @@ export function LiveTables({
             }))}
           noDataMessage="No services with function calls have been detected in the cluster lately."
         />
+      </div>
+
+      <div className="mt-12">
+        {data.services.map((service) => (
+            <div className="mt-12" key={service.name}>
+            <h1 className="text-lg">Service: {service.name}</h1>
+            <p className="text-gray-400 mb-8 mt-2">
+              These are the {service.functions.length} functions registered on the {service.name} service.
+            </p>
+            <DataTable
+              data={service.functions.map((s) => ({
+                Function: s.name,
+                "Total Requests": s.totalSuccess + s.totalFailure,
+                "Failure Rate": `${((s.totalFailure / (s.totalSuccess + s.totalFailure)) * 100).toFixed(2)}%`,
+                "Average Execution Time (Success)": `${s.avgExecutionTimeSuccess === undefined ? "N/A" : `${s.avgExecutionTimeSuccess?.toFixed(2)}ms`}`,
+                "Average Execution Time (Failure)": `${s.avgExecutionTimeFailure === undefined ? "N/A" : `${s.avgExecutionTimeFailure?.toFixed(2)}ms`}`,
+              }))}
+              noDataMessage="No services have been detected in the cluster lately."
+            />
+            </div>
+        ))
+        }
       </div>
     </div>
   );
