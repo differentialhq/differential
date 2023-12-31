@@ -7,23 +7,12 @@ import * as admin from "./admin";
 import * as auth from "./auth";
 import { contract } from "./contract";
 import * as data from "./data";
-import { createJob, nextJobs } from "./jobs";
+import { createJob, getJobStatus, nextJobs } from "./jobs";
 import * as management from "./management";
 
 const readFile = util.promisify(fs.readFile);
 
 const s = initServer();
-
-async function selfHealJobsHack() {
-  await data.db.execute(
-    sql`UPDATE jobs SET status = 'failure' WHERE status = 'running' AND remaining = 0 AND timed_out_at < now()`
-  );
-
-  // make jobs that have failed but still have remaining attempts into pending jobs
-  await data.db.execute(
-    sql`UPDATE jobs SET status = 'pending' WHERE status = 'failure' AND remaining > 0`
-  );
-}
 
 export const router = s.router(contract, {
   getNextJobs: async (request) => {
@@ -37,10 +26,6 @@ export const router = s.router(contract, {
 
     const limit = request.query.limit ?? 1;
 
-    const pool = request.query.pools || "*";
-
-    await selfHealJobsHack();
-
     let jobs: {
       id: string;
       targetFn: string;
@@ -51,8 +36,6 @@ export const router = s.router(contract, {
 
     do {
       jobs = await nextJobs({
-        functions: request.query.functions,
-        pools: pool,
         owner,
         limit,
         machineId: request.headers["x-machine-id"],
@@ -61,9 +44,9 @@ export const router = s.router(contract, {
       });
 
       if (jobs.length === 0) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-    } while (jobs.length === 0 && Date.now() - start < 5000); // TODO: make the blocking time configurable via query param
+    } while (jobs.length === 0 && Date.now() - start < request.query.ttl);
 
     return {
       status: 200,
@@ -137,22 +120,26 @@ export const router = s.router(contract, {
 
     const { jobId } = request.params;
 
-    const [job] = await data.db
-      .select({
-        status: data.jobs.status,
-        result: data.jobs.result,
-        resultType: data.jobs.result_type,
-      })
-      .from(data.jobs)
-      .where(
-        and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId))
-      );
+    let job: Awaited<ReturnType<typeof getJobStatus>>;
 
-    if (!job) {
-      return {
-        status: 404,
-      };
-    }
+    const start = Date.now();
+
+    do {
+      job = await getJobStatus({
+        jobId,
+        owner,
+      });
+
+      if (!job) {
+        return {
+          status: 404,
+        };
+      }
+
+      if (job.resultType === null) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+    } while (job.resultType === null && Date.now() - start < request.query.ttl);
 
     return {
       status: 200,
@@ -160,6 +147,8 @@ export const router = s.router(contract, {
     };
   },
   live: async () => {
+    await data.isAlive();
+
     return {
       status: 200,
       body: {
