@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.4.0](https://github.com/differentialhq/differential/compare/v3.3.1...v3.4.0) (2023-12-31)
+
+
+### Features
+
+* End to end encryption for payloads ([#36](https://github.com/differentialhq/differential/issues/36)) ([834651d](https://github.com/differentialhq/differential/commit/834651dc3170aff3c704d5518344c8ec98e6e3d3))
+* Longer and configurable long polling intervals ([#35](https://github.com/differentialhq/differential/issues/35)) ([9495349](https://github.com/differentialhq/differential/commit/949534900a99cf18876363adce7df0dc27fa2c4f))
+
+
+
+
+
 ## [3.3.1](https://github.com/differentialhq/differential/compare/v3.3.0...v3.3.1) (2023-12-30)
 
 
