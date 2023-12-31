@@ -18,9 +18,7 @@ export const contract = c.router({
       "x-machine-id": z.string(),
     }),
     query: z.object({
-      pools: z.string().optional(), // TODO: deprecated
       limit: z.coerce.number().default(1),
-      functions: z.string().optional(), // TODO: deprecated
       service: z.string().optional(),
       ttl: z.coerce.number().min(5000).max(20000).default(20000),
     }),
