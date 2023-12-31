@@ -1,5 +1,5 @@
 import debug from "debug";
-import { serializeError } from "./errors";
+import { serializeError } from "./serialize-error";
 import { AsyncFunction } from "./types";
 
 const log = debug("differential:client");
@@ -21,7 +21,7 @@ const executeFn = async (
     return {
       content: result,
       type: "resolution",
-      functionExecutionTime: Date.now() - start
+      functionExecutionTime: Date.now() - start,
     };
   } catch (e) {
     const functionExecutionTime = Date.now() - start;

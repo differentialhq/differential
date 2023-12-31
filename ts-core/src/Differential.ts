@@ -154,10 +154,6 @@ class PollingAgent {
             limit: Math.ceil(
               (this.pollState.concurrency - this.pollState.current) / 2
             ),
-            functions: Object.entries(functionRegistry)
-              .filter((s) => s[1].serviceName === this.service.name)
-              .map((s) => s[0])
-              .join(","),
             service: this.service.name,
           },
           headers: {
