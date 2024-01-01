@@ -90,7 +90,7 @@ const d = new Differential("API_SECRET", {
 
 #### Defined in
 
-[ts-core/src/Differential.ts:409](https://github.com/differentialhq/differential/blob/76b9e1a/ts-core/src/Differential.ts#L409)
+[ts-core/src/Differential.ts:409](https://github.com/differentialhq/differential/blob/2a34a8f/ts-core/src/Differential.ts#L409)
 
 ## Methods
 
@@ -134,7 +134,7 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[ts-core/src/Differential.ts:541](https://github.com/differentialhq/differential/blob/76b9e1a/ts-core/src/Differential.ts#L541)
+[ts-core/src/Differential.ts:541](https://github.com/differentialhq/differential/blob/2a34a8f/ts-core/src/Differential.ts#L541)
 
 ▸ **client**\<`T`\>(`service`, `options`): `BackgroundServiceClient`\<`T`\>
 
@@ -176,7 +176,7 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[ts-core/src/Differential.ts:545](https://github.com/differentialhq/differential/blob/76b9e1a/ts-core/src/Differential.ts#L545)
+[ts-core/src/Differential.ts:545](https://github.com/differentialhq/differential/blob/2a34a8f/ts-core/src/Differential.ts#L545)
 
 ___
 
@@ -229,4 +229,4 @@ process.on("beforeExit", async () => {
 
 #### Defined in
 
-[ts-core/src/Differential.ts:517](https://github.com/differentialhq/differential/blob/76b9e1a/ts-core/src/Differential.ts#L517)
+[ts-core/src/Differential.ts:517](https://github.com/differentialhq/differential/blob/2a34a8f/ts-core/src/Differential.ts#L517)
