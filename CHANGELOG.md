@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.4.6](https://github.com/differentialhq/differential/compare/v3.4.5...v3.4.6) (2024-01-01)
+
+
+### Features
+
+* Function error rates and execution time ([#37](https://github.com/differentialhq/differential/issues/37)) ([44378c3](https://github.com/differentialhq/differential/commit/44378c3d785b94cf55734e8102c5fd7a1eed9f51))
+
+
+
+
+
 ## [3.4.5](https://github.com/differentialhq/differential/compare/v3.4.4...v3.4.5) (2024-01-01)
 
 **Note:** Version bump only for package root
