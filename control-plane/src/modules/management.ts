@@ -1,8 +1,9 @@
 import * as data from "./data";
-import { and, eq, gte } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import { randomName } from "./names";
 import crypto from "crypto";
 import * as jwt from "./jwt";
+import { S } from "drizzle-orm/db.d-b9835153";
 
 export const getClusters = async ({
   managementToken,
@@ -55,6 +56,7 @@ export const createCluster = async ({
     .execute();
 };
 
+type FunctionDetails = {name: string, avgExecutionTimeSuccess: number | null, avgExecutionTimeFailure: number | null, totalSuccess: number, totalFailure: number};
 export const getClusterDetailsForUser = async ({
   managementToken,
   clusterId,
@@ -79,6 +81,10 @@ export const getClusterDetailsForUser = async ({
         status: string;
         createdAt: Date;
         functionExecutionTime: number | null;
+      }>;
+      services: Array<{
+        name: string;
+        functions: Array<FunctionDetails>;
       }>;
     }
   | undefined
@@ -143,9 +149,64 @@ export const getClusterDetailsForUser = async ({
       )
     );
 
+  // Fetch all function / service combinations for the cluster within the last 12 hours
+  // This can be replaced with something more robust once we have a catalog of service / functions
+  let functions = await data.db
+    .select({
+      service: data.jobs.service,
+      target_fn: data.jobs.target_fn,
+      avgExecutionTime: sql`avg(${data.jobs.function_execution_time_ms})`.mapWith(Number),
+      total: sql`count(${data.jobs.id})`.mapWith(Number),
+      result_type: data.jobs.result_type,
+    })
+    .from(data.jobs)
+    .groupBy(data.jobs.service, data.jobs.target_fn, data.jobs.result_type)
+    .where(
+      and(
+        eq(data.jobs.owner_hash, clusterId),
+        // in the last 12 hours
+        gte(data.jobs.created_at, new Date(Date.now() - 1000 * 60 * 60 * 12))
+      )
+    );
+
+  // Build a map of service -> function -> details merging the error and success results
+  const serviceFnMap = functions
+    .reduce((acc, current) => {
+      const serviceName = current.service;
+      if (!serviceName) { return acc; }
+
+      const isSuccess = current.result_type === 'resolution';
+
+      const service = acc.get(serviceName) ?? new Map();
+      service.set(current.target_fn, {
+        ...(isSuccess ? { avgExecutionTimeSuccess: current.avgExecutionTime } : { avgExecutionTimeFailure: current.avgExecutionTime }),
+        ...(isSuccess ? { totalSuccess: current.total } : { totalFailure: current.total }),
+        ...service.get(current.target_fn),
+      });
+
+      acc.set(serviceName, service);
+
+      return acc;
+    }, new Map() as Map<string, Map<string, Omit<FunctionDetails, 'name'>>>);
+
+  const serviceResult = Array.from(serviceFnMap)
+    .map(([name, functionMap]) => ({
+      name: name,
+      functions: Array.from(functionMap)
+        .map(([fnName, fnDetails]) => ({
+          name: fnName,
+          ...fnDetails,
+          // If there is no success or failure, default to 0
+          totalSuccess: fnDetails.totalSuccess ?? 0,
+          totalFailure: fnDetails.totalFailure ?? 0,
+        })),
+    })
+    );
+
   return {
     ...clusters[0],
     machines,
     jobs,
+    services: serviceResult,
   };
 };
