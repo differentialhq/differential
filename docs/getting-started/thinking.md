@@ -57,10 +57,9 @@ You can have 1:1 services to processes, or you can have multiple services runnin
 
 ```ts
 // src/index.ts
-
 import { emailService } from "./services/email";
 
-d.start(emailService);
+await emailService.start();
 ```
 
 **5. Once a service is started, it registers itself with the control-plane.**
