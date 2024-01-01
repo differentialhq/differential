@@ -76,7 +76,6 @@ Initializes a new Differential instance.
 **`Example`**
 
 ```ts
-
 // Basic usage
 const d = new Differential("API_SECRET");
 
@@ -87,10 +86,11 @@ const d = new Differential("API_SECRET", {
    Buffer.from("abcdefghijklmnopqrstuvwxzy123old"), // previous key
  ],
 });
+```
 
 #### Defined in
 
-[ts-core/src/Differential.ts:409](https://github.com/differentialhq/differential/blob/834651d/ts-core/src/Differential.ts#L409)
+[ts-core/src/Differential.ts:409](https://github.com/differentialhq/differential/blob/5db68f8/ts-core/src/Differential.ts#L409)
 
 ## Methods
 
@@ -134,7 +134,7 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[ts-core/src/Differential.ts:541](https://github.com/differentialhq/differential/blob/834651d/ts-core/src/Differential.ts#L541)
+[ts-core/src/Differential.ts:541](https://github.com/differentialhq/differential/blob/5db68f8/ts-core/src/Differential.ts#L541)
 
 ▸ **client**\<`T`\>(`service`, `options`): `BackgroundServiceClient`\<`T`\>
 
@@ -176,7 +176,7 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[ts-core/src/Differential.ts:545](https://github.com/differentialhq/differential/blob/834651d/ts-core/src/Differential.ts#L545)
+[ts-core/src/Differential.ts:545](https://github.com/differentialhq/differential/blob/5db68f8/ts-core/src/Differential.ts#L545)
 
 ___
 
@@ -229,4 +229,4 @@ process.on("beforeExit", async () => {
 
 #### Defined in
 
-[ts-core/src/Differential.ts:517](https://github.com/differentialhq/differential/blob/834651d/ts-core/src/Differential.ts#L517)
+[ts-core/src/Differential.ts:517](https://github.com/differentialhq/differential/blob/5db68f8/ts-core/src/Differential.ts#L517)
