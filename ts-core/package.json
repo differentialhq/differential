@@ -1,6 +1,6 @@
 {
   "name": "@differentialhq/core",
-  "version": "3.3.1",
+  "version": "3.4.1",
   "description": "Javascript SDK for differential.dev",
   "main": "bin/index.js",
   "scripts": {
