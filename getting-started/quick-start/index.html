@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.757414713244">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.757415063036">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -30,12 +30,12 @@
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../../resources/css/retype.css?v=3.5.0.757414713244" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.757415063036" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.757414713244" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.757415063036" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.757414713244" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.757414713244" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.757415063036" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.757415063036" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -192,11 +192,17 @@
     </h1>
 </doc-anchor-target>
 <p>Learn to build an end to end Differential app in under 2 minutes with TypeScript and Node.js.</p>
-<doc-anchor-target id="1-set-up-and-install">
+<doc-anchor-target id="running-the-hello-world-example">
     <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#running-the-hello-world-example">#</doc-anchor-trigger>
+        <span>Running the hello world example</span>
+    </h2>
+</doc-anchor-target>
+<doc-anchor-target id="1-set-up-and-install">
+    <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#1-set-up-and-install">#</doc-anchor-trigger>
         <span>1. Set up and Install</span>
-    </h2>
+    </h3>
 </doc-anchor-target>
 <p>Run the following command in your terminal to set up a hello world project</p>
 <div class="codeblock-wrapper"><doc-codeblock>
@@ -211,37 +217,37 @@ npm run setup</code></pre>
 <li>Fetch a temporary API secret for you to use and insert it to src/d.ts file</li>
 </ul>
 <doc-anchor-target id="2-start-the-hello-service">
-    <h2>
+    <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#2-start-the-hello-service">#</doc-anchor-trigger>
         <span>2. Start the hello service</span>
-    </h2>
+    </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-none"><code v-pre class="language-none">npm run service --name=hello</code></pre>
 </doc-codeblock></div>
 <p>This will start a <a href="https://github.com/differentialhq/app/blob/master/src/services/hello.ts">service called <code v-pre>hello</code></a> and register itself with the Cloud control-plane.</p>
 <doc-anchor-target id="3-call-the-running-service">
-    <h2>
+    <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#3-call-the-running-service">#</doc-anchor-trigger>
         <span>3. Call the running service</span>
-    </h2>
+    </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-none"><code v-pre class="language-none">npm run command --name=greet</code></pre>
 </doc-codeblock></div>
 <p>This will call the <a href="https://github.com/differentialhq/app/blob/master/src/commands/greet.ts"><code v-pre>greet</code> command</a> on the <code v-pre>hello</code> service and print the result.</p>
 <doc-anchor-target id="extending-the-hello-service">
-    <h1>
+    <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#extending-the-hello-service">#</doc-anchor-trigger>
         <span>Extending the hello service</span>
-    </h1>
+    </h2>
 </doc-anchor-target>
 <p>Let&#x27;s add a new command to the hello service that will greet someone in a different language, so you can write some code.</p>
 <doc-anchor-target id="1-add-a-new-function-to-the-hello-service">
-    <h2>
+    <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#1-add-a-new-function-to-the-hello-service">#</doc-anchor-trigger>
         <span>1. Add a new function to the hello service</span>
-    </h2>
+    </h3>
 </doc-anchor-target>
 <p>Open up the <code v-pre>src/services/hello.ts</code> file and add the following function, under the exising <code v-pre>hello</code> function:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
@@ -268,10 +274,10 @@ npm run setup</code></pre>
 </doc-codeblock></div>
 <p>As you can see, this function fetches a list of greetings from a fake API and returns the appropriate one. A Differential function can do anything a normal Node.js function can do, including making network requests.</p>
 <doc-anchor-target id="2-register-the-function-with-the-service">
-    <h2>
+    <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#2-register-the-function-with-the-service">#</doc-anchor-trigger>
         <span>2. Register the function with the service</span>
-    </h2>
+    </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-diff"><code v-pre class="language-diff"> export const helloService = d.service({
@@ -283,10 +289,10 @@ npm run setup</code></pre>
  });</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="3-change-the-greet-command-to-call-the-new-function">
-    <h2>
+    <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#3-change-the-greet-command-to-call-the-new-function">#</doc-anchor-trigger>
         <span>3. Change the <code v-pre>greet</code> command to call the new function</span>
-    </h2>
+    </h3>
 </doc-anchor-target>
 <p>You can replace the greet.ts file with the following. We&#x27;re just extending the existing command to take a new <code v-pre>language</code> parameter and call the new function.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
@@ -314,10 +320,10 @@ if (starting()) {
 }</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="4-call-the-new-command">
-    <h2>
+    <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#4-call-the-new-command">#</doc-anchor-trigger>
         <span>4. Call the new command</span>
-    </h2>
+    </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-bash"><code v-pre class="language-bash">npm run command --name=greet -- &quot;Dali&quot; &quot;spanish&quot;
