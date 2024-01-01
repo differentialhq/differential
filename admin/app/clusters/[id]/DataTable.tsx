@@ -22,7 +22,6 @@ export const DataTable = <T = any,>({
   noDataMessage?: string;
   columnDef?: ColumnDef<T>[];
 }) => {
-
   const keys = data.length > 0 ? Object.keys(data[0]) : [];
 
   const columns: ColumnDef<any>[] =
@@ -39,9 +38,8 @@ export const DataTable = <T = any,>({
     manualSorting: true,
   });
 
-
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border" style={{ maxWidth: 1276 }}>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -78,7 +76,7 @@ export const DataTable = <T = any,>({
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                  <p className="text-gray-400 mt-2">{noDataMessage}</p>
+                <p className="text-gray-400 mt-2">{noDataMessage}</p>
               </TableCell>
             </TableRow>
           )}

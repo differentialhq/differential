@@ -15,8 +15,6 @@ const fontSans = FontSans({
 
 const json = require("../package.json");
 
-const inter = Inter({ subsets: ["latin"] });
-
 export const metadata: Metadata = {
   title: "Admin Console",
   description: "Admin Console for Differential",
@@ -44,9 +42,7 @@ export default function RootLayout({
                   <div className="flex items-center space-x-4 -ml-2">
                     <Image src={logo} width={40} height={40} alt={"logo"} />
                     <h1 className="text-2xl">Admin Console</h1>
-                    <p className="text-sm text-gray-500 -mt-6">
-                      {json.version}
-                    </p>
+                    <p className="text-sm text-gray-500 -mt-6">BETA</p>
                   </div>
                 </a>
                 <a
