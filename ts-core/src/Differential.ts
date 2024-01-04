@@ -10,13 +10,13 @@ const log = debug("differential:client");
 
 const { serializeError, deserializeError } = require("./errors");
 
-type ServiceClient<T extends RegisteredService<any>> = {
-  [K in keyof T["definition"]["functions"]]: T["definition"]["functions"][K];
+type ServiceClient<T extends ServiceDefinition<any>> = {
+  [K in keyof T["functions"]]: T["functions"][K];
 };
 
-type BackgroundServiceClient<T extends RegisteredService<any>> = {
-  [K in keyof T["definition"]["functions"]]: (
-    ...args: Parameters<T["definition"]["functions"][K]>
+type BackgroundServiceClient<T extends ServiceDefinition<any>> = {
+  [K in keyof T["functions"]]: (
+    ...args: Parameters<T["functions"][K]>
   ) => Promise<{ id: string }>;
 };
 
@@ -538,12 +538,12 @@ export class Differential {
     };
   }
 
-  client<T extends RegisteredService<any>>(
-    service: T["definition"]["name"]
+  client<T extends ServiceDefinition<any>>(
+    service: T
   ): ServiceClient<T>;
 
-  client<T extends RegisteredService<any>>(
-    service: T["definition"]["name"],
+  client<T extends ServiceDefinition<any>>(
+    service: T,
     options: { background: true }
   ): BackgroundServiceClient<T>;
 
@@ -563,26 +563,35 @@ export class Differential {
    * console.log(result); // "Hello world"
    * ```
    */
-  client<T extends RegisteredService<any>>(
-    service: T["definition"]["name"],
+  client<T extends ServiceDefinition<any>>(
+    service : T,
     options?: {
       background?: boolean;
     }
-  ): ServiceClient<T> {
+  ): ServiceClient<T> | BackgroundServiceClient<T> {
     const d = this;
+    
 
     if (options?.background === true) {
       return new Proxy({} as BackgroundServiceClient<T>, {
         get(_target, property, _receiver) {
-          return (...args: any[]) =>
-            d.background(service, property, ...(args as any));
+          return (...args: any[]) => {
+            if (typeof property !== "string") {
+              return undefined;
+            }
+            return d.background(service, property, ...(args as any));
+          }
         },
       });
     } else {
       return new Proxy({} as ServiceClient<T>, {
         get(_target, property, _receiver) {
-          return (...args: any[]) =>
-            d.call(service, property, ...(args as any));
+          return (...args: any[]) => {
+            if (typeof property !== "string") {
+              return undefined;
+            }
+            return d.call(service, property, ...(args as any));
+          }
         },
       });
     }
@@ -593,15 +602,15 @@ export class Differential {
    * @deprecated Use `d.client` instead.
    */
   async call<
-    T extends RegisteredService<any>,
-    U extends keyof T["definition"]["functions"]
+    T extends ServiceDefinition<any>,
+    U extends keyof T["functions"]
   >(
-    service: T["definition"]["name"],
+    service: T,
     fn: U,
-    ...args: Parameters<T["definition"]["functions"][U]>
-  ): Promise<ReturnType<T["definition"]["functions"][U]>> {
+    ...args: Parameters<T["functions"][U]>
+  ): Promise<ReturnType<T["functions"][U]>> {
     // create a job
-    const id = await this.createJob<T, U>(service, fn, args);
+    const id = await this.createJob(service, fn, args);
 
     // wait for the job to complete
     const result = await pollForJob(
@@ -612,7 +621,7 @@ export class Differential {
 
     if (result.type === "resolution") {
       // return the result
-      return result.content as ReturnType<T["definition"]["functions"][U]>;
+      return result.content as ReturnType<T["functions"][U]>;
     } else if (result.type === "rejection") {
       const error = deserializeError(result.content);
       throw error;
@@ -626,33 +635,33 @@ export class Differential {
    * @deprecated Use `d.client` instead.
    */
   async background<
-    T extends RegisteredService<any>,
-    U extends keyof T["definition"]["functions"]
+    T extends ServiceDefinition<any>,
+    U extends keyof T["functions"]
   >(
-    service: T["definition"]["name"],
+    service: T["name"],
     fn: U,
-    ...args: Parameters<T["definition"]["functions"][U]>
+    ...args: Parameters<T["functions"][U]>
   ): Promise<{ id: string }> {
     // create a job
-    const id = await this.createJob<T, U>(service, fn, args);
+    const id = await this.createJob(service, fn, args);
 
     return { id };
   }
 
   private async createJob<
-    T extends RegisteredService<any>,
-    U extends keyof T["definition"]["functions"]
+    T extends ServiceDefinition<any>,
+    U extends keyof T["functions"]
   >(
-    service: T["definition"]["name"],
+    service: T,
     fn: string | number | symbol,
-    args: Parameters<T["definition"]["functions"][U]>
+    args: Parameters<T["functions"][U]>
   ) {
-    log("Creating job", { service, fn, args });
+    log("Creating job", { service: service.name, fn, args });
 
     return await this.controlPlaneClient
       .createJob({
         body: {
-          service,
+          service: service.name,
           targetFn: fn as string,
           targetArgs: pack(args),
         },

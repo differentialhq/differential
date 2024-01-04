@@ -1,5 +1,5 @@
 import { d } from "./d";
-import { expertService } from "./expert";
+import { expertServiceDefinition } from "./expert";
 
 (globalThis as any).expert = true; // assert this is not registered by others
 
@@ -14,8 +14,7 @@ export const cowSay = async ({ cowText }: { cowText: string }) => {
     `;
 };
 
-const expertClient = d.client<typeof expertService>("expert");
-
+const expertClient = d.client(expertServiceDefinition);
 export const interFunctionCall = async ({
   expertText,
   cowText,
@@ -28,10 +27,10 @@ export const interFunctionCall = async ({
   return Promise.all([cowSay({ cowText }), result]);
 };
 
-export const facadeService = d.service({
+export const facadeServiceDefinition = {
   name: "facade",
   functions: {
     cowSay,
     interFunctionCall,
   },
-});
+};

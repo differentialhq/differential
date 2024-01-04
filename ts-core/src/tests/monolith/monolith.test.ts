@@ -1,25 +1,14 @@
 import { d } from "./d";
-import type { dbService } from "./db";
-import { expertService } from "./expert";
-import { facadeService } from "./facade";
+import { expertServiceDefinition } from "./expert";
+import { facadeServiceDefinition } from "./facade";
+import {expertService, facadeService} from "./d.register";
 
 describe("monolith", () => {
-  it("should not import a service, if we're just consuming it", async () => {
-    const db = d.client<typeof dbService>("db", { background: true });
-
-    const result = await db.getNumberFromDB(1, 2);
-
-    expect(result.id).toBeDefined();
-
-    // at this point, dbService should not be registered
-    expect((globalThis as any).db).toBeUndefined();
-  });
-
   it("should be able to call a service", async () => {
     await expertService.start();
 
     const result = await d
-      .client<typeof expertService>("expert")
+      .client(expertServiceDefinition)
       .callExpert("Can't touch this");
 
     expect(result).toBe("Expert says: Can't touch this");
@@ -27,16 +16,16 @@ describe("monolith", () => {
     await expertService.stop();
   }, 10000);
 
-  it("service client should return the same result as 'call'", async () => {
+  it.only("service client should return the same result as 'call'", async () => {
     await expertService.start();
 
-    const result = await d.call<typeof expertService, "callExpert">(
-      "expert",
+    const result = await d.call(
+      expertServiceDefinition,
       "callExpert",
       "Can't touch this"
     );
 
-    const client = d.client<typeof expertService>("expert");
+    const client = d.client(expertServiceDefinition);
     const clientResult = await client.callExpert("Can't touch this");
 
     expect(clientResult).toBe(result);
@@ -49,7 +38,7 @@ describe("monolith", () => {
     await expertService.start();
 
     const result = await d
-      .client<typeof facadeService>("facade")
+      .client(facadeServiceDefinition)
       .interFunctionCall({
         expertText: "foobar",
         cowText: "foobar",

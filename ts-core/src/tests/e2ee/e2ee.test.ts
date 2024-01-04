@@ -1,12 +1,13 @@
 import { d } from "./d";
-import { helloService } from "./hello";
+import { helloService } from "./d.register";
+import { helloServiceDefinition } from "./hello";
 
 describe("e2ee", () => {
   it("should be able to call a service", async () => {
     await helloService.start();
 
     const result = await d
-      .client<typeof helloService>("hello")
+      .client(helloServiceDefinition)
       .greet(["Bob", "Alice"]);
 
     expect(result).toEqual({
