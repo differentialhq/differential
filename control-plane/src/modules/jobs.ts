@@ -1,9 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
-import { QueryResult } from "pg";
-import * as data from "./data";
-import * as cron from "./cron";
 import { ulid } from "ulid";
-import crypto from "crypto";
+import * as cron from "./cron";
+import * as data from "./data";
 
 export const createJob = async ({
   service,
@@ -11,12 +9,14 @@ export const createJob = async ({
   targetArgs,
   owner,
   pool,
+  idempotencyKey,
 }: {
   service: string | null;
   targetFn: string;
   targetArgs: string;
   owner: { clusterId: string };
   pool?: string;
+  idempotencyKey?: string;
 }) => {
   const id = `exec-${targetFn.substring(0, 8)}-${ulid()}`;
 
@@ -24,7 +24,7 @@ export const createJob = async ({
     id,
     target_fn: targetFn,
     target_args: targetArgs,
-    idempotency_key: `ik_${crypto.randomBytes(64).toString("hex")}`,
+    idempotency_key: idempotencyKey ?? id,
     status: "pending",
     owner_hash: owner.clusterId,
     machine_type: pool,

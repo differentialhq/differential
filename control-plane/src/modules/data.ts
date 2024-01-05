@@ -51,7 +51,7 @@ pool.on("remove", () => {
 });
 
 export const jobs = pgTable("jobs", {
-  id: varchar("id", { length: 1024 }).primaryKey(),
+  id: varchar("id", { length: 1024 }),
   owner_hash: text("owner_hash").notNull(),
   target_fn: varchar("target_fn", { length: 1024 }).notNull(),
   target_args: text("target_args").notNull(),
@@ -78,7 +78,9 @@ export const jobs = pgTable("jobs", {
   ),
   timeout_interval_seconds: integer("timeout_interval").default(300),
   service: varchar("service", { length: 1024 }),
-});
+}, table => ({
+  pk: 
+}));
 
 export const machines = pgTable("machines", {
   id: varchar("id", { length: 1024 }).primaryKey(),

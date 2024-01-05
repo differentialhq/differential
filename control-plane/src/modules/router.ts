@@ -92,7 +92,8 @@ export const router = s.router(contract, {
       };
     }
 
-    const { targetFn, targetArgs, pool, service } = request.body;
+    const { targetFn, targetArgs, pool, service, idempotencyKey } =
+      request.body;
 
     const { id } = await createJob({
       service: service || null,
@@ -100,6 +101,7 @@ export const router = s.router(contract, {
       targetArgs,
       owner,
       pool,
+      idempotencyKey,
     });
 
     return {
