@@ -2,6 +2,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { ulid } from "ulid";
 import * as cron from "./cron";
 import * as data from "./data";
+import { writeEvent } from "./events";
 
 export const createJob = async ({
   service,
@@ -34,6 +35,18 @@ export const createJob = async ({
     })
     .onConflictDoNothing();
 
+  writeEvent({
+    type: "jobCreated",
+    tags: {
+      clusterId: owner.clusterId,
+      ...(service ? { service } : {}),
+      function: targetFn,
+    },
+    stringFields: {
+      jobId: jobId,
+    },
+  });
+
   return { id: jobId };
 };
 
@@ -53,6 +66,14 @@ export const nextJobs = async ({
   const results = await data.db.execute(
     sql`UPDATE jobs SET status = 'running', remaining = remaining - 1 WHERE id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining > 0)) AND owner_hash = ${owner.clusterId} AND service = ${service} LIMIT ${limit}) RETURNING *`
   );
+
+  writeEvent({
+    type: "machinePing",
+    tags: {
+      clusterId: owner.clusterId,
+      machineId,
+    }
+  });
 
   // store machine info. needs to be backgrounded later
   await data.db

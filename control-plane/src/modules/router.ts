@@ -9,6 +9,7 @@ import { contract } from "./contract";
 import * as data from "./data";
 import { createJob, getJobStatus, nextJobs } from "./jobs";
 import * as management from "./management";
+import { writeEvent } from "./events";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -65,7 +66,7 @@ export const router = s.router(contract, {
     const { jobId } = request.params;
     const { result, resultType, functionExecutionTime } = request.body;
 
-    await data.db
+    const updateResult = await data.db
       .update(data.jobs)
       .set({
         result,
@@ -76,7 +77,24 @@ export const router = s.router(contract, {
       })
       .where(
         and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId))
-      );
+      )
+      .returning({ service: data.jobs.service, function: data.jobs.target_fn});
+
+    writeEvent({
+      type: "jobResulted",
+      tags: {
+        clusterId: owner.clusterId,
+        ...(updateResult[0]?.service ? { service: updateResult[0]?.service } : {}),
+        function: updateResult[0]?.function,
+        resultType,
+      },
+      intFields: {
+        ...(functionExecutionTime ? {functionExecutionTime} : {}),
+      },
+      stringFields: {
+        jobId,
+      },
+    });
 
     return {
       status: 204,
