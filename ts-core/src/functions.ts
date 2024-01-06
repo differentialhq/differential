@@ -38,6 +38,41 @@ export const extractDifferentialConfig = (
   };
 };
 
+/**
+ * This is a utility function that makes a function in a service definition idempotent.
+ *
+ *
+ * @param fn The function to make idempotent
+ * @returns The same function with the same parameters, but with an additional parameter at the end of the function call that is the idempotency key
+ * @example
+ * ```ts
+ * // src/services/order.ts
+ *
+ * const chargeOrder = async (order: Order) => {
+ *   await chargeCustomer(order.customerId, order.amount);
+ * }
+ *
+ * export const orderService = d.service({
+ *   name: "order",
+ *   functions: {
+ *     chargeOrder: idempotent(chargeOrder),
+ *   },
+ * });
+ *
+ * // src/client.ts
+ * const orderClient = d.client<typeof orderService>("order");
+ *
+ * // const order = await orderClient.chargeOrder(order); // ⛔️ Error: Expected 2 arguments, but got 1.
+ *
+ * const order = await orderClient.chargeOrder(order, { $idempotencyKey: order.id });
+ *
+ * // if you call the function again with the same idempotency key, previous result will be returned
+ *
+ * const order2 = await orderClient.chargeOrder(order, { $idempotencyKey: order.id });
+ *
+ * assert.deepEqual(order === order2);
+ * ```
+ */
 export const idempotent = <T extends AsyncFunction>(
   fn: T
 ): AddParameters<T, [Pick<DifferentialConfig, "$idempotencyKey">]> => {

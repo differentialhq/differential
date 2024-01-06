@@ -14,7 +14,7 @@ describe("Idempotency", () => {
       echo: "hello",
     });
 
-    const result2 = await client.count("hello", { $idempotencyKey: "1" });
+    const result2 = await client.count("hello2", { $idempotencyKey: "1" });
 
     expect(result2).toEqual({
       callCount: 1,
