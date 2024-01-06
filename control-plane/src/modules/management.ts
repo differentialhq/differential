@@ -176,29 +176,32 @@ export const getClusterDetailsForUser = async ({
     );
 
   // Build a map of service -> function -> details merging the error and success results
-  const serviceFnMap = functions.reduce((acc, current) => {
-    const serviceName = current.service;
-    if (!serviceName) {
+  const serviceFnMap = functions.reduce(
+    (acc, current) => {
+      const serviceName = current.service;
+      if (!serviceName) {
+        return acc;
+      }
+
+      const isSuccess = current.result_type === "resolution";
+
+      const service = acc.get(serviceName) ?? new Map();
+      service.set(current.target_fn, {
+        ...(isSuccess
+          ? { avgExecutionTimeSuccess: current.avgExecutionTime }
+          : { avgExecutionTimeFailure: current.avgExecutionTime }),
+        ...(isSuccess
+          ? { totalSuccess: current.total }
+          : { totalFailure: current.total }),
+        ...service.get(current.target_fn),
+      });
+
+      acc.set(serviceName, service);
+
       return acc;
-    }
-
-    const isSuccess = current.result_type === "resolution";
-
-    const service = acc.get(serviceName) ?? new Map();
-    service.set(current.target_fn, {
-      ...(isSuccess
-        ? { avgExecutionTimeSuccess: current.avgExecutionTime }
-        : { avgExecutionTimeFailure: current.avgExecutionTime }),
-      ...(isSuccess
-        ? { totalSuccess: current.total }
-        : { totalFailure: current.total }),
-      ...service.get(current.target_fn),
-    });
-
-    acc.set(serviceName, service);
-
-    return acc;
-  }, new Map() as Map<string, Map<string, Omit<FunctionDetails, "name">>>);
+    },
+    new Map() as Map<string, Map<string, Omit<FunctionDetails, "name">>>
+  );
 
   const serviceResult = Array.from(serviceFnMap).map(([name, functionMap]) => ({
     name: name,

@@ -1,0 +1,2 @@
+ALTER TABLE "jobs" DROP CONSTRAINT "jobs_pkey";--> statement-breakpoint
+ALTER TABLE "jobs" ADD CONSTRAINT "jobs_owner_hash_target_fn_idempotency_key" PRIMARY KEY("owner_hash","target_fn","idempotency_key");

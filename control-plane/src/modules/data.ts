@@ -4,6 +4,7 @@ import {
   integer,
   json,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   varchar,
@@ -50,35 +51,43 @@ pool.on("remove", () => {
   console.debug("Database connection removed");
 });
 
-export const jobs = pgTable("jobs", {
-  id: varchar("id", { length: 1024 }).primaryKey(),
-  owner_hash: text("owner_hash").notNull(),
-  target_fn: varchar("target_fn", { length: 1024 }).notNull(),
-  target_args: text("target_args").notNull(),
-  idempotency_key: varchar("idempotency_key", { length: 1024 }).notNull(),
-  status: text("status", {
-    enum: ["pending", "running", "success", "failure"],
-  }).notNull(),
-  result: text("result"),
-  result_type: text("result_type", {
-    enum: ["resolution", "rejection"],
-  }),
-  machine_type: text("machine_type"),
-  remaining: integer("remaining").default(1),
-  created_at: timestamp("created_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-  updated_at: timestamp("updated_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-  resulted_at: timestamp("resulted_at", { withTimezone: true }),
-  function_execution_time_ms: integer("function_execution_time_ms"),
-  timing_out_at: timestamp("timed_out_at", { withTimezone: true }).default(
-    sql`now() + interval '300 seconds'`
-  ),
-  timeout_interval_seconds: integer("timeout_interval").default(300),
-  service: varchar("service", { length: 1024 }),
-});
+export const jobs = pgTable(
+  "jobs",
+  {
+    // this column is poorly named, it's actually the job id
+    // TODO: (good-first-issue) rename this column to execution_id
+    id: varchar("id", { length: 1024 }).notNull(),
+    owner_hash: text("owner_hash").notNull(),
+    target_fn: varchar("target_fn", { length: 1024 }).notNull(),
+    target_args: text("target_args").notNull(),
+    idempotency_key: varchar("idempotency_key", { length: 1024 }).notNull(),
+    status: text("status", {
+      enum: ["pending", "running", "success", "failure"],
+    }).notNull(),
+    result: text("result"),
+    result_type: text("result_type", {
+      enum: ["resolution", "rejection"],
+    }),
+    machine_type: text("machine_type"),
+    remaining: integer("remaining").default(1),
+    created_at: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updated_at: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    resulted_at: timestamp("resulted_at", { withTimezone: true }),
+    function_execution_time_ms: integer("function_execution_time_ms"),
+    timing_out_at: timestamp("timed_out_at", { withTimezone: true }).default(
+      sql`now() + interval '300 seconds'`
+    ),
+    timeout_interval_seconds: integer("timeout_interval").default(300),
+    service: varchar("service", { length: 1024 }),
+  },
+  (table) => ({
+    pk: primaryKey(table.owner_hash, table.target_fn, table.idempotency_key),
+  })
+);
 
 export const machines = pgTable("machines", {
   id: varchar("id", { length: 1024 }).primaryKey(),

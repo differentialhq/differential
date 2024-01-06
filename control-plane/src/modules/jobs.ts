@@ -1,9 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
-import { QueryResult } from "pg";
-import * as data from "./data";
-import * as cron from "./cron";
 import { ulid } from "ulid";
-import crypto from "crypto";
+import * as cron from "./cron";
+import * as data from "./data";
 
 export const createJob = async ({
   service,
@@ -11,27 +9,32 @@ export const createJob = async ({
   targetArgs,
   owner,
   pool,
+  idempotencyKey,
 }: {
   service: string | null;
   targetFn: string;
   targetArgs: string;
   owner: { clusterId: string };
   pool?: string;
+  idempotencyKey?: string;
 }) => {
-  const id = `exec-${targetFn.substring(0, 8)}-${ulid()}`;
+  const jobId = idempotencyKey ?? ulid();
 
-  await data.db.insert(data.jobs).values({
-    id,
-    target_fn: targetFn,
-    target_args: targetArgs,
-    idempotency_key: `ik_${crypto.randomBytes(64).toString("hex")}`,
-    status: "pending",
-    owner_hash: owner.clusterId,
-    machine_type: pool,
-    service,
-  });
+  await data.db
+    .insert(data.jobs)
+    .values({
+      id: jobId,
+      target_fn: targetFn,
+      target_args: targetArgs,
+      idempotency_key: jobId,
+      status: "pending",
+      owner_hash: owner.clusterId,
+      machine_type: pool,
+      service,
+    })
+    .onConflictDoNothing();
 
-  return { id };
+  return { id: jobId };
 };
 
 export const nextJobs = async ({

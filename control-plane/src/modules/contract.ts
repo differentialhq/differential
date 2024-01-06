@@ -44,6 +44,7 @@ export const contract = c.router({
       targetArgs: z.string(),
       pool: z.string().optional(),
       service: z.string().optional(),
+      idempotencyKey: z.string().optional(),
     }),
   },
   getJobStatus: {
