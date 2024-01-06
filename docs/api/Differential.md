@@ -3,8 +3,9 @@
 The Differential client. This is the main entry point for using Differential.
 
 Differential client exposes two main methods:
-* `service` - Registers a service with Differential. This will register all functions on the service.
-* `client` - Provides a type safe client for performing calls to a registered service.
+
+- `service` - Registers a service with Differential. This will register all functions on the service.
+- `client` - Provides a type safe client for performing calls to a registered service.
 
 **`Example`**
 
@@ -62,12 +63,12 @@ Initializes a new Differential instance.
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `apiSecret` | `string` | The API Secret for your Differential cluster. You can obtain one from https://api.differential.dev/demo/token. |
-| `options?` | `Object` | Additional options for the Differential client. |
+| Name                      | Type       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| :------------------------ | :--------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apiSecret`               | `string`   | The API Secret for your Differential cluster. You can obtain one from https://api.differential.dev/demo/token.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `options?`                | `Object`   | Additional options for the Differential client.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `options.encryptionKeys?` | `Buffer`[] | An array of encryption keys to use for encrypting and decrypting data. These keys are never sent to the control-plane and allows you to encrypt function arguments and return values. If you do not provide any keys, Differential will not encrypt any data. Encryption has a performance impact on your functions. When you want to rotate keys, you can add new keys to the start of the array. Differential will try to decrypt data with each key in the array until it finds a key that works. Differential will encrypt data with the first key in the array. Each key must be 32 bytes long. |
-| `options.endpoint?` | `string` | The endpoint for the Differential cluster. Defaults to https://api.differential.dev. |
+| `options.endpoint?`       | `string`   | The endpoint for the Differential cluster. Defaults to https://api.differential.dev.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 #### Returns
 
@@ -81,16 +82,16 @@ const d = new Differential("API_SECRET");
 
 // With encryption
 const d = new Differential("API_SECRET", {
- encryptionKeys: [
-   Buffer.from("abcdefghijklmnopqrstuvwxzy123456"), // current key
-   Buffer.from("abcdefghijklmnopqrstuvwxzy123old"), // previous key
- ],
+  encryptionKeys: [
+    Buffer.from("abcdefghijklmnopqrstuvwxzy123456"), // current key
+    Buffer.from("abcdefghijklmnopqrstuvwxzy123old"), // previous key
+  ],
 });
 ```
 
 #### Defined in
 
-[ts-core/src/Differential.ts:409](https://github.com/differentialhq/differential/blob/9dfa183/ts-core/src/Differential.ts#L409)
+[ts-core/src/Differential.ts:409](https://github.com/differentialhq/differential/blob/118e4b5/ts-core/src/Differential.ts#L409)
 
 ## Methods
 
@@ -103,15 +104,15 @@ Waits for the function to complete before returning, and returns the result of t
 
 #### Type parameters
 
-| Name | Type |
-| :------ | :------ |
-| `T` | extends `RegisteredService`\<`any`\> |
+| Name | Type                                 |
+| :--- | :----------------------------------- |
+| `T`  | extends `RegisteredService`\<`any`\> |
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `service` | `T`[``"definition"``][``"name"``] |
+| Name      | Type                            |
+| :-------- | :------------------------------ |
+| `service` | `T`[`"definition"`][``"name"``] |
 
 #### Returns
 
@@ -134,7 +135,7 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[ts-core/src/Differential.ts:541](https://github.com/differentialhq/differential/blob/9dfa183/ts-core/src/Differential.ts#L541)
+[ts-core/src/Differential.ts:541](https://github.com/differentialhq/differential/blob/118e4b5/ts-core/src/Differential.ts#L541)
 
 ▸ **client**\<`T`\>(`service`, `options`): `BackgroundServiceClient`\<`T`\>
 
@@ -143,17 +144,17 @@ Waits for the function to complete before returning, and returns the result of t
 
 #### Type parameters
 
-| Name | Type |
-| :------ | :------ |
-| `T` | extends `RegisteredService`\<`any`\> |
+| Name | Type                                 |
+| :--- | :----------------------------------- |
+| `T`  | extends `RegisteredService`\<`any`\> |
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `service` | `T`[``"definition"``][``"name"``] |
-| `options` | `Object` |
-| `options.background` | ``true`` |
+| Name                 | Type                            |
+| :------------------- | :------------------------------ |
+| `service`            | `T`[`"definition"`][``"name"``] |
+| `options`            | `Object`                        |
+| `options.background` | `true`                          |
 
 #### Returns
 
@@ -176,9 +177,9 @@ console.log(result); // "Hello world"
 
 #### Defined in
 
-[ts-core/src/Differential.ts:545](https://github.com/differentialhq/differential/blob/9dfa183/ts-core/src/Differential.ts#L545)
+[ts-core/src/Differential.ts:545](https://github.com/differentialhq/differential/blob/118e4b5/ts-core/src/Differential.ts#L545)
 
-___
+---
 
 ### service
 
@@ -188,16 +189,16 @@ Registers a service with Differential. This will register all functions on the s
 
 #### Type parameters
 
-| Name | Type |
-| :------ | :------ |
-| `T` | extends `ServiceDefinition`\<`N`\> |
-| `N` | extends `string` |
+| Name | Type                               |
+| :--- | :--------------------------------- |
+| `T`  | extends `ServiceDefinition`\<`N`\> |
+| `N`  | extends `string`                   |
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `service` | `T` | The service definition. |
+| Name      | Type | Description             |
+| :-------- | :--- | :---------------------- |
+| `service` | `T`  | The service definition. |
 
 #### Returns
 
@@ -229,4 +230,4 @@ process.on("beforeExit", async () => {
 
 #### Defined in
 
-[ts-core/src/Differential.ts:517](https://github.com/differentialhq/differential/blob/9dfa183/ts-core/src/Differential.ts#L517)
+[ts-core/src/Differential.ts:517](https://github.com/differentialhq/differential/blob/118e4b5/ts-core/src/Differential.ts#L517)
