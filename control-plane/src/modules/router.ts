@@ -9,6 +9,7 @@ import { contract } from "./contract";
 import * as data from "./data";
 import { createJob, getJobStatus, nextJobs } from "./jobs";
 import * as management from "./management";
+import * as metrics from "./eventAggregation";
 import { writeEvent } from "./events";
 
 const readFile = util.promisify(fs.readFile);
@@ -84,7 +85,7 @@ export const router = s.router(contract, {
       type: "jobResulted",
       tags: {
         clusterId: owner.clusterId,
-        ...(updateResult[0]?.service ? { service: updateResult[0]?.service } : {}),
+        service: updateResult[0]?.service,
         function: updateResult[0]?.function,
         resultType,
       },
@@ -265,4 +266,40 @@ export const router = s.router(contract, {
       body: cluster,
     };
   },
+  getFunctionMetrics: async (request) => {
+    const managementToken = request.headers.authorization.split(" ")[1];
+
+    // TODO: Validate serviceName and functionName
+    // We don't currently store and service/function names in the database to validate against.
+    const { clusterId, serviceName, functionName } = request.params;
+
+    const clusters = await management.getClusters({ managementToken });
+
+    if (!clusters.find((cluster) => cluster.id === clusterId)) {
+      return {
+        status: 404,
+      }
+    }
+
+    // Default to last 24 hours
+    const start = request.query.stop ?? new Date(Date.now() - 86400000);
+    const stop = request.query.start ?? new Date();
+
+    const result = await metrics.getFunctionMetrics(
+      clusterId,
+      serviceName,
+      functionName,
+      start,
+      stop
+    );
+
+    return {
+      status: 200,
+      body: {
+        start: start,
+        stop: stop,
+        ...result,
+      }
+    }
+  }
 });

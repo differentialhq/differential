@@ -39,7 +39,7 @@ export const createJob = async ({
     type: "jobCreated",
     tags: {
       clusterId: owner.clusterId,
-      ...(service ? { service } : {}),
+      service: service,
       function: targetFn,
     },
     stringFields: {
