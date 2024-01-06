@@ -1,11 +1,12 @@
 import { createJob, nextJobs } from "./jobs";
 
-const mockOwner = { clusterId: "testClusterId" };
 const mockTargetFn = "testTargetFn";
 const mockTargetArgs = "testTargetArgs";
 
 describe("createJob", () => {
   it("should create a job", async () => {
+    const mockOwner = { clusterId: Math.random().toString() };
+
     const result = await createJob({
       targetFn: mockTargetFn,
       targetArgs: mockTargetArgs,
@@ -24,8 +25,8 @@ describe("nextJobs", () => {
 
   it("should be able to return spefic jobs per service", async () => {
     const fnName = `testfn${Date.now()}`;
-
     const serviceName = `testService${Date.now()}`;
+    const mockOwner = { clusterId: Math.random().toString() };
 
     const { id } = await createJob({
       targetFn: fnName,
@@ -51,5 +52,42 @@ describe("nextJobs", () => {
         targetFn: fnName,
       },
     ]);
+  });
+
+  it("should respect idempotency", async () => {
+    const ik = Math.random().toString();
+    const owner = { clusterId: Math.random().toString() };
+    const service = "minimal";
+    const targetFn = "foo";
+
+    const { id: id1 } = await createJob({
+      targetFn,
+      targetArgs: "1",
+      owner,
+      service,
+      idempotencyKey: ik,
+    });
+
+    const { id: id2 } = await createJob({
+      targetFn,
+      targetArgs: "2",
+      owner,
+      service,
+      idempotencyKey: ik,
+    });
+
+    expect(id1).toBe(id2);
+
+    const result = await nextJobs({
+      owner,
+      limit: 10,
+      machineId: mockMachineId,
+      ip: mockIp,
+      service,
+    });
+
+    expect(result.length).toBe(1);
+    expect(result[0].targetFn).toBe(targetFn);
+    expect(result[0].targetArgs).toBe("1");
   });
 });

@@ -18,20 +18,23 @@ export const createJob = async ({
   pool?: string;
   idempotencyKey?: string;
 }) => {
-  const id = `exec-${targetFn.substring(0, 8)}-${ulid()}`;
+  const jobId = idempotencyKey ?? ulid();
 
-  await data.db.insert(data.jobs).values({
-    id,
-    target_fn: targetFn,
-    target_args: targetArgs,
-    idempotency_key: idempotencyKey ?? id,
-    status: "pending",
-    owner_hash: owner.clusterId,
-    machine_type: pool,
-    service,
-  });
+  await data.db
+    .insert(data.jobs)
+    .values({
+      id: jobId,
+      target_fn: targetFn,
+      target_args: targetArgs,
+      idempotency_key: jobId,
+      status: "pending",
+      owner_hash: owner.clusterId,
+      machine_type: pool,
+      service,
+    })
+    .onConflictDoNothing();
 
-  return { id };
+  return { id: jobId };
 };
 
 export const nextJobs = async ({

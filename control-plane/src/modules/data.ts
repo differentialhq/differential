@@ -56,7 +56,7 @@ export const jobs = pgTable(
   {
     // this column is poorly named, it's actually the job id
     // TODO: (good-first-issue) rename this column to execution_id
-    id: varchar("id", { length: 1024 }),
+    id: varchar("id", { length: 1024 }).notNull(),
     owner_hash: text("owner_hash").notNull(),
     target_fn: varchar("target_fn", { length: 1024 }).notNull(),
     target_args: text("target_args").notNull(),
@@ -85,7 +85,7 @@ export const jobs = pgTable(
     service: varchar("service", { length: 1024 }),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.target_fn, table.idempotency_key] }),
+    pk: primaryKey(table.owner_hash, table.target_fn, table.idempotency_key),
   })
 );
 

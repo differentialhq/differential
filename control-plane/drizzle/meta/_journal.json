@@ -134,6 +134,13 @@
       "when": 1703894615082,
       "tag": "0019_early_silver_sable",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "5",
+      "when": 1704504083426,
+      "tag": "0020_third_lockjaw",
+      "breakpoints": true
     }
   ]
 }
