@@ -41,7 +41,6 @@ export const extractDifferentialConfig = (
 /**
  * This is a utility function that makes a function in a service definition idempotent.
  *
- *
  * @param fn The function to make idempotent
  * @returns The same function with the same parameters, but with an additional parameter at the end of the function call that is the idempotency key
  * @example

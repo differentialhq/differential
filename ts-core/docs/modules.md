@@ -5,3 +5,7 @@
 ### Classes
 
 - [Differential](classes/Differential.md)
+
+### Functions
+
+- [idempotent](functions/idempotent.md)

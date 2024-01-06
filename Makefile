@@ -7,6 +7,6 @@ docs:
 	npm run docs
 
 	cd docs && \
-	cp ../ts-core/docs/classes/* ./api
+	cp ../ts-core/docs/* ./api
 
 	@echo "Done"
