@@ -7,7 +7,7 @@
     "test": "jest ./src --runInBand",
     "build": "make update-contract && tsc",
     "clean": "rm -rf ./bin",
-    "docs": "typedoc --plugin typedoc-plugin-markdown --out docs src/index.ts --excludePrivate --hideBreadcrumbs --allReflectionsHaveOwnDocument"
+    "docs": "typedoc --plugin typedoc-plugin-markdown --out docs --excludePrivate --hideBreadcrumbs --allReflectionsHaveOwnDocument"
   },
   "author": "",
   "license": "ISC",

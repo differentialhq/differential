@@ -54,4 +54,4 @@ assert.deepEqual(order === order2);
 
 #### Defined in
 
-[ts-core/src/functions.ts:75](https://github.com/differentialHQ/differential/blob/64eeed9/ts-core/src/functions.ts#L75)
+[ts-core/src/functions.ts:75](https://github.com/differentialHQ/differential/blob/b512ea9/ts-core/src/functions.ts#L75)

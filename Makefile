@@ -7,6 +7,7 @@ docs:
 	npm run docs
 
 	cd docs && \
-	cp -r ../ts-core/docs/* ./api
+	cp -r ../ts-core/docs/* ./api && \
+	rm ./api/modules.md
 
 	@echo "Done"
