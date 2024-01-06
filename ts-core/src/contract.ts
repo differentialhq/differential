@@ -190,6 +190,20 @@ export const contract = c.router({
             functionExecutionTime: z.number().nullable(),
           })
         ),
+        services: z.array(
+          z.object({
+            name: z.string(),
+            functions: z.array(
+              z.object({
+                name: z.string(),
+                totalSuccess: z.number(),
+                totalFailure: z.number(),
+                avgExecutionTimeSuccess: z.number().nullable(),
+                avgExecutionTimeFailure: z.number().nullable(),
+              })
+            ),
+          })
+        ),
       }),
       401: z.undefined(),
       404: z.undefined(),
@@ -199,3 +213,4 @@ export const contract = c.router({
     }),
   },
 });
+
