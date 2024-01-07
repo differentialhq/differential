@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.757827019313">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.757907118343">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
 
     <!-- Primary Meta Tags -->
-    <title>API Reference</title>
-    <meta name="title" content="API Reference">
-    <meta name="description" content="This is the official documentation for Differential SDK for Typescript. Package source code is available ">
+    <title>Typescript SDK</title>
+    <meta name="title" content="Typescript SDK">
+    <meta name="description" content="This is the official Differential SDK for Typescript.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://docs.differential.dev/api/">
@@ -19,23 +19,23 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://docs.differential.dev/api/">
-    <meta property="og:title" content="API Reference">
-    <meta property="og:description" content="This is the official documentation for Differential SDK for Typescript. Package source code is available ">
+    <meta property="og:title" content="Typescript SDK">
+    <meta property="og:description" content="This is the official Differential SDK for Typescript.">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://docs.differential.dev/api/">
-    <meta property="twitter:title" content="API Reference">
-    <meta property="twitter:description" content="This is the official documentation for Differential SDK for Typescript. Package source code is available ">
+    <meta property="twitter:title" content="Typescript SDK">
+    <meta property="twitter:description" content="This is the official Differential SDK for Typescript.">
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../resources/css/retype.css?v=3.5.0.757827019313" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=3.5.0.757907118343" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.5.0.757827019313" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=3.5.0.757907118343" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.5.0.757827019313" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.5.0.757827019313" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.5.0.757907118343" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.5.0.757907118343" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -185,26 +185,53 @@
                                 <!-- Rendered if sidebar right is enabled -->
                                 <div id="docs-sidebar-right-toggle"></div>
                                 <!-- Page content  -->
-<doc-anchor-target id="api-reference" class="break-words">
+<p align="center">
+  <img src="https://cdn.differential.dev/logo.png" width="200" style="border-radius: 10px" />
+</p>
+<doc-anchor-target id="typescript-sdk" class="break-words">
     <h1>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#api-reference">#</doc-anchor-trigger>
-        <span>API Reference</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#typescript-sdk">#</doc-anchor-trigger>
+        <span>Typescript SDK</span>
     </h1>
 </doc-anchor-target>
-<p>This is the official documentation for Differential SDK for Typescript. Package source code is available <a href="https://github.com/differentialhq/differential/tree/main/ts-core">here</a>.</p>
+<p>This is the official Differential SDK for Typescript.</p>
 <doc-anchor-target id="installation">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#installation">#</doc-anchor-trigger>
         <span>Installation</span>
     </h2>
 </doc-anchor-target>
+<doc-anchor-target id="npm">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#npm">#</doc-anchor-trigger>
+        <span>npm</span>
+    </h3>
+</doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-bash"><code v-pre class="language-bash">npm install @differentialhq/core</code></pre>
 </doc-codeblock></div>
-<doc-anchor-target id="basic-usage">
+<doc-anchor-target id="yarn">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#yarn">#</doc-anchor-trigger>
+        <span>yarn</span>
+    </h3>
+</doc-anchor-target>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-bash"><code v-pre class="language-bash">yarn add @differentialhq/core</code></pre>
+</doc-codeblock></div>
+<doc-anchor-target id="pnpm">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#pnpm">#</doc-anchor-trigger>
+        <span>pnpm</span>
+    </h3>
+</doc-anchor-target>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-bash"><code v-pre class="language-bash">pnpm add @differentialhq/core</code></pre>
+</doc-codeblock></div>
+<doc-anchor-target id="quick-start">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#basic-usage">#</doc-anchor-trigger>
-        <span>Basic Usage</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#quick-start">#</doc-anchor-trigger>
+        <span>Quick Start</span>
     </h2>
 </doc-anchor-target>
 <doc-anchor-target id="1-initializing-differential">
@@ -219,7 +246,8 @@
 
 import { Differential } from &quot;@differentialhq/core&quot;;
 
-// Initialize Differential with your API secret
+// Initialize Differential with your API secret. 
+// Get yours at https://console.differential.dev.
 export const d = new Differential(&quot;YOUR_API_SECRET&quot;);</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="2-hello-world-service">
@@ -259,18 +287,16 @@ export const helloWorldService = d.service({
         <span>3. Calling the Service</span>
     </h3>
 </doc-anchor-target>
-<p>Use the typeof generic to generate a typesafe client for calling the service. This can be done in any file where you need to call the service, like a test file or another service file.</p>
+<p>When calling the service, use the typeof generic to ensure type safety. This can be done in any file where you need to call the service, like a test file or another service file.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-typescript"><code v-pre class="language-typescript">// service-consumer.ts
 
 import { d } from &quot;./d&quot;;
 import type { helloWorldService } from &quot;./service&quot;;
 
-// Generate a typesafe client for calling the `helloWorld` service
 const client = d.client&lt;typeof helloWorldService&gt;(&quot;helloWorld&quot;);
 
 async function test() {
-  // Call the `sayHello` function on the `helloWorld` service
   const greeting = await client.sayHello(&quot;World&quot;);
   console.log(greeting); // Outputs: Hello, World!
 }
@@ -291,6 +317,26 @@ test();</code></pre>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-bash"><code v-pre class="language-bash">tsx service-consumer.ts</code></pre>
 </doc-codeblock></div>
+<doc-anchor-target id="documentation">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#documentation">#</doc-anchor-trigger>
+        <span>Documentation</span>
+    </h2>
+</doc-anchor-target>
+<ul>
+<li><a href="https://docs.differential.dev/">Differential documentation</a> contains all the information you need to get started with Differential.</li>
+</ul>
+<doc-anchor-target id="examples">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#examples">#</doc-anchor-trigger>
+        <span>Examples</span>
+    </h2>
+</doc-anchor-target>
+<ul>
+<li><a href="./src/tests/monolith/">Monolith</a> contains an example of a monolith application broken into multiple services.</li>
+<li><a href="./src/tests/e2ee/">End to end encryption</a> contains an example of how to use Differential&#x27;s end to end encryption.</li>
+<li><a href="./src/tests/idempotency/">Idempotency</a> contains an example of how to use Differential&#x27;s idempotency.</li>
+</ul>
 
                                 
                                 <!-- Required only on API pages -->
@@ -310,7 +356,7 @@ test();</code></pre>
                                     </div>
                             
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../api/differential/">
+                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../api/classes/differential/">
                                             <span>
                                                 <span class="block text-xs font-normal text-right text-gray-400 dark:text-dark-400">Next</span>
                                                 <span class="block mt-1">Class: Differential</span>
@@ -357,6 +403,6 @@ test();</code></pre>
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": "API Reference", level: 1, icon: "file", hasPrism: true, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": "Typescript SDK", level: 1, icon: "file", hasPrism: true, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
 </body>
 </html>
