@@ -44,7 +44,7 @@ jobs:
         run: |
           make docs
           git add .
-          git commit -m "chore: Update documentation [skip ci]"
+          git commit -m "chore: Update documentation [skip ci]" || true # ignore if there's nothing to commit
           git push origin main
 
       - name: Build packages
