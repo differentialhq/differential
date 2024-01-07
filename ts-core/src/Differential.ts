@@ -1,10 +1,11 @@
-import { initClient } from "@ts-rest/core";
+import { With, initClient } from "@ts-rest/core";
 import debug from "debug";
 import { contract } from "./contract";
 import { pack, unpack } from "./serialize";
 import { AsyncFunction } from "./types";
 import { Result, TaskQueue } from "./task-queue";
 import { DifferentialError } from "./errors";
+import { extractDifferentialConfig } from "./functions";
 
 const log = debug("differential:client");
 
@@ -649,12 +650,16 @@ export class Differential {
   ) {
     log("Creating job", { service, fn, args });
 
+    const { differentialConfig, originalArgs } =
+      extractDifferentialConfig(args);
+
     return await this.controlPlaneClient
       .createJob({
         body: {
           service,
           targetFn: fn as string,
-          targetArgs: pack(args),
+          targetArgs: pack(originalArgs),
+          idempotencyKey: differentialConfig.$idempotencyKey,
         },
         headers: {
           authorization: this.authHeader,

@@ -2,14 +2,28 @@
   <img src="https://cdn.differential.dev/logo.png" width="200" style="border-radius: 10px" />
 </p>
 
-# Differential SDK for Typescript
+# Typescript SDK
 
 This is the official Differential SDK for Typescript.
 
 ## Installation
 
+### npm
+
 ```bash
 npm install @differentialhq/core
+```
+
+### yarn
+
+```bash
+yarn add @differentialhq/core
+```
+
+### pnpm
+
+```bash
+pnpm add @differentialhq/core
 ```
 
 ## Quick Start
@@ -23,7 +37,8 @@ Create a file named d.ts which will be used to initialize Differential. This fil
 
 import { Differential } from "@differentialhq/core";
 
-// Initialize Differential with your API secret
+// Initialize Differential with your API secret. 
+// Get yours at https://console.differential.dev.
 export const d = new Differential("YOUR_API_SECRET");
 ```
 
@@ -97,3 +112,5 @@ tsx service-consumer.ts
 ## Examples
 
 - [Monolith](./src/tests/monolith/) contains an example of a monolith application broken into multiple services.
+- [End to end encryption](./src/tests/e2ee/) contains an example of how to use Differential's end to end encryption.
+- [Idempotency](./src/tests/idempotency/) contains an example of how to use Differential's idempotency.
