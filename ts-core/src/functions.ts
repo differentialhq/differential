@@ -48,7 +48,8 @@ export const extractDifferentialConfig = (
  * // src/services/order.ts
  *
  * const chargeOrder = async (order: Order) => {
- *   await chargeCustomer(order.customerId, order.amount);
+ *   const charge = await chargeCustomer(order.customerId, order.amount);
+ *   return charge;
  * }
  *
  * export const orderService = d.service({
@@ -63,13 +64,13 @@ export const extractDifferentialConfig = (
  *
  * // const order = await orderClient.chargeOrder(order); // ⛔️ Error: Expected 2 arguments, but got 1.
  *
- * const order = await orderClient.chargeOrder(order, { $idempotencyKey: order.id });
+ * const charge = await orderClient.chargeOrder(order, { $idempotencyKey: order.id });
  *
  * // if you call the function again with the same idempotency key, previous result will be returned
  *
- * const order2 = await orderClient.chargeOrder(order, { $idempotencyKey: order.id });
+ * const charge2 = await orderClient.chargeOrder(order, { $idempotencyKey: order.id });
  *
- * assert.deepEqual(order === order2);
+ * assert.deepEqual(charge === charge2);
  * ```
  */
 export const idempotent = <T extends AsyncFunction>(
