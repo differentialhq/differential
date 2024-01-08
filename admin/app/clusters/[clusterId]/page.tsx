@@ -2,10 +2,10 @@ import { client } from "@/client/client";
 import { auth } from "@clerk/nextjs";
 import { SecretKeyReveal } from "./SecretKeyReveal";
 import { Table } from "flowbite-react";
-import { DataTable } from "./DataTable";
-import { LiveTables } from "./LiveTables";
+import { DataTable } from "../../../components/ui/DataTable";
+import { ClusterLiveTables } from "./ClusterLiveTables";
 
-export default async function Page({ params }: { params: { id: string } }) {
+export default async function Page({ params }: { params: { clusterId: string } }) {
   const { getToken } = await auth();
 
   const token = await getToken();
@@ -19,7 +19,7 @@ export default async function Page({ params }: { params: { id: string } }) {
       authorization: `Bearer ${token}`,
     },
     params: {
-      clusterId: params.id,
+      clusterId: params.clusterId,
     },
   });
 
@@ -31,7 +31,7 @@ export default async function Page({ params }: { params: { id: string } }) {
     <section className="flex w-full h-full px-8 mt-8 mb-2 flex-col">
       <div className="flex flex-col">
         <p className="text-gray-400">Differential Cluster</p>
-        <h1 className="text-2xl font-mono">{params.id}</h1>
+        <h1 className="text-2xl font-mono">{params.clusterId}</h1>
       </div>
       <div className="mt-12">
         <h2 className="text-xl">Secret Keys</h2>
@@ -42,7 +42,7 @@ export default async function Page({ params }: { params: { id: string } }) {
         <SecretKeyReveal secretKey={clusterResult.body.apiSecret} />
       </div>
 
-      <LiveTables token={token} clusterId={params.id} />
+      <ClusterLiveTables token={token} clusterId={params.clusterId} />
     </section>
   );
 }

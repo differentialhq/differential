@@ -201,7 +201,9 @@ export const contract = c.router({
           z.object({
             id: z.string(),
             targetFn: z.string(),
+            service: z.string().nullable(),
             status: z.string(),
+            resultType: z.string().nullable(),
             createdAt: z.date(),
             functionExecutionTime: z.number().nullable(),
           })

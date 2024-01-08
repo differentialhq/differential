@@ -4,8 +4,10 @@ import { client } from "@/client/client";
 import { formatRelative } from "date-fns";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { DataTable } from "./DataTable";
+import { DataTable } from "../../../components/ui/DataTable";
 import { useAuth } from "@clerk/nextjs";
+import { Card } from "flowbite-react";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function LiveGreenCircle() {
   // a green circle that is green when the machine is live
@@ -20,7 +22,7 @@ function DeadGrayCircle() {
   return <div className="w-4 h-4 rounded-full bg-gray-500"></div>;
 }
 
-export function LiveTables({
+export function ClusterLiveTables({
   token,
   clusterId,
 }: {
@@ -97,6 +99,45 @@ export function LiveTables({
   return (
     <div>
       <div className="mt-12">
+        <h2 className="text-xl mb-4">Registered Services</h2>
+        {data.services.length > 0 && (
+          <p className="text-gray-400 mb-8">
+            The following services have been registered in the cluster. 
+            Select for more details.
+          </p>
+        )}
+
+        <div className="flex flex-wrap">
+          {data.services
+            ?.sort((a, b) => {
+              return (
+                b.functions.length -
+                a.functions.length
+              );
+            })
+            .map((service, i) => (
+              <a
+                href={`/clusters/${clusterId}/services/${service.name}`}
+                className="mr-4 mb-4 w-96"
+                key={i}
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{service.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p>
+                      {`Registered Functions: ${service.functions.length}`}
+                    </p>
+                  </CardContent>
+                </Card>
+              </a>
+            ))}
+        </div>
+
+
+      </div>
+      <div className="mt-12">
         <h2 className="text-xl mb-4">Machine Status</h2>
         {data.machines.length > 0 && (
           <p className="text-gray-400 mb-8">
@@ -148,67 +189,6 @@ export function LiveTables({
             },
           ]}
         />
-      </div>
-      <div className="mt-12">
-        <h2 className="text-xl mb-4">Live function calls</h2>
-        {data.jobs.length > 0 && (
-          <p className="text-gray-400 mb-8">
-            These are the last {data.jobs.length} function calls that have been
-            made to the cluster.
-          </p>
-        )}
-        <DataTable
-          data={data.jobs
-            .sort((a, b) => {
-              return a.createdAt > b.createdAt ? -1 : 1;
-            })
-            .map((s) => ({
-              "Execution id": s.id,
-              Function: s.targetFn,
-              Status: s.status,
-              Called: formatRelative(new Date(s.createdAt), new Date()),
-              "Execution Time":
-                s.functionExecutionTime === null
-                  ? "N/A"
-                  : `${s.functionExecutionTime}ms`,
-            }))}
-          noDataMessage="No services with function calls have been detected in the cluster lately."
-        />
-      </div>
-
-      <div className="mt-12">
-        {data.services.map((service) => (
-          <div className="mt-12" key={service.name}>
-            <h1 className="text-lg">Service: {service.name}</h1>
-            <p className="text-gray-400 mb-8 mt-2">
-              These are the {service.functions.length} functions registered on
-              the {service.name} service.
-            </p>
-            <DataTable
-              data={service.functions.map((s) => ({
-                Function: s.name,
-                "Total Requests": s.totalSuccess + s.totalFailure,
-                "Failure Rate": `${(
-                  (s.totalFailure / (s.totalSuccess + s.totalFailure)) *
-                  100
-                ).toFixed(2)}%`,
-                "Average Execution Time (Success)": `${
-                  s.avgExecutionTimeSuccess === undefined ||
-                  s.avgExecutionTimeSuccess === null
-                    ? "N/A"
-                    : `${s.avgExecutionTimeSuccess?.toFixed(2)}ms`
-                }`,
-                "Average Execution Time (Failure)": `${
-                  s.avgExecutionTimeFailure === undefined ||
-                  s.avgExecutionTimeFailure === null
-                    ? "N/A"
-                    : `${s.avgExecutionTimeFailure?.toFixed(2)}ms`
-                }`,
-              }))}
-              noDataMessage="No services have been detected in the cluster lately."
-            />
-          </div>
-        ))}
       </div>
     </div>
   );
