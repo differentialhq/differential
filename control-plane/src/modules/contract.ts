@@ -228,4 +228,36 @@ export const contract = c.router({
       clusterId: z.string(),
     }),
   },
+  getFunctionMetrics: {
+    method: "GET",
+    path: "/clusters/:clusterId/services/:serviceName/functions/:functionName/metrics",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.object({
+        start: z.date(),
+        stop: z.date(),
+        success: z.object({
+          count: z.number(),
+          avgExecutionTime: z.number().nullable(),
+        }),
+        failure: z.object({
+          count: z.number(),
+          avgExecutionTime: z.number().nullable(),
+        }),
+      }),
+      401: z.undefined(),
+      404: z.undefined(),
+    },
+    pathParams: z.object({
+      clusterId: z.string(),
+      serviceName: z.string(),
+      functionName: z.string(),
+    }),
+    query: z.object({
+      start: z.date().optional(),
+      stop: z.date().optional(),
+    })
+  },
 });

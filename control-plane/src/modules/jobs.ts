@@ -3,6 +3,7 @@ import { ulid } from "ulid";
 import * as cron from "./cron";
 import * as data from "./data";
 import { backgrounded } from "./util";
+import { writeEvent } from "./events";
 
 type ServiceDefinition = {
   functions: Array<{
@@ -47,6 +48,18 @@ export const createJob = async ({
     })
     .onConflictDoNothing();
 
+  writeEvent({
+    type: "jobCreated",
+    tags: {
+      clusterId: owner.clusterId,
+      service: service,
+      function: targetFn,
+    },
+    stringFields: {
+      jobId: jobId,
+    },
+  });
+
   return { id: jobId };
 };
 
@@ -74,6 +87,14 @@ export const nextJobs = async ({
   if (definition) {
     storeServiceDefinitionBG(service, definition, owner);
   }
+
+  writeEvent({
+    type: "machinePing",
+    tags: {
+      clusterId: owner.clusterId,
+      machineId,
+    },
+  });
 
   if (results.rowCount === 0) {
     return [];
