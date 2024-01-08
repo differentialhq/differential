@@ -137,10 +137,10 @@ describe("nextJobs", () => {
       definition,
     });
 
-    const stored = await getServiceDefinition(service, owner);
-
     // delay to allow for background write
     await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const stored = await getServiceDefinition(service, owner);
 
     expect(stored.definition).toStrictEqual(definition);
   });

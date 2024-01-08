@@ -1,11 +1,11 @@
-import { With, initClient } from "@ts-rest/core";
+import { initClient } from "@ts-rest/core";
 import debug from "debug";
 import { contract } from "./contract";
-import { pack, unpack } from "./serialize";
-import { AsyncFunction } from "./types";
-import { Result, TaskQueue } from "./task-queue";
 import { DifferentialError } from "./errors";
 import { extractDifferentialConfig, isFunctionIdempotent } from "./functions";
+import { pack, unpack } from "./serialize";
+import { Result, TaskQueue } from "./task-queue";
+import { AsyncFunction } from "./types";
 
 const log = debug("differential:client");
 
