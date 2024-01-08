@@ -13,7 +13,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-export const DataTable = <T = any,>({
+export const DataTable = <T = any>({
   data,
   noDataMessage = "No data present",
   columnDef,

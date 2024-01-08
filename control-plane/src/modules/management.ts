@@ -83,6 +83,8 @@ export const getClusterDetailsForUser = async ({
       jobs: Array<{
         id: string;
         targetFn: string;
+        service: string | null;
+        resultType: string | null;
         status: string;
         createdAt: Date;
         functionExecutionTime: number | null;
@@ -141,7 +143,9 @@ export const getClusterDetailsForUser = async ({
     .select({
       id: data.jobs.id,
       targetFn: data.jobs.target_fn,
+      service: data.jobs.service,
       status: data.jobs.status,
+      resultType: data.jobs.result_type,
       createdAt: data.jobs.created_at,
       functionExecutionTime: data.jobs.function_execution_time_ms,
     })
