@@ -1,16 +1,31 @@
-import { createJob, nextJobs } from "./jobs";
+import { createJob, getServiceDefinition, nextJobs } from "./jobs";
+import * as data from "./data";
 
 const mockTargetFn = "testTargetFn";
 const mockTargetArgs = "testTargetArgs";
 
+const createOwner = async () => {
+  const clusterId = Math.random().toString();
+
+  await data.db
+    .insert(data.clusters)
+    .values({
+      id: clusterId,
+      api_secret: "test",
+    })
+    .execute();
+
+  return { clusterId };
+};
+
 describe("createJob", () => {
   it("should create a job", async () => {
-    const mockOwner = { clusterId: Math.random().toString() };
+    const owner = await createOwner();
 
     const result = await createJob({
       targetFn: mockTargetFn,
       targetArgs: mockTargetArgs,
-      owner: mockOwner,
+      owner,
       service: "testService",
     });
 
@@ -23,20 +38,25 @@ describe("nextJobs", () => {
   const mockIp = "127.0.0.1";
   const mockLimit = 5;
 
+  let owner: { clusterId: string };
+
+  beforeAll(async () => {
+    owner = await createOwner();
+  });
+
   it("should be able to return spefic jobs per service", async () => {
     const fnName = `testfn${Date.now()}`;
     const serviceName = `testService${Date.now()}`;
-    const mockOwner = { clusterId: Math.random().toString() };
 
     const { id } = await createJob({
       targetFn: fnName,
       targetArgs: mockTargetArgs,
-      owner: mockOwner,
+      owner,
       service: serviceName,
     });
 
     const result = await nextJobs({
-      owner: mockOwner,
+      owner,
       limit: mockLimit,
       machineId: mockMachineId,
       ip: mockIp,
@@ -89,5 +109,36 @@ describe("nextJobs", () => {
     expect(result.length).toBe(1);
     expect(result[0].targetFn).toBe(targetFn);
     expect(result[0].targetArgs).toBe("1");
+  });
+
+  it("should persist the service definition", async () => {
+    const service = `service-def`;
+
+    const definition = {
+      functions: [
+        {
+          name: Math.random().toString(),
+          idempotent: true,
+          rate: {
+            per: "minute" as const,
+            limit: 1000,
+          },
+          cacheTTL: 1000,
+        },
+      ],
+    };
+
+    await nextJobs({
+      owner,
+      limit: mockLimit,
+      machineId: mockMachineId,
+      ip: mockIp,
+      service,
+      definition,
+    });
+
+    const stored = await getServiceDefinition(service, owner);
+
+    expect(stored.definition).toStrictEqual(definition);
   });
 });
