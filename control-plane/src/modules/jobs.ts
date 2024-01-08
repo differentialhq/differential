@@ -2,7 +2,20 @@ import { and, eq, sql } from "drizzle-orm";
 import { ulid } from "ulid";
 import * as cron from "./cron";
 import * as data from "./data";
+import { backgrounded } from "./util";
 import { writeEvent } from "./events";
+
+type ServiceDefinition = {
+  functions: Array<{
+    name: string;
+    idempotent?: boolean;
+    rate?: {
+      per: "minute" | "hour";
+      limit: number;
+    };
+    cacheTTL?: number;
+  }>;
+};
 
 export const createJob = async ({
   service,
@@ -56,42 +69,32 @@ export const nextJobs = async ({
   limit,
   machineId,
   ip,
+  definition,
 }: {
-  service: string | null;
+  service: string;
   owner: { clusterId: string };
   limit: number;
   machineId: string;
   ip: string;
+  definition?: ServiceDefinition;
 }) => {
   const results = await data.db.execute(
     sql`UPDATE jobs SET status = 'running', remaining = remaining - 1 WHERE id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining > 0)) AND owner_hash = ${owner.clusterId} AND service = ${service} LIMIT ${limit}) RETURNING *`
   );
+
+  storeMachineInfoBG(machineId, ip, owner);
+
+  if (definition) {
+    storeServiceDefinitionBG(service, definition, owner);
+  }
 
   writeEvent({
     type: "machinePing",
     tags: {
       clusterId: owner.clusterId,
       machineId,
-    }
+    },
   });
-
-  // store machine info. needs to be backgrounded later
-  await data.db
-    .insert(data.machines)
-    .values({
-      id: machineId,
-      last_ping_at: new Date(),
-      ip,
-      cluster_id: owner.clusterId,
-    })
-    .onConflictDoUpdate({
-      target: data.machines.id,
-      set: {
-        last_ping_at: new Date(),
-        ip,
-        cluster_id: owner.clusterId,
-      },
-    });
 
   if (results.rowCount === 0) {
     return [];
@@ -130,6 +133,70 @@ export const getJobStatus = async ({
 
   return job;
 };
+
+const storeMachineInfoBG = backgrounded(async function storeMachineInfo(
+  machineId: string,
+  ip: string,
+  owner: { clusterId: string }
+) {
+  await data.db
+    .insert(data.machines)
+    .values({
+      id: machineId,
+      last_ping_at: new Date(),
+      ip,
+      cluster_id: owner.clusterId,
+    })
+    .onConflictDoUpdate({
+      target: data.machines.id,
+      set: {
+        last_ping_at: new Date(),
+        ip,
+      },
+      where: eq(data.machines.cluster_id, owner.clusterId),
+    });
+});
+
+const storeServiceDefinitionBG = backgrounded(
+  async function storeServiceDefinition(
+    service: string,
+    definition: ServiceDefinition,
+    owner: { clusterId: string }
+  ) {
+    await data.db
+      .insert(data.services)
+      .values({
+        service,
+        definition,
+        cluster_id: owner.clusterId,
+      })
+      .onConflictDoUpdate({
+        target: [data.services.service, data.services.cluster_id],
+        set: {
+          definition,
+        },
+      });
+  }
+);
+
+export async function getServiceDefinition(
+  service: string,
+  owner: { clusterId: string }
+) {
+  const [serviceDefinition] = await data.db
+    .select({
+      definition: data.services.definition,
+    })
+    .from(data.services)
+    .where(
+      and(
+        eq(data.services.service, service),
+        eq(data.services.cluster_id, owner.clusterId)
+      )
+    );
+
+  return serviceDefinition;
+}
 
 export async function selfHealJobs() {
   await data.db.execute(

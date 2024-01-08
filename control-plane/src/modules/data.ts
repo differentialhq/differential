@@ -111,6 +111,20 @@ export const clusters = pgTable("clusters", {
   owner_id: varchar("owner_id"),
 });
 
+export const services = pgTable(
+  "services",
+  {
+    cluster_id: varchar("cluster_id")
+      .references(() => clusters.id)
+      .notNull(),
+    service: varchar("service", { length: 1024 }).notNull(),
+    definition: json("definition").notNull(),
+  },
+  (table) => ({
+    pk: primaryKey(table.cluster_id, table.service),
+  })
+);
+
 export const db = drizzle(pool);
 
 export const isAlive = async () => {

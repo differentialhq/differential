@@ -141,6 +141,20 @@
       "when": 1704504083426,
       "tag": "0020_third_lockjaw",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1704622947687,
+      "tag": "0021_brave_eternals",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "5",
+      "when": 1704666439069,
+      "tag": "0022_bizarre_princess_powerful",
+      "breakpoints": true
     }
   ]
 }

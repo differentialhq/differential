@@ -42,7 +42,7 @@ export const router = s.router(contract, {
         limit,
         machineId: request.headers["x-machine-id"],
         ip: request.request.ip,
-        service: request.query.service || null,
+        service: request.query.service,
       });
 
       if (jobs.length === 0) {
