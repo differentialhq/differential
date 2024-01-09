@@ -1,11 +1,11 @@
-import { With, initClient } from "@ts-rest/core";
+import { initClient } from "@ts-rest/core";
 import debug from "debug";
 import { contract } from "./contract";
-import { pack, unpack } from "./serialize";
-import { AsyncFunction } from "./types";
-import { Result, TaskQueue } from "./task-queue";
 import { DifferentialError } from "./errors";
-import { extractDifferentialConfig } from "./functions";
+import { extractDifferentialConfig, isFunctionIdempotent } from "./functions";
+import { pack, unpack } from "./serialize";
+import { Result, TaskQueue } from "./task-queue";
+import { AsyncFunction } from "./types";
 
 const log = debug("differential:client");
 
@@ -104,8 +104,8 @@ const pollForJob = async (
 
 type ServiceRegistryFunction = {
   fn: AsyncFunction;
-  serviceName: string;
-  options?: {};
+  name: string;
+  idempotent: boolean;
 };
 
 const functionRegistry: { [key: string]: ServiceRegistryFunction } = {};
@@ -130,7 +130,7 @@ class PollingAgent {
     }
   ) {}
 
-  pollForNextJob = async (): Promise<
+  private pollForNextJob = async (): Promise<
     | {
         jobCount: number;
       }
@@ -156,6 +156,10 @@ class PollingAgent {
               (this.pollState.concurrency - this.pollState.current) / 2
             ),
             service: this.service.name,
+            // TODO: send this conditionally, only when it has changed
+            functions: Object.values(functionRegistry).map(
+              ({ name, idempotent }) => ({ name, idempotent })
+            ),
           },
           headers: {
             authorization: this.authHeader,
@@ -486,7 +490,8 @@ export class Differential {
 
     functionRegistry[name] = {
       fn: fn,
-      serviceName,
+      name: serviceName,
+      idempotent: isFunctionIdempotent(fn),
     };
   }
 
@@ -595,7 +600,7 @@ export class Differential {
    */
   async call<
     T extends RegisteredService<any>,
-    U extends keyof T["definition"]["functions"]
+    U extends keyof T["definition"]["functions"],
   >(
     service: T["definition"]["name"],
     fn: U,
@@ -628,7 +633,7 @@ export class Differential {
    */
   async background<
     T extends RegisteredService<any>,
-    U extends keyof T["definition"]["functions"]
+    U extends keyof T["definition"]["functions"],
   >(
     service: T["definition"]["name"],
     fn: U,
@@ -642,7 +647,7 @@ export class Differential {
 
   private async createJob<
     T extends RegisteredService<any>,
-    U extends keyof T["definition"]["functions"]
+    U extends keyof T["definition"]["functions"],
   >(
     service: T["definition"]["name"],
     fn: string | number | symbol,

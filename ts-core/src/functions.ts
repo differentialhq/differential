@@ -1,8 +1,13 @@
 import { AsyncFunction } from "./types";
 
+const idempotentFunctions: AsyncFunction[] = [];
+
+export const isFunctionIdempotent = (fn: AsyncFunction) =>
+  idempotentFunctions.includes(fn);
+
 type AddParameters<
   TFunction extends (...args: any) => any,
-  TParameters extends [...args: any]
+  TParameters extends [...args: any],
 > = (
   ...args: [...Parameters<TFunction>, ...TParameters]
 ) => ReturnType<TFunction>;
@@ -76,5 +81,6 @@ export const extractDifferentialConfig = (
 export const idempotent = <T extends AsyncFunction>(
   fn: T
 ): AddParameters<T, [Pick<DifferentialConfig, "$idempotencyKey">]> => {
+  idempotentFunctions.push(fn);
   return fn as any;
 };
