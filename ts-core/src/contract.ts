@@ -19,8 +19,23 @@ export const contract = c.router({
     }),
     query: z.object({
       limit: z.coerce.number().default(1),
-      service: z.string().optional(),
+      service: z.string(),
       ttl: z.coerce.number().min(5000).max(20000).default(20000),
+      functions: z
+        .array(
+          z.object({
+            name: z.string(),
+            idempotent: z.boolean().optional(),
+            rate: z
+              .object({
+                per: z.enum(["minute", "hour"]),
+                limit: z.number(),
+              })
+              .optional(),
+            cacheTTL: z.number().optional(),
+          })
+        )
+        .optional(),
     }),
     responses: {
       200: z.array(NextJobSchema),
@@ -186,7 +201,9 @@ export const contract = c.router({
           z.object({
             id: z.string(),
             targetFn: z.string(),
+            service: z.string().nullable(),
             status: z.string(),
+            resultType: z.string().nullable(),
             createdAt: z.date(),
             functionExecutionTime: z.number().nullable(),
           })
