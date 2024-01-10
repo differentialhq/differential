@@ -8,6 +8,7 @@ import { DataTable } from "../../../components/ui/DataTable";
 import { useAuth } from "@clerk/nextjs";
 import { Card } from "flowbite-react";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ServiceMap } from "./ServiceMap";
 
 function LiveGreenCircle() {
   // a green circle that is green when the machine is live
@@ -54,10 +55,17 @@ export function ClusterLiveTables({
         avgExecutionTimeFailure: number | null;
       }>;
     }>;
+    definitions: Array<{
+      name: string;
+      functions: Array<{
+        name: string;
+      }>;
+    }>;
   }>({
     machines: [],
     jobs: [],
     services: [],
+    definitions: [],
   });
 
   useEffect(() => {
@@ -80,6 +88,7 @@ export function ClusterLiveTables({
           machines: clusterResult.body.machines,
           jobs: clusterResult.body.jobs,
           services: clusterResult.body.services,
+          definitions: clusterResult.body.definitions || [],
         });
       } else {
         toast.error("Failed to fetch cluster details.");
@@ -100,20 +109,21 @@ export function ClusterLiveTables({
     <div>
       <div className="mt-12">
         <h2 className="text-xl mb-4">Registered Services</h2>
+        <div className="my-2">
+          <ServiceMap services={data.definitions} />
+        </div>
+
         {data.services.length > 0 && (
           <p className="text-gray-400 mb-8">
-            The following services have been registered in the cluster. 
-            Select for more details.
+            The following services have been registered in the cluster. Select
+            for more details.
           </p>
         )}
 
         <div className="flex flex-wrap">
           {data.services
             ?.sort((a, b) => {
-              return (
-                b.functions.length -
-                a.functions.length
-              );
+              return b.functions.length - a.functions.length;
             })
             .map((service, i) => (
               <a
@@ -126,16 +136,12 @@ export function ClusterLiveTables({
                     <CardTitle>{service.name}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p>
-                      {`Registered Functions: ${service.functions.length}`}
-                    </p>
+                    <p>{`Registered Functions: ${service.functions.length}`}</p>
                   </CardContent>
                 </Card>
               </a>
             ))}
         </div>
-
-
       </div>
       <div className="mt-12">
         <h2 className="text-xl mb-4">Machine Status</h2>

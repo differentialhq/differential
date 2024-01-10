@@ -11,13 +11,15 @@ import { createJob, getJobStatus, nextJobs } from "./jobs";
 import * as management from "./management";
 import * as metrics from "./eventAggregation";
 import { writeEvent } from "./events";
+import * as serviceDefinitions from "./service-definitions";
+import * as routingHelpers from "./routing-helpers";
 
 const readFile = util.promisify(fs.readFile);
 
 const s = initServer();
 
 export const router = s.router(contract, {
-  getNextJobs: async (request) => {
+  createJobsRequest: async (request) => {
     const owner = await auth.jobOwnerHash(request.headers.authorization);
 
     if (!owner) {
@@ -26,7 +28,7 @@ export const router = s.router(contract, {
       };
     }
 
-    const limit = request.query.limit ?? 1;
+    const limit = request.body.limit ?? 1;
 
     let jobs: {
       id: string;
@@ -36,19 +38,25 @@ export const router = s.router(contract, {
 
     const start = Date.now();
 
+    console.log("###", request.body.functions);
+
     do {
       jobs = await nextJobs({
         owner,
         limit,
         machineId: request.headers["x-machine-id"],
         ip: request.request.ip,
-        service: request.query.service,
+        service: request.body.service,
+        definition: {
+          name: request.body.service,
+          functions: request.body.functions,
+        },
       });
 
       if (jobs.length === 0) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-    } while (jobs.length === 0 && Date.now() - start < request.query.ttl);
+    } while (jobs.length === 0 && Date.now() - start < request.body.ttl);
 
     return {
       status: 200,
@@ -79,7 +87,7 @@ export const router = s.router(contract, {
       .where(
         and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId))
       )
-      .returning({ service: data.jobs.service, function: data.jobs.target_fn});
+      .returning({ service: data.jobs.service, function: data.jobs.target_fn });
 
     writeEvent({
       type: "jobResulted",
@@ -90,7 +98,7 @@ export const router = s.router(contract, {
         resultType,
       },
       intFields: {
-        ...(functionExecutionTime ? {functionExecutionTime} : {}),
+        ...(functionExecutionTime ? { functionExecutionTime } : {}),
       },
       stringFields: {
         jobId,
@@ -190,6 +198,7 @@ export const router = s.router(contract, {
       },
     };
   },
+  // TODO: deprecate
   createCredential: async (request) => {
     if (!auth.machineAuthSuccess(request.headers.authorization)) {
       return {
@@ -246,6 +255,8 @@ export const router = s.router(contract, {
     };
   },
   getClusterDetailsForUser: async (request) => {
+    await routingHelpers.validateManagementAccess(request);
+
     const managementToken = request.headers.authorization.split(" ")[1];
 
     const { clusterId } = request.params;
@@ -267,19 +278,11 @@ export const router = s.router(contract, {
     };
   },
   getFunctionMetrics: async (request) => {
-    const managementToken = request.headers.authorization.split(" ")[1];
+    await routingHelpers.validateManagementAccess(request);
 
     // TODO: Validate serviceName and functionName
     // We don't currently store and service/function names in the database to validate against.
     const { clusterId, serviceName, functionName } = request.params;
-
-    const clusters = await management.getClusters({ managementToken });
-
-    if (!clusters.find((cluster) => cluster.id === clusterId)) {
-      return {
-        status: 404,
-      }
-    }
 
     // Default to last 24 hours
     const start = request.query.stop ?? new Date(Date.now() - 86400000);
@@ -299,7 +302,7 @@ export const router = s.router(contract, {
         start: start,
         stop: stop,
         ...result,
-      }
-    }
-  }
+      },
+    };
+  },
 });

@@ -1,5 +1,6 @@
-import { createJob, getServiceDefinition, nextJobs } from "./jobs";
+import { createJob, nextJobs } from "./jobs";
 import * as data from "./data";
+import { getServiceDefinition } from "./service-definitions";
 
 const mockTargetFn = "testTargetFn";
 const mockTargetArgs = "testTargetArgs";
@@ -142,6 +143,6 @@ describe("nextJobs", () => {
 
     const stored = await getServiceDefinition(service, owner);
 
-    expect(stored.definition).toStrictEqual(definition);
+    expect(stored).toStrictEqual(definition);
   });
 });

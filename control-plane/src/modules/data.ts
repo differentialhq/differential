@@ -44,7 +44,7 @@ pool.on("connect", (client) => {
 });
 
 pool.on("release", () => {
-  console.debug("Database connection released");
+  // console.debug("Database connection released");
 });
 
 pool.on("remove", () => {

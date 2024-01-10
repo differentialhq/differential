@@ -148,18 +148,26 @@ class PollingAgent {
       return;
     }
 
+    log({ functionRegistry });
+
+    // TODO: cache this
+    const functions = Object.entries(functionRegistry)
+      .filter(([, { name }]) => name === this.service.name)
+      .map(([functionName, { idempotent }]) => ({
+        name: functionName,
+        idempotent,
+      }));
+
     try {
       const pollResult = await this.controlPlaneClient
-        .getNextJobs({
-          query: {
+        .createJobsRequest({
+          body: {
             limit: Math.ceil(
               (this.pollState.concurrency - this.pollState.current) / 2
             ),
             service: this.service.name,
             // TODO: send this conditionally, only when it has changed
-            functions: Object.values(functionRegistry).map(
-              ({ name, idempotent }) => ({ name, idempotent })
-            ),
+            functions,
           },
           headers: {
             authorization: this.authHeader,
@@ -658,7 +666,7 @@ export class Differential {
     const { differentialConfig, originalArgs } =
       extractDifferentialConfig(args);
 
-    return await this.controlPlaneClient
+    return this.controlPlaneClient
       .createJob({
         body: {
           service,
@@ -678,6 +686,11 @@ export class Differential {
         } else {
           throw new DifferentialError(`Failed to create job: ${res.status}`);
         }
+      })
+      .catch((e) => {
+        log("---", this.authHeader);
+        log("Failed to create job", e);
+        throw e;
       });
   }
 }

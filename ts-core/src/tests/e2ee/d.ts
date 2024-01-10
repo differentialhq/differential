@@ -8,4 +8,5 @@ if (!process.env.DIFFERENTIAL_API_SECRET) {
 
 export const d = new Differential(process.env.DIFFERENTIAL_API_SECRET, {
   encryptionKeys: [Buffer.from("abcdefghijklmnopqrstuvwxzy123456")],
+  endpoint: process.env.DIFFERENTIAL_API_ENDPOINT_OVERRIDE,
 });

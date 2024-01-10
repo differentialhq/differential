@@ -10,14 +10,14 @@ const NextJobSchema = z.object({
 });
 
 export const contract = c.router({
-  getNextJobs: {
-    method: "GET",
-    path: "/jobs",
+  createJobsRequest: {
+    method: "POST",
+    path: "/jobs-request",
     headers: z.object({
       authorization: z.string(),
       "x-machine-id": z.string(),
     }),
-    query: z.object({
+    body: z.object({
       limit: z.coerce.number().default(1),
       service: z.string(),
       ttl: z.coerce.number().min(5000).max(20000).default(20000),
@@ -222,6 +222,26 @@ export const contract = c.router({
             ),
           })
         ),
+        definitions: z.array(
+          z.object({
+            name: z.string(),
+            functions: z
+              .array(
+                z.object({
+                  name: z.string(),
+                  idempotent: z.boolean().optional(),
+                  rate: z
+                    .object({
+                      per: z.enum(["minute", "hour"]),
+                      limit: z.number(),
+                    })
+                    .optional(),
+                  cacheTTL: z.number().optional(),
+                })
+              )
+              .optional(),
+          })
+        ),
       }),
       401: z.undefined(),
       404: z.undefined(),
@@ -260,6 +280,6 @@ export const contract = c.router({
     query: z.object({
       start: z.date().optional(),
       stop: z.date().optional(),
-    })
+    }),
   },
 });
