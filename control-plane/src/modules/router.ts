@@ -43,6 +43,7 @@ export const router = s.router(contract, {
         machineId: request.headers["x-machine-id"],
         ip: request.request.ip,
         service: request.query.service,
+        definition: request.query.functions ? { functions: request.query.functions } : undefined,
       });
 
       if (jobs.length === 0) {

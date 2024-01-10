@@ -12,7 +12,7 @@ const app = fastify({
 
 const s = initServer();
 
-app.register(s.plugin(router.router));
+app.register(s.plugin(router.router), { jsonQuery: true});
 
 app.register(cors, {
   origin: process.env.CONSOLE_ORIGIN || "https://console.differential.dev",
