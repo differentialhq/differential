@@ -212,16 +212,20 @@ export const contract = c.router({
           z.object({
             name: z.string(),
             functions: z.array(
-              z.object({
-                name: z.string(),
-                totalSuccess: z.number(),
-                totalFailure: z.number(),
-                avgExecutionTimeSuccess: z.number().nullable(),
-                avgExecutionTimeFailure: z.number().nullable(),
-              })
-            ),
-          })
-        ),
+                z.object({
+                  name: z.string(),
+                  idempotent: z.boolean().nullable(),
+                  rate: z
+                  .object({
+                    per: z.enum(["minute", "hour"]),
+                    limit: z.number(),
+                  })
+                  .nullable(),
+                  cacheTTL: z.number().nullable(),
+                })
+              )
+            })
+          )
       }),
       401: z.undefined(),
       404: z.undefined(),
