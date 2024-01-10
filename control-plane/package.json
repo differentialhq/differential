@@ -3,7 +3,7 @@
   "version": "0.0.16",
   "description": "",
   "scripts": {
-    "test": "jest src --setupFiles dotenv/config --forceExit",
+    "test": "jest src --setupFiles dotenv/config --forceExit --detectOpenHandles",
     "test:dev": "jest --watch src --setupFiles dotenv/config --forceExit --onlyChanged",
     "dev": "nodemon src/index.ts",
     "migrations": "npx drizzle-kit generate:pg --schema src/modules/data.ts",
