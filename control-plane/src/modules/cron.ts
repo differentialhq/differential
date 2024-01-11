@@ -11,6 +11,7 @@ export const registerCron = async (
 };
 
 process.on("beforeExit", () => {
+  console.log("%%%%%%% beforeExit");
   intervals.forEach((intervalId) => {
     clearInterval(intervalId);
   });

@@ -1,5 +1,4 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import { migrate } from "drizzle-orm/node-postgres/migrator";
 import {
   integer,
   json,
@@ -10,7 +9,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { Pool } from "pg";
-import { invariant } from "../utils";
+import { invariant } from "../utilities/invariant";
 import { sql } from "drizzle-orm";
 
 const connectionString = invariant(
@@ -24,7 +23,7 @@ console.log("Attempting to connect to database", {
   sslDisabled,
 });
 
-const pool = new Pool({
+export const pool = new Pool({
   connectionString,
   ssl: sslDisabled
     ? false
@@ -130,13 +129,3 @@ export const db = drizzle(pool);
 export const isAlive = async () => {
   await db.execute(sql`select 1`);
 };
-
-(async function () {
-  console.log("Migrating database...");
-  try {
-    await migrate(db, { migrationsFolder: "./drizzle" });
-  } catch (e) {
-    console.error("Error migrating database", e);
-    process.exit(1);
-  }
-})();
