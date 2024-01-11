@@ -1,6 +1,6 @@
 import { createJob, nextJobs } from "./jobs";
 import * as data from "./data";
-import { getServiceDefinition } from "./service-definitions";
+import { getServiceDefinitions } from "./service-definitions";
 
 const mockTargetFn = "testTargetFn";
 const mockTargetArgs = "testTargetArgs";
@@ -142,7 +142,7 @@ describe("nextJobs", () => {
     // delay to allow for background write
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    const stored = await getServiceDefinition(service, owner);
+    const stored = await getServiceDefinitions(owner);
 
     expect(stored).toStrictEqual(definition);
   });
