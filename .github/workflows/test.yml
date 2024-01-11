@@ -1,0 +1,34 @@
+name: Run Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  default:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: "0" # fetch all history for all tags and branches so that changeset-builder can generate changelogs
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npx lerna run test
+        env:
+          DIFFERENTIAL_API_SECRET: ${{ secrets.DIFFERENTIAL_API_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWKS_URL: ${{ secrets.JWKS_URL }}
+
+      - name: Test builds
+        run: npx lerna run build
