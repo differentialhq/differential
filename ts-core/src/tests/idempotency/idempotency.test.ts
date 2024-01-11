@@ -24,5 +24,5 @@ describe("Idempotency", () => {
     });
 
     await countService.stop();
-  }, 40000);
+  }, 10000);
 });

@@ -127,7 +127,8 @@ class PollingAgent {
       name: string;
       idleTimeout?: number;
       onIdle?: () => void;
-    }
+    },
+    private ttl?: number
   ) {}
 
   private pollForNextJob = async (): Promise<
@@ -155,6 +156,7 @@ class PollingAgent {
             limit: Math.ceil(
               (this.pollState.concurrency - this.pollState.current) / 2
             ),
+            ttl: this.ttl,
             service: this.service.name,
             // TODO: send this conditionally, only when it has changed
             functions: Object.values(functionRegistry).map(
@@ -270,6 +272,7 @@ class PollingAgent {
         log("Error polling for next job", { pollResult });
       }
     } finally {
+      log('Finished polling for next job');
       this.pollingForNextJob = false;
     }
   };
@@ -389,6 +392,7 @@ export class Differential {
   private machineId: string;
   private controlPlaneClient: ReturnType<typeof createClient>;
 
+  private jobPollWaitTime?: number;
   private pollingAgents: PollingAgent[] = [];
 
   /**
@@ -416,6 +420,7 @@ export class Differential {
     options?: {
       endpoint?: string;
       encryptionKeys?: Buffer[];
+      jobPollWaitTime?: number;
     }
   ) {
     this.authHeader = `Basic ${this.apiSecret}`;
@@ -430,6 +435,15 @@ export class Differential {
       }
     });
 
+    if (options?.jobPollWaitTime !== undefined && 
+          options!.jobPollWaitTime! < 5000 ||
+          options!.jobPollWaitTime! > 20000
+      ) {
+        throw new DifferentialError('jobPollWaitTime must be between 5000 and 20000ms');
+    }
+
+    this.jobPollWaitTime = options?.jobPollWaitTime;
+
     log("Initializing control plane client", {
       endpoint: this.endpoint,
       machineId: this.machineId,
@@ -438,17 +452,18 @@ export class Differential {
     this.controlPlaneClient = createClient(this.endpoint, this.machineId);
   }
 
-  private async listen(service: string) {
+  private async listen(service: ServiceDefinition<any>) {
     const pollingAgent = new PollingAgent(
       this.controlPlaneClient,
       this.authHeader,
       {
-        name: service,
-      }
+        name: service.name,
+      },
+      this.jobPollWaitTime
     );
 
     if (
-      this.pollingAgents.find((p) => p.serviceName === service && p.polling)
+      this.pollingAgents.find((p) => p.serviceName === service.name && p.polling)
     ) {
       log("Polling agent already exists. This is a no-op", { service });
       return;
@@ -539,7 +554,7 @@ export class Differential {
 
     return {
       definition: service,
-      start: () => this.listen(service.name),
+      start: () => this.listen(service),
       stop: () => this.quit(),
     };
   }
