@@ -3,8 +3,8 @@
   "version": "0.0.16",
   "description": "",
   "scripts": {
-    "test": "tsx src/utilities/migrate.ts && jest src --setupFiles dotenv/config --forceExit --detectOpenHandles",
-    "test:dev": "tsx src/utilities/migrate.ts && jest --watch src --setupFiles dotenv/config --forceExit --onlyChanged",
+    "test": "tsx src/utilities/migrate.ts && jest src --runInBand --setupFiles dotenv/config --forceExit --detectOpenHandles",
+    "test:dev": "tsx src/utilities/migrate.ts && jest --runInBand --watch src --setupFiles dotenv/config --forceExit --onlyChanged",
     "dev": "tsx src/utilities/migrate.ts && nodemon src/index.ts",
     "migrations": "npx drizzle-kit generate:pg --schema src/modules/data.ts",
     "build": "tsc",
