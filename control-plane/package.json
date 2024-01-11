@@ -40,7 +40,8 @@
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.2",
     "@types/pg": "^8.10.2",
-    "@types/ws": "^8.5.5"
+    "@types/ws": "^8.5.5",
+    "tsx": "^4.7.0"
   },
   "private": true
 }
