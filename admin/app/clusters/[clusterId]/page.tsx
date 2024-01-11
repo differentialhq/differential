@@ -1,11 +1,13 @@
 import { client } from "@/client/client";
 import { auth } from "@clerk/nextjs";
-import { SecretKeyReveal } from "./SecretKeyReveal";
-import { Table } from "flowbite-react";
-import { DataTable } from "../../../components/ui/DataTable";
 import { ClusterLiveTables } from "./ClusterLiveTables";
+import { SecretKeyReveal } from "./SecretKeyReveal";
 
-export default async function Page({ params }: { params: { clusterId: string } }) {
+export default async function Page({
+  params,
+}: {
+  params: { clusterId: string };
+}) {
   const { getToken } = await auth();
 
   const token = await getToken();

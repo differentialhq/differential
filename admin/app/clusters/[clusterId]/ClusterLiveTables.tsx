@@ -1,14 +1,11 @@
 "use client";
 
 import { client } from "@/client/client";
+import { useAuth } from "@clerk/nextjs";
 import { formatRelative } from "date-fns";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { DataTable } from "../../../components/ui/DataTable";
-import { useAuth } from "@clerk/nextjs";
-import { Card } from "flowbite-react";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ServiceMap } from "./ServiceMap";
 import { ServiceSummary } from "./services/ServiceSummary";
 
 function LiveGreenCircle() {
