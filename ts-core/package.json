@@ -4,7 +4,7 @@
   "description": "Javascript SDK for differential.dev",
   "main": "bin/index.js",
   "scripts": {
-    "test": "jest ./src --runInBand",
+    "test": "jest ./src --runInBand --forceExit --detectOpenHandles",
     "build": "make update-contract && tsc",
     "clean": "rm -rf ./bin",
     "docs": "typedoc --plugin typedoc-plugin-markdown --out docs --excludePrivate --hideBreadcrumbs --allReflectionsHaveOwnDocument"
