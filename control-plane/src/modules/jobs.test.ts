@@ -116,6 +116,7 @@ describe("nextJobs", () => {
     const service = `service-def`;
 
     const definition = {
+      name: service,
       functions: [
         {
           name: Math.random().toString(),
