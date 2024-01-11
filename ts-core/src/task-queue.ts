@@ -50,48 +50,48 @@ const executeFn = async (
 };
 
 export class TaskQueue {
-  private static tasks: Array<{
+  private tasks: Array<{
     fn: AsyncFunction;
     args: Parameters<AsyncFunction>;
     resolve: (value: Result) => void;
   }> = [];
 
-  private static isRunning = false;
+  private isRunning = false;
 
-  static addTask(
+  addTask(
     fn: AsyncFunction,
     args: Parameters<AsyncFunction>,
     resolve: (value: Result) => void
   ) {
-    TaskQueue.tasks.push({
+    this.tasks.push({
       fn,
       args,
       resolve,
     });
 
-    TaskQueue.run();
+    this.run();
   }
 
-  private static run() {
-    TaskQueue.isRunning = true;
+  private run() {
+    this.isRunning = true;
 
-    const tasks = TaskQueue.tasks;
-    TaskQueue.tasks = [];
+    const tasks = this.tasks;
+    this.tasks = [];
 
     Promise.all(
       tasks.map((task) => executeFn(task.fn, task.args).then(task.resolve))
     ).then(() => {
-      TaskQueue.isRunning = false;
+      this.isRunning = false;
     });
   }
 
-  static async quit() {
+  async quit() {
     return new Promise<void>((resolve) => {
-      if (TaskQueue.tasks.length === 0) {
+      if (this.tasks.length === 0) {
         resolve();
       } else {
         const interval = setInterval(() => {
-          if (TaskQueue.tasks.length === 0) {
+          if (this.tasks.length === 0) {
             clearInterval(interval);
             resolve();
           }

@@ -22,7 +22,8 @@ describe("TaskQueue", () => {
     expect(t.fn).not.toHaveBeenCalled();
     expect(t.resolve).not.toHaveBeenCalled();
 
-    TaskQueue.addTask(t.fn, t.args, t.resolve);
+    const taskQueue = new TaskQueue();
+    taskQueue.addTask(t.fn, t.args, t.resolve);
 
     jest.runAllTimers();
 
@@ -33,6 +34,8 @@ describe("TaskQueue", () => {
 
     expect(t.fn).toHaveBeenCalledWith(...t.args);
     expect(t.resolve).toHaveBeenCalled();
+
+    await taskQueue.quit();
   });
 
   it("should be able to queue and run multiple tasks", async () => {
@@ -40,9 +43,10 @@ describe("TaskQueue", () => {
     const t2 = task();
     const t3 = task();
 
-    TaskQueue.addTask(t1.fn, t1.args, t1.resolve);
-    TaskQueue.addTask(t2.fn, t2.args, t2.resolve);
-    TaskQueue.addTask(t3.fn, t3.args, t3.resolve);
+    const taskQueue = new TaskQueue();
+    taskQueue.addTask(t1.fn, t1.args, t1.resolve);
+    taskQueue.addTask(t2.fn, t2.args, t2.resolve);
+    taskQueue.addTask(t3.fn, t3.args, t3.resolve);
 
     jest.runAllTimers();
 
@@ -59,13 +63,17 @@ describe("TaskQueue", () => {
 
     expect(t3.fn).toHaveBeenCalledWith(...t3.args);
     expect(t3.resolve).toHaveBeenCalled();
+
+    await taskQueue.quit();
   });
 
   it("should not run the same task twice", async () => {
+    const taskQueue = new TaskQueue();
+
     async function firstRun() {
       const t = task();
 
-      TaskQueue.addTask(t.fn, t.args, t.resolve);
+      taskQueue.addTask(t.fn, t.args, t.resolve);
 
       jest.runAllTimers();
 
@@ -85,7 +93,7 @@ describe("TaskQueue", () => {
     async function secondRun() {
       const t = task();
 
-      TaskQueue.addTask(t.fn, t.args, t.resolve);
+      taskQueue.addTask(t.fn, t.args, t.resolve);
 
       jest.runAllTimers();
 
@@ -102,12 +110,18 @@ describe("TaskQueue", () => {
     await secondRun();
 
     expect(t.fn).toHaveBeenCalledTimes(1);
+
+    await taskQueue.quit();
   });
 
   it("should record execution time", async () => {
     const t = task();
-    const fn = () => new Promise((resolve) => { setTimeout(resolve, 102); })
-    TaskQueue.addTask(fn, t.args, t.resolve);
+    const fn = () =>
+      new Promise((resolve) => {
+        setTimeout(resolve, 102);
+      });
+    const taskQueue = new TaskQueue();
+    taskQueue.addTask(fn, t.args, t.resolve);
 
     jest.runAllTimers();
 
@@ -116,7 +130,11 @@ describe("TaskQueue", () => {
       await Promise.resolve();
     }
 
-    expect(t.resolve).toHaveBeenCalledWith({type: "resolution", functionExecutionTime: 102})
-  });
+    expect(t.resolve).toHaveBeenCalledWith({
+      type: "resolution",
+      functionExecutionTime: 102,
+    });
 
+    await taskQueue.quit();
+  });
 });

@@ -113,6 +113,7 @@ const functionRegistry: { [key: string]: ServiceRegistryFunction } = {};
 class PollingAgent {
   private pollingForNextJob = false;
   private pollJobsTimer: NodeJS.Timeout | undefined;
+  private taskQueue = new TaskQueue();
 
   private pollState = {
     current: 0,
@@ -266,7 +267,7 @@ class PollingAgent {
                   });
               };
 
-              TaskQueue.addTask(registered.fn, args, onComplete);
+              this.taskQueue.addTask(registered.fn, args, onComplete);
             }
           })
         );
@@ -315,7 +316,7 @@ class PollingAgent {
     clearInterval(this.pollJobsTimer);
 
     return new Promise(async (resolve) => {
-      await TaskQueue.quit();
+      await this.taskQueue.quit();
 
       if (this.pollState.polling) {
         const quitTimer: NodeJS.Timeout = setInterval(() => {
