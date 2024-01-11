@@ -33,9 +33,6 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "app/clusters/(id)",
-    "app/clusters/[clusterId]/collide.js",
-    "app/clusters/[clusterId]/Flow.js"
   ],
   "exclude": [
     "node_modules"
