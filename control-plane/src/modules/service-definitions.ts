@@ -62,16 +62,14 @@ export const storeServiceDefinitionBG = backgrounded(
 export async function getServiceDefinitions(owner: { clusterId: string }) {
   const serviceDefinitions = await data.db
     .select({
-      name: data.services.service,
       definition: data.services.definition,
     })
     .from(data.services)
     .where(and(eq(data.services.cluster_id, owner.clusterId)));
 
-  return serviceDefinitionsSchema.parse(serviceDefinitions);
+  return serviceDefinitionsSchema.parse([serviceDefinitions[0]?.definition]);
 }
 
 export const parseServiceDefinition = (input: unknown): ServiceDefinition[] => {
-  console.log("###", input);
   return input ? serviceDefinitionsSchema.parse(input) : [];
 };

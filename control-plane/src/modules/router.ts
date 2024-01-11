@@ -38,8 +38,6 @@ export const router = s.router(contract, {
 
     const start = Date.now();
 
-    console.log("###", request.body.functions);
-
     do {
       jobs = await nextJobs({
         owner,

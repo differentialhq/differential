@@ -76,8 +76,6 @@ export const nextJobs = async ({
 
   storeMachineInfoBG(machineId, ip, owner);
 
-  console.log("###", definition);
-
   if (definition) {
     storeServiceDefinitionBG(service, definition, owner);
   }

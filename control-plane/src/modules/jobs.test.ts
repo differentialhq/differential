@@ -144,6 +144,6 @@ describe("nextJobs", () => {
 
     const stored = await getServiceDefinitions(owner);
 
-    expect(stored).toStrictEqual(definition);
+    expect(stored).toStrictEqual([definition]);
   });
 });
