@@ -37,7 +37,7 @@ export function ServiceLiveTables({
         avgExecutionTimeSuccess: number | null;
         avgExecutionTimeFailure: number | null;
       }>;
-    }
+    };
   }>({
     jobs: [],
     service: undefined,
@@ -60,8 +60,12 @@ export function ServiceLiveTables({
 
       if (clusterResult.status === 200) {
         setData({
-          jobs: clusterResult.body.jobs.filter(f => f.service == serviceName).slice(-10),
-          service: clusterResult.body.services.filter((s) => s.name == serviceName).pop(),
+          jobs: clusterResult.body.jobs
+            .filter((f) => f.service == serviceName)
+            .slice(-10),
+          service: clusterResult.body.services
+            .filter((s) => s.name == serviceName)
+            .pop(),
         });
       } else {
         toast.error("Failed to fetch cluster details.");
@@ -80,9 +84,9 @@ export function ServiceLiveTables({
 
   return (
     <div>
-      {data.service !== undefined && (
-      <div>
-        <div className="mt-12">
+      {(data.service !== undefined && (
+        <div>
+          <div className="mt-12">
             <DataTable
               data={data.service.functions.map((s) => ({
                 Function: s.name,
@@ -106,44 +110,40 @@ export function ServiceLiveTables({
               }))}
               noDataMessage="No functions have been detected recently."
             />
-      </div>
-        <div className="mt-12">
-          <h2 className="text-xl mb-4">Live function calls</h2>
-          {data.jobs.length > 0 && (
-            <p className="text-gray-400 mb-8">
-              These are the last {data.jobs.length} function calls that have been
-              made to the cluster.
-            </p>
-          )}
-          <DataTable
-            data={data.jobs
-              .sort((a, b) => {
-                return a.createdAt > b.createdAt ? -1 : 1;
-              })
-              .map((s) => ({
-                "Execution id": s.id,
-                Function: s.targetFn,
-                Status: s.status,
-                Resolution: s.resultType ?? "N/A",
-                Called: formatRelative(new Date(s.createdAt), new Date()),
-                "Execution Time":
-                  s.functionExecutionTime === null
-                    ? "N/A"
-                    : `${s.functionExecutionTime}ms`,
-              }))}
-            noDataMessage="No services with function calls have been detected in the cluster lately."
-          />
+          </div>
+          <div className="mt-12">
+            <h2 className="text-xl mb-4">Live function calls</h2>
+            {data.jobs.length > 0 && (
+              <p className="text-gray-400 mb-8">
+                These are the last {data.jobs.length} function calls that have
+                been made to the cluster.
+              </p>
+            )}
+            <DataTable
+              data={data.jobs
+                .sort((a, b) => {
+                  return a.createdAt > b.createdAt ? -1 : 1;
+                })
+                .map((s) => ({
+                  "Execution id": s.id,
+                  Function: s.targetFn,
+                  Status: s.status,
+                  Resolution: s.resultType ?? "N/A",
+                  Called: formatRelative(new Date(s.createdAt), new Date()),
+                  "Execution Time":
+                    s.functionExecutionTime === null
+                      ? "N/A"
+                      : `${s.functionExecutionTime}ms`,
+                }))}
+              noDataMessage="No services with function calls have been detected in the cluster lately."
+            />
+          </div>
         </div>
-    </div>
-      ) || (
-      <div className="mt-12">
-        <h1 className="text-2xl font-mono">Service {serviceName} not found in cluster.</h1>
-
-      </div>
+      )) || (
+        <div className="mt-6">
+          <p>Service {serviceName} does not have any recent data to display.</p>
+        </div>
       )}
-      <div className="mt-12">
-        <a className="text-gray-400" href={`/clusters/${clusterId}`}>Back to {clusterId}</a>
-      </div>
     </div>
   );
 }
