@@ -3,6 +3,10 @@ import { and, eq, gte, sql } from "drizzle-orm";
 import { randomName } from "./names";
 import crypto from "crypto";
 import * as jwt from "./jwt";
+import {
+  ServiceDefinition,
+  parseServiceDefinition,
+} from "./service-definitions";
 
 export const getClusters = async ({
   managementToken,
@@ -29,6 +33,30 @@ export const getClusters = async ({
     .where(eq(data.clusters.owner_id, verified.userId));
 
   return clusters;
+};
+
+export const hasAccessToCluster = async ({
+  managementToken,
+  clusterId,
+}: {
+  managementToken: string;
+  clusterId: string;
+}): Promise<boolean> => {
+  const verified = await jwt.verifyManagementToken({ managementToken });
+
+  const clusters = await data.db
+    .select({
+      id: data.clusters.id,
+    })
+    .from(data.clusters)
+    .where(
+      and(
+        eq(data.clusters.id, clusterId),
+        eq(data.clusters.owner_id, verified.userId)
+      )
+    );
+
+  return clusters.length > 0;
 };
 
 export const createCluster = async ({
@@ -93,6 +121,7 @@ export const getClusterDetailsForUser = async ({
         name: string;
         functions: Array<FunctionDetails>;
       }>;
+      definitions: Array<ServiceDefinition>;
     }
   | undefined
 > => {
@@ -104,8 +133,9 @@ export const getClusterDetailsForUser = async ({
     .select({
       id: data.clusters.id,
       apiSecret: data.clusters.api_secret,
-      organizationId: data.clusters.organization_id,
       createdAt: data.clusters.created_at,
+      foo: data.services.cluster_id,
+      definitions: data.services.definition,
     })
     .from(data.clusters)
     .where(
@@ -113,7 +143,10 @@ export const getClusterDetailsForUser = async ({
         eq(data.clusters.id, clusterId),
         eq(data.clusters.owner_id, verified.userId)
       )
-    );
+    )
+    .leftJoin(data.services, eq(data.services.cluster_id, data.clusters.id));
+
+  console.log({ clusters });
 
   if (clusters.length === 0) {
     return undefined;
@@ -160,7 +193,7 @@ export const getClusterDetailsForUser = async ({
 
   // Fetch all function / service combinations for the cluster within the last 12 hours
   // This can be replaced with something more robust once we have a catalog of service / functions
-  let functions = await data.db
+  const functions = await data.db
     .select({
       service: data.jobs.service,
       target_fn: data.jobs.target_fn,
@@ -218,8 +251,13 @@ export const getClusterDetailsForUser = async ({
     })),
   }));
 
+  console.log({ clusters });
+
   return {
-    ...clusters[0],
+    id: clusters[0].id,
+    apiSecret: clusters[0].apiSecret,
+    createdAt: clusters[0].createdAt,
+    definitions: parseServiceDefinition(clusters.map((c) => c.definitions)),
     machines,
     jobs,
     services: serviceResult,

@@ -1,5 +1,6 @@
-import { createJob, getServiceDefinition, nextJobs } from "./jobs";
+import { createJob, nextJobs } from "./jobs";
 import * as data from "./data";
+import { getServiceDefinitions } from "./service-definitions";
 
 const mockTargetFn = "testTargetFn";
 const mockTargetArgs = "testTargetArgs";
@@ -115,6 +116,7 @@ describe("nextJobs", () => {
     const service = `service-def`;
 
     const definition = {
+      name: service,
       functions: [
         {
           name: Math.random().toString(),
@@ -140,8 +142,8 @@ describe("nextJobs", () => {
     // delay to allow for background write
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    const stored = await getServiceDefinition(service, owner);
+    const stored = await getServiceDefinitions(owner);
 
-    expect(stored.definition).toStrictEqual(definition);
+    expect(stored).toStrictEqual([definition]);
   });
 });

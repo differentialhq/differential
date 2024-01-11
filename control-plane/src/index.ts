@@ -7,7 +7,7 @@ import * as router from "./modules/router";
 import cors from "@fastify/cors";
 
 const app = fastify({
-  // logger: true,
+  logger: process.env.ENABLE_FASTIFY_LOGGER === "true",
 });
 
 const s = initServer();

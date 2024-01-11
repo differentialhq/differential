@@ -4,18 +4,10 @@ import * as cron from "./cron";
 import * as data from "./data";
 import { backgrounded } from "./util";
 import { writeEvent } from "./events";
-
-type ServiceDefinition = {
-  functions: Array<{
-    name: string;
-    idempotent?: boolean;
-    rate?: {
-      per: "minute" | "hour";
-      limit: number;
-    };
-    cacheTTL?: number;
-  }>;
-};
+import {
+  ServiceDefinition,
+  storeServiceDefinitionBG,
+} from "./service-definitions";
 
 export const createJob = async ({
   service,
@@ -156,47 +148,6 @@ const storeMachineInfoBG = backgrounded(async function storeMachineInfo(
       where: eq(data.machines.cluster_id, owner.clusterId),
     });
 });
-
-const storeServiceDefinitionBG = backgrounded(
-  async function storeServiceDefinition(
-    service: string,
-    definition: ServiceDefinition,
-    owner: { clusterId: string }
-  ) {
-    await data.db
-      .insert(data.services)
-      .values({
-        service,
-        definition,
-        cluster_id: owner.clusterId,
-      })
-      .onConflictDoUpdate({
-        target: [data.services.service, data.services.cluster_id],
-        set: {
-          definition,
-        },
-      });
-  }
-);
-
-export async function getServiceDefinition(
-  service: string,
-  owner: { clusterId: string }
-) {
-  const [serviceDefinition] = await data.db
-    .select({
-      definition: data.services.definition,
-    })
-    .from(data.services)
-    .where(
-      and(
-        eq(data.services.service, service),
-        eq(data.services.cluster_id, owner.clusterId)
-      )
-    );
-
-  return serviceDefinition;
-}
 
 export async function selfHealJobs() {
   await data.db.execute(

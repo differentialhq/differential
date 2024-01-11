@@ -8,6 +8,8 @@ import { DataTable } from "../../../components/ui/DataTable";
 import { useAuth } from "@clerk/nextjs";
 import { Card } from "flowbite-react";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ServiceMap } from "./ServiceMap";
+import { ServiceSummary } from "./services/ServiceSummary";
 
 function LiveGreenCircle() {
   // a green circle that is green when the machine is live
@@ -54,10 +56,17 @@ export function ClusterLiveTables({
         avgExecutionTimeFailure: number | null;
       }>;
     }>;
+    definitions: Array<{
+      name: string;
+      functions: Array<{
+        name: string;
+      }>;
+    }>;
   }>({
     machines: [],
     jobs: [],
     services: [],
+    definitions: [],
   });
 
   useEffect(() => {
@@ -80,6 +89,7 @@ export function ClusterLiveTables({
           machines: clusterResult.body.machines,
           jobs: clusterResult.body.jobs,
           services: clusterResult.body.services,
+          definitions: clusterResult.body.definitions || [],
         });
       } else {
         toast.error("Failed to fetch cluster details.");
@@ -100,42 +110,14 @@ export function ClusterLiveTables({
     <div>
       <div className="mt-12">
         <h2 className="text-xl mb-4">Registered Services</h2>
-        {data.services.length > 0 && (
+        {data.definitions.length > 0 && (
           <p className="text-gray-400 mb-8">
-            The following services have been registered in the cluster. 
-            Select for more details.
+            The following services have been registered in the cluster.
           </p>
         )}
-
-        <div className="flex flex-wrap">
-          {data.services
-            ?.sort((a, b) => {
-              return (
-                b.functions.length -
-                a.functions.length
-              );
-            })
-            .map((service, i) => (
-              <a
-                href={`/clusters/${clusterId}/services/${service.name}`}
-                className="mr-4 mb-4 w-96"
-                key={i}
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{service.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>
-                      {`Registered Functions: ${service.functions.length}`}
-                    </p>
-                  </CardContent>
-                </Card>
-              </a>
-            ))}
+        <div className="my-2">
+          <ServiceSummary services={data.definitions} clusterId={clusterId} />
         </div>
-
-
       </div>
       <div className="mt-12">
         <h2 className="text-xl mb-4">Machine Status</h2>

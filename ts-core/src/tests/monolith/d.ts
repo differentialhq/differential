@@ -7,5 +7,6 @@ if (!process.env.DIFFERENTIAL_API_SECRET) {
 }
 
 export const d = new Differential(process.env.DIFFERENTIAL_API_SECRET, {
+  endpoint: process.env.DIFFERENTIAL_API_ENDPOINT_OVERRIDE,
   jobPollWaitTime: 5000,
 });
