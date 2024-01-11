@@ -7,14 +7,16 @@ describe("Idempotency", () => {
 
     const client = d.client<typeof countService>("hello");
 
-    const result1 = await client.count("hello", { $idempotencyKey: "1" });
+    const key = Math.random().toString(36);
+
+    const result1 = await client.count("hello", { $idempotencyKey: key });
 
     expect(result1).toEqual({
       callCount: 1,
       echo: "hello",
     });
 
-    const result2 = await client.count("hello2", { $idempotencyKey: "1" });
+    const result2 = await client.count("hello2", { $idempotencyKey: key });
 
     expect(result2).toEqual({
       callCount: 1,
