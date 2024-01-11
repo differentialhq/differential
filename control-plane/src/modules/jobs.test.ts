@@ -138,7 +138,7 @@ describe("nextJobs", () => {
     });
 
     // delay to allow for background write
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const stored = await getServiceDefinition(service, owner);
 
