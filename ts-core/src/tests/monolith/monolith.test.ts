@@ -25,7 +25,7 @@ describe("monolith", () => {
     expect(result).toBe("Expert says: Can't touch this");
 
     await expertService.stop();
-  }, 20000);
+  }, 10000);
 
   it("service client should return the same result as 'call'", async () => {
     await expertService.start();
@@ -42,7 +42,7 @@ describe("monolith", () => {
     expect(clientResult).toBe(result);
 
     await expertService.stop();
-  }, 20000);
+  }, 10000);
 
   it("should be able to call a service from another service", async () => {
     await facadeService.start();
@@ -71,7 +71,7 @@ describe("monolith", () => {
 
     await facadeService.stop();
     await expertService.stop();
-  }, 20000);
+  }, 10000);
 
   it("should be ok to start the service idempotently", async () => {
     await expertService.start();

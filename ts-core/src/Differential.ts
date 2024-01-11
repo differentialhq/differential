@@ -127,7 +127,8 @@ class PollingAgent {
       name: string;
       idleTimeout?: number;
       onIdle?: () => void;
-    }
+    },
+    private ttl?: number
   ) {}
 
   private pollForNextJob = async (): Promise<
@@ -148,18 +149,27 @@ class PollingAgent {
       return;
     }
 
+    log({ functionRegistry });
+
+    // TODO: cache this
+    const functions = Object.entries(functionRegistry)
+      .filter(([, { name }]) => name === this.service.name)
+      .map(([functionName, { idempotent }]) => ({
+        name: functionName,
+        idempotent,
+      }));
+
     try {
       const pollResult = await this.controlPlaneClient
-        .getNextJobs({
-          query: {
+        .createJobsRequest({
+          body: {
             limit: Math.ceil(
               (this.pollState.concurrency - this.pollState.current) / 2
             ),
+            ttl: this.ttl,
             service: this.service.name,
             // TODO: send this conditionally, only when it has changed
-            functions: Object.values(functionRegistry).map(
-              ({ name, idempotent }) => ({ name, idempotent })
-            ),
+            functions,
           },
           headers: {
             authorization: this.authHeader,
@@ -389,6 +399,7 @@ export class Differential {
   private machineId: string;
   private controlPlaneClient: ReturnType<typeof createClient>;
 
+  private jobPollWaitTime?: number;
   private pollingAgents: PollingAgent[] = [];
 
   /**
@@ -397,6 +408,7 @@ export class Differential {
    * @param options Additional options for the Differential client.
    * @param options.endpoint The endpoint for the Differential cluster. Defaults to https://api.differential.dev.
    * @param options.encryptionKeys An array of encryption keys to use for encrypting and decrypting data. These keys are never sent to the control-plane and allows you to encrypt function arguments and return values. If you do not provide any keys, Differential will not encrypt any data. Encryption has a performance impact on your functions. When you want to rotate keys, you can add new keys to the start of the array. Differential will try to decrypt data with each key in the array until it finds a key that works. Differential will encrypt data with the first key in the array. Each key must be 32 bytes long.
+   * @param options.jobPollWaitTime The amount of time in milliseconds that the client will maintain a connection to the control-plane when polling for jobs. Defaults to 20000ms. If a job is not received within this time, the client will close the connection and try again.
    * @example
    * ```ts
    * // Basic usage
@@ -416,6 +428,7 @@ export class Differential {
     options?: {
       endpoint?: string;
       encryptionKeys?: Buffer[];
+      jobPollWaitTime?: number;
     }
   ) {
     this.authHeader = `Basic ${this.apiSecret}`;
@@ -430,6 +443,15 @@ export class Differential {
       }
     });
 
+    if (options?.jobPollWaitTime !== undefined &&
+          options!.jobPollWaitTime! < 5000 ||
+          options!.jobPollWaitTime! > 20000
+      ) {
+        throw new DifferentialError('jobPollWaitTime must be between 5000 and 20000ms');
+    }
+
+    this.jobPollWaitTime = options?.jobPollWaitTime;
+
     log("Initializing control plane client", {
       endpoint: this.endpoint,
       machineId: this.machineId,
@@ -438,17 +460,18 @@ export class Differential {
     this.controlPlaneClient = createClient(this.endpoint, this.machineId);
   }
 
-  private async listen(service: string) {
+  private async listen(service: ServiceDefinition<any>) {
     const pollingAgent = new PollingAgent(
       this.controlPlaneClient,
       this.authHeader,
       {
-        name: service,
-      }
+        name: service.name,
+      },
+      this.jobPollWaitTime
     );
 
     if (
-      this.pollingAgents.find((p) => p.serviceName === service && p.polling)
+      this.pollingAgents.find((p) => p.serviceName === service.name && p.polling)
     ) {
       log("Polling agent already exists. This is a no-op", { service });
       return;
@@ -539,7 +562,7 @@ export class Differential {
 
     return {
       definition: service,
-      start: () => this.listen(service.name),
+      start: () => this.listen(service),
       stop: () => this.quit(),
     };
   }
@@ -658,7 +681,7 @@ export class Differential {
     const { differentialConfig, originalArgs } =
       extractDifferentialConfig(args);
 
-    return await this.controlPlaneClient
+    return this.controlPlaneClient
       .createJob({
         body: {
           service,
@@ -678,6 +701,11 @@ export class Differential {
         } else {
           throw new DifferentialError(`Failed to create job: ${res.status}`);
         }
+      })
+      .catch((e) => {
+        log("---", this.authHeader);
+        log("Failed to create job", e);
+        throw e;
       });
   }
 }

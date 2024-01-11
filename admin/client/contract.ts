@@ -10,18 +10,32 @@ const NextJobSchema = z.object({
 });
 
 export const contract = c.router({
-  getNextJobs: {
-    method: "GET",
-    path: "/jobs",
+  createJobsRequest: {
+    method: "POST",
+    path: "/jobs-request",
     headers: z.object({
       authorization: z.string(),
       "x-machine-id": z.string(),
     }),
-    query: z.object({
-      pools: z.string().optional(),
+    body: z.object({
       limit: z.coerce.number().default(1),
-      functions: z.string().optional(),
-      service: z.string().optional(),
+      service: z.string(),
+      ttl: z.coerce.number().min(5000).max(20000).default(20000),
+      functions: z
+        .array(
+          z.object({
+            name: z.string(),
+            idempotent: z.boolean().optional(),
+            rate: z
+              .object({
+                per: z.enum(["minute", "hour"]),
+                limit: z.number(),
+              })
+              .optional(),
+            cacheTTL: z.number().optional(),
+          })
+        )
+        .optional(),
     }),
     responses: {
       200: z.array(NextJobSchema),
@@ -45,6 +59,7 @@ export const contract = c.router({
       targetArgs: z.string(),
       pool: z.string().optional(),
       service: z.string().optional(),
+      idempotencyKey: z.string().optional(),
     }),
   },
   getJobStatus: {
@@ -52,6 +67,9 @@ export const contract = c.router({
     path: "/jobs/:jobId",
     pathParams: z.object({
       jobId: z.string(),
+    }),
+    query: z.object({
+      ttl: z.coerce.number().min(5000).max(20000).default(20000),
     }),
     headers: z.object({
       authorization: z.string(),
@@ -190,30 +208,64 @@ export const contract = c.router({
             functionExecutionTime: z.number().nullable(),
           })
         ),
-        services: z.array(
+        definitions: z.array(
           z.object({
             name: z.string(),
-            functions: z.array(
+            functions: z
+              .array(
                 z.object({
                   name: z.string(),
-                  idempotent: z.boolean().nullable(),
+                  idempotent: z.boolean().optional(),
                   rate: z
-                  .object({
-                    per: z.enum(["minute", "hour"]),
-                    limit: z.number(),
-                  })
-                  .nullable(),
-                  cacheTTL: z.number().nullable(),
+                    .object({
+                      per: z.enum(["minute", "hour"]),
+                      limit: z.number(),
+                    })
+                    .optional(),
+                  cacheTTL: z.number().optional(),
                 })
               )
-            })
-          )
+              .optional(),
+          })
+        ),
       }),
       401: z.undefined(),
       404: z.undefined(),
     },
     pathParams: z.object({
       clusterId: z.string(),
+    }),
+  },
+  getFunctionMetrics: {
+    method: "GET",
+    path: "/clusters/:clusterId/services/:serviceName/functions/:functionName/metrics",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.object({
+        start: z.date(),
+        stop: z.date(),
+        success: z.object({
+          count: z.number(),
+          avgExecutionTime: z.number().nullable(),
+        }),
+        failure: z.object({
+          count: z.number(),
+          avgExecutionTime: z.number().nullable(),
+        }),
+      }),
+      401: z.undefined(),
+      404: z.undefined(),
+    },
+    pathParams: z.object({
+      clusterId: z.string(),
+      serviceName: z.string(),
+      functionName: z.string(),
+    }),
+    query: z.object({
+      start: z.date().optional(),
+      stop: z.date().optional(),
     }),
   },
 });
