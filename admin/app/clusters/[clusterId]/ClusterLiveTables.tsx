@@ -43,25 +43,15 @@ export function ClusterLiveTables({
       status: string;
       functionExecutionTime: number | null;
     }[];
-    services: Array<{
-      name: string;
-      functions: Array<{
-        name: string;
-        idempotent: boolean | null;
-        rate: {per: 'minute' | 'hour', limit: number} | null;
-        cacheTTL: number | null;
-      }>;
-    }>;
     definitions: Array<{
       name: string;
-      functions: Array<{
+      functions?: Array<{
         name: string;
       }>;
     }>;
   }>({
     machines: [],
     jobs: [],
-    services: [],
     definitions: [],
   });
 
@@ -84,8 +74,7 @@ export function ClusterLiveTables({
         setData({
           machines: clusterResult.body.machines,
           jobs: clusterResult.body.jobs,
-          services: clusterResult.body.services,
-          definitions: clusterResult.body.definitions || [],
+          definitions: clusterResult.body.definitions,
         });
       } else {
         toast.error("Failed to fetch cluster details.");

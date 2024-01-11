@@ -224,8 +224,7 @@ export const contract = c.router({
                     .optional(),
                   cacheTTL: z.number().optional(),
                 })
-              )
-              .optional(),
+              ).optional()
           })
         ),
       }),
