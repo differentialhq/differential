@@ -272,7 +272,6 @@ class PollingAgent {
         log("Error polling for next job", { pollResult });
       }
     } finally {
-      log('Finished polling for next job');
       this.pollingForNextJob = false;
     }
   };
@@ -401,6 +400,7 @@ export class Differential {
    * @param options Additional options for the Differential client.
    * @param options.endpoint The endpoint for the Differential cluster. Defaults to https://api.differential.dev.
    * @param options.encryptionKeys An array of encryption keys to use for encrypting and decrypting data. These keys are never sent to the control-plane and allows you to encrypt function arguments and return values. If you do not provide any keys, Differential will not encrypt any data. Encryption has a performance impact on your functions. When you want to rotate keys, you can add new keys to the start of the array. Differential will try to decrypt data with each key in the array until it finds a key that works. Differential will encrypt data with the first key in the array. Each key must be 32 bytes long.
+   * @param options.jobPollWaitTime The amount of time in milliseconds that the client will maintain a connection to the control-plane when polling for jobs. Defaults to 20000ms. If a job is not received within this time, the client will close the connection and try again.
    * @example
    * ```ts
    * // Basic usage
@@ -435,7 +435,7 @@ export class Differential {
       }
     });
 
-    if (options?.jobPollWaitTime !== undefined && 
+    if (options?.jobPollWaitTime !== undefined &&
           options!.jobPollWaitTime! < 5000 ||
           options!.jobPollWaitTime! > 20000
       ) {

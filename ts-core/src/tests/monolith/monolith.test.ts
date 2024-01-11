@@ -78,5 +78,5 @@ describe("monolith", () => {
     await expertService.start();
 
     await expertService.stop();
-  }, 10000);
+  }, 20000);
 });
