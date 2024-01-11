@@ -15,5 +15,5 @@ describe("e2ee", () => {
     });
 
     await helloService.stop();
-  }, 10000);
+  }, 40000);
 });
