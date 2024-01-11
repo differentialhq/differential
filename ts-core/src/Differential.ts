@@ -443,11 +443,14 @@ export class Differential {
       }
     });
 
-    if (options?.jobPollWaitTime !== undefined &&
-          options!.jobPollWaitTime! < 5000 ||
-          options!.jobPollWaitTime! > 20000
-      ) {
-        throw new DifferentialError('jobPollWaitTime must be between 5000 and 20000ms');
+    if (
+      (options?.jobPollWaitTime !== undefined &&
+        options!.jobPollWaitTime! < 5000) ||
+      options!.jobPollWaitTime! > 20000
+    ) {
+      throw new DifferentialError(
+        "jobPollWaitTime must be between 5000 and 20000ms"
+      );
     }
 
     this.jobPollWaitTime = options?.jobPollWaitTime;
@@ -471,7 +474,9 @@ export class Differential {
     );
 
     if (
-      this.pollingAgents.find((p) => p.serviceName === service.name && p.polling)
+      this.pollingAgents.find(
+        (p) => p.serviceName === service.name && p.polling
+      )
     ) {
       log("Polling agent already exists. This is a no-op", { service });
       return;
@@ -681,31 +686,24 @@ export class Differential {
     const { differentialConfig, originalArgs } =
       extractDifferentialConfig(args);
 
-    return this.controlPlaneClient
-      .createJob({
-        body: {
-          service,
-          targetFn: fn as string,
-          targetArgs: pack(originalArgs),
-          idempotencyKey: differentialConfig.$idempotencyKey,
-        },
-        headers: {
-          authorization: this.authHeader,
-        },
-      })
-      .then((res) => {
-        if (res.status === 201) {
-          return res.body.id;
-        } else if (res.status === 401) {
-          throw new DifferentialError(DifferentialError.UNAUTHORISED);
-        } else {
-          throw new DifferentialError(`Failed to create job: ${res.status}`);
-        }
-      })
-      .catch((e) => {
-        log("---", this.authHeader);
-        log("Failed to create job", e);
-        throw e;
-      });
+    const result = await this.controlPlaneClient.createJob({
+      body: {
+        service,
+        targetFn: fn as string,
+        targetArgs: pack(originalArgs),
+        idempotencyKey: differentialConfig.$idempotencyKey,
+      },
+      headers: {
+        authorization: this.authHeader,
+      },
+    });
+
+    if (result.status === 201) {
+      return result.body.id;
+    } else if (result.status === 401) {
+      throw new DifferentialError(DifferentialError.UNAUTHORISED);
+    } else {
+      throw new DifferentialError(`Failed to create job: ${result.status}`);
+    }
   }
 }
