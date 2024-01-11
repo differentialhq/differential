@@ -8,4 +8,5 @@ if (!process.env.DIFFERENTIAL_API_SECRET) {
 
 export const d = new Differential(process.env.DIFFERENTIAL_API_SECRET, {
   encryptionKeys: [Buffer.from("abcdefghijklmnopqrstuvwxzy123456")],
+  jobPollWaitTime: 5000,
 });

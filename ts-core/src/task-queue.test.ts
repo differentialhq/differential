@@ -1,7 +1,5 @@
 import { TaskQueue } from "./task-queue";
 
-jest.useFakeTimers();
-
 describe("TaskQueue", () => {
   const task = () => {
     return {
@@ -10,6 +8,14 @@ describe("TaskQueue", () => {
       resolve: jest.fn(),
     };
   };
+
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
 
   it("should be able to queue and run tasks", async () => {
     const t = task();
