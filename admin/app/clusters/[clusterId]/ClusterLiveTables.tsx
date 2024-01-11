@@ -48,10 +48,9 @@ export function ClusterLiveTables({
       name: string;
       functions: Array<{
         name: string;
-        totalSuccess: number;
-        totalFailure: number;
-        avgExecutionTimeSuccess: number | null;
-        avgExecutionTimeFailure: number | null;
+        idempotent: boolean | null;
+        rate: {per: 'minute' | 'hour', limit: number} | null;
+        cacheTTL: number | null;
       }>;
     }>;
   }>({
