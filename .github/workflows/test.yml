@@ -29,6 +29,7 @@ jobs:
           DIFFERENTIAL_API_SECRET: ${{ secrets.DIFFERENTIAL_API_SECRET }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           JWKS_URL: ${{ secrets.JWKS_URL }}
+          DEBUG: "differential:*"
 
       - name: Test builds
         run: npx lerna run build
