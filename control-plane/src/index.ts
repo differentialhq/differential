@@ -1,4 +1,5 @@
 import "./utilities/env";
+import "./utilities/profiling";
 
 import { initServer } from "@ts-rest/fastify";
 import fastify from "fastify";
