@@ -126,21 +126,21 @@ type ServiceRegistryFunction = {
 const functionRegistry: { [key: string]: ServiceRegistryFunction } = {};
 
 class PollingAgent {
-  private pollingForNextJob = false;
-  private pollJobsTimer: NodeJS.Timeout | undefined;
   private taskQueue = new TaskQueue();
+  private abortController = new AbortController();
+  private pollingAborted = false;
+  private active = false;
 
   private pollState = {
     current: 0,
     concurrency: 100,
-    polling: false, // this is the polling state for the currently executing job.
   };
 
+  private client: ReturnType<typeof createClient>;
+
   constructor(
-    private controlPlaneClient: Pick<
-      ReturnType<typeof createClient>,
-      "createJobsRequest" | "persistJobResult"
-    >,
+    private endpoint: string,
+    private machineId: string,
     private authHeader: string,
     private service: {
       name: string;
@@ -148,7 +148,13 @@ class PollingAgent {
       onIdle?: () => void;
     },
     private ttl?: number
-  ) {}
+  ) {
+    this.client = createClient(
+      this.endpoint,
+      this.machineId,
+      this.abortController
+    );
+  }
 
   private pollForNextJob = async (): Promise<
     | {
@@ -156,12 +162,7 @@ class PollingAgent {
       }
     | undefined
   > => {
-    if (this.pollingForNextJob) {
-      return;
-    }
-
     log("Polling for next job", { service: this.service });
-    this.pollingForNextJob = true;
 
     if (this.pollState.concurrency <= this.pollState.current) {
       log("Max concurrency reached");
@@ -176,189 +177,168 @@ class PollingAgent {
         idempotent,
       }));
 
-    try {
-      const pollResult = await this.controlPlaneClient
-        .createJobsRequest({
-          body: {
-            limit: Math.ceil(
-              (this.pollState.concurrency - this.pollState.current) / 2
-            ),
-            ttl: this.ttl,
-            service: this.service.name,
-            // TODO: send this conditionally, only when it has changed
-            functions,
-          },
-          headers: {
-            authorization: this.authHeader,
-          },
-        })
-        .catch((e) => {
-          if (e.name === "AbortError") {
-            log("Polling aborted");
+    const pollResult = await this.client
+      .createJobsRequest({
+        body: {
+          limit: Math.ceil(
+            (this.pollState.concurrency - this.pollState.current) / 2
+          ),
+          ttl: this.ttl,
+          service: this.service.name,
+          // TODO: send this conditionally, only when it has changed
+          functions,
+        },
+        headers: {
+          authorization: this.authHeader,
+        },
+      })
+      .catch((e) => {
+        if (e.name === "AbortError") {
+          log("Polling aborted");
 
-            return {
-              status: -1,
-            } as const;
-          } else {
-            log(`Failed to poll for next job: ${e.message}`);
+          return {
+            status: -1,
+          } as const;
+        } else {
+          log(`Failed to poll for next job: ${e.message}`);
 
-            return {
-              status: -1,
-            } as const;
-          }
-        });
+          return {
+            status: -1,
+          } as const;
+        }
+      });
 
-      if (pollResult.status === 400) {
-        log("Error polling for next job", JSON.stringify(pollResult.body));
-      } else if (pollResult.status === 200) {
-        log("Received jobs", pollResult.body.length);
+    if (pollResult.status === 400) {
+      log("Error polling for next job", JSON.stringify(pollResult.body));
+    } else if (pollResult.status === 200) {
+      log("Received jobs", pollResult.body.length);
 
-        this.pollState.current += pollResult.body.length;
+      this.pollState.current += pollResult.body.length;
 
-        const jobs = pollResult.body;
+      const jobs = pollResult.body;
 
-        await Promise.allSettled(
-          jobs.map(async (job) => {
-            const registered = functionRegistry[job.targetFn];
+      await Promise.allSettled(
+        jobs.map(async (job) => {
+          const registered = functionRegistry[job.targetFn];
 
-            log("Executing job", {
+          log("Executing job", {
+            id: job.id,
+            targetFn: job.targetFn,
+            registered: !!registered,
+          });
+
+          const onComplete = async (result: Result) => {
+            log("Persisting job result", {
               id: job.id,
-              targetFn: job.targetFn,
-              registered: !!registered,
+              resultType: result.type,
+              functionExecutionTime: result.functionExecutionTime,
             });
 
-            const onComplete = async (result: Result) => {
-              log("Persisting job result", {
-                id: job.id,
-                resultType: result.type,
-                functionExecutionTime: result.functionExecutionTime,
+            await this.client
+              .persistJobResult({
+                body: {
+                  result: pack(result.content),
+                  resultType: result.type,
+                  functionExecutionTime: result.functionExecutionTime,
+                },
+                params: {
+                  jobId: job.id,
+                },
+                headers: {
+                  authorization: this.authHeader,
+                },
+              })
+              .then((res) => {
+                if (res.status === 204) {
+                  log("Completed job", job.id, job.targetFn);
+                } else {
+                  throw new DifferentialError(
+                    `Failed to persist job: ${res.status}`,
+                    {
+                      jobId: job.id,
+                      body: res.body,
+                    }
+                  );
+                }
+              })
+              .finally(() => {
+                this.pollState.current -= 1;
               });
+          };
 
-              await this.controlPlaneClient
-                .persistJobResult({
-                  body: {
-                    result: pack(result.content),
-                    resultType: result.type,
-                    functionExecutionTime: result.functionExecutionTime,
-                  },
-                  params: {
-                    jobId: job.id,
-                  },
-                  headers: {
-                    authorization: this.authHeader,
-                  },
-                })
-                .then((res) => {
-                  if (res.status === 204) {
-                    log("Completed job", job.id, job.targetFn);
-                  } else {
-                    throw new DifferentialError(
-                      `Failed to persist job: ${res.status}`,
-                      {
-                        jobId: job.id,
-                        body: res.body,
-                      }
-                    );
-                  }
-                })
-                .finally(() => {
-                  this.pollState.current -= 1;
-                });
-            };
+          if (!registered) {
+            const error = new DifferentialError(
+              `Function was not registered. name='${
+                job.targetFn
+              }' registeredFunctions='${Object.keys(functionRegistry).join(
+                ","
+              )}'`
+            );
 
-            if (!registered) {
-              const error = new DifferentialError(
-                `Function was not registered. name='${
-                  job.targetFn
-                }' registeredFunctions='${Object.keys(functionRegistry).join(
-                  ","
-                )}'`
-              );
+            await onComplete({
+              type: "rejection",
+              content: serializeError(error),
+              functionExecutionTime: 0,
+            });
+          } else {
+            const args: Parameters<AsyncFunction> = unpack(job.targetArgs);
 
-              await onComplete({
-                type: "rejection",
-                content: serializeError(error),
-                functionExecutionTime: 0,
-              });
-            } else {
-              const args: Parameters<AsyncFunction> = unpack(job.targetArgs);
+            log("Executing fn", {
+              id: job.id,
+              targetFn: job.targetFn,
+              registeredFn: registered.fn,
+              args,
+            });
 
-              log("Executing fn", {
-                id: job.id,
-                targetFn: job.targetFn,
-                registeredFn: registered.fn,
-                args,
-              });
+            this.taskQueue.addTask(registered.fn, args, onComplete);
+          }
+        })
+      );
 
-              this.taskQueue.addTask(registered.fn, args, onComplete);
-            }
-          })
-        );
-
-        return {
-          jobCount: jobs.length,
-        };
-      } else if (pollResult.status === 401) {
-        throw new DifferentialError(DifferentialError.UNAUTHORISED);
-      } else {
-        log("Error polling for next job", { pollResult });
-      }
-    } finally {
-      this.pollingForNextJob = false;
+      return {
+        jobCount: jobs.length,
+      };
+    } else if (pollResult.status === 401) {
+      throw new DifferentialError(DifferentialError.UNAUTHORISED);
+    } else {
+      log("Error polling for next job", { pollResult });
     }
   };
 
-  startPolling() {
-    let resolved = false;
-    let lastTimeWeHadJobs = Date.now();
+  private async startPolling(): Promise<void> {
+    if (this.abortController.signal.aborted) {
+      this.pollingAborted = true;
+      log("Polling aborted");
+      return;
+    }
 
-    return new Promise<void>((resolve) => {
-      this.pollJobsTimer = setInterval(async () => {
-        this.pollState.polling = true;
+    await this.pollForNextJob();
 
-        const result = await this.pollForNextJob().finally(() => {
-          this.pollState.polling = false;
-        });
-
-        if (!resolved) {
-          resolved = true;
-          resolve();
-        }
-
-        if (result?.jobCount === 0 && this.service?.idleTimeout) {
-          const timeSinceLastJob = Date.now() - lastTimeWeHadJobs;
-
-          if (timeSinceLastJob > this.service?.idleTimeout) {
-            log("Idle timeout reached");
-            this.service?.onIdle?.();
-          }
-        } else {
-          lastTimeWeHadJobs = Date.now();
-        }
-      }, 1000);
-    });
+    return this.startPolling();
   }
 
-  quit(): Promise<void> {
+  start() {
+    log("Starting polling agent", { service: this.service });
+
+    this.active = true;
+
+    this.startPolling();
+  }
+
+  async quit(): Promise<void> {
     log("Quitting polling agent", { service: this.service });
-    clearInterval(this.pollJobsTimer);
 
-    return new Promise(async (resolve) => {
-      await this.taskQueue.quit();
+    this.abortController.abort();
+    await this.taskQueue.quit();
 
-      if (this.pollState.polling) {
-        const quitTimer: NodeJS.Timeout = setInterval(() => {
-          log("Waiting for polling to finish");
-          if (!this.pollState.polling) {
-            log("Polling finished");
-            clearInterval(quitTimer);
-            resolve();
-          }
-        }, 500);
-      } else {
-        resolve();
-      }
-    });
+    // wait for pollingAborted to be set to true
+    while (!this.pollingAborted) {
+      log("Waiting for polling to abort");
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    this.active = false;
+    log("Polling aborted");
   }
 
   setConcurrency(concurrency: number) {
@@ -370,16 +350,9 @@ class PollingAgent {
   }
 
   public get polling(): boolean {
-    return this.pollState.polling;
+    return this.active;
   }
 }
-
-type WorkerPool = {
-  idleTimeout?: number;
-  onWork?: () => void;
-  onIdle?: () => void;
-  concurrency?: number;
-};
 
 /**
  * The Differential client. This is the main entry point for using Differential.
@@ -427,14 +400,6 @@ export class Differential {
   private endpoint: string;
   private machineId: string;
   private controlPlaneClient: ReturnType<typeof createClient>;
-
-  private pollingClient:
-    | Pick<
-        ReturnType<typeof createClient>,
-        "createJobsRequest" | "persistJobResult"
-      >
-    | undefined;
-  private pollingAbortController: AbortController | undefined;
 
   private jobPollWaitTime?: number;
   private pollingAgents: PollingAgent[] = [];
@@ -511,16 +476,9 @@ export class Differential {
       });
     }
 
-    this.pollingAbortController = new AbortController();
-
-    this.pollingClient = createClient(
+    const pollingAgent = new PollingAgent(
       this.endpoint,
       this.machineId,
-      this.pollingAbortController
-    );
-
-    const pollingAgent = new PollingAgent(
-      this.pollingClient,
       this.authHeader,
       {
         name: service.name,
@@ -530,14 +488,10 @@ export class Differential {
 
     this.pollingAgents.push(pollingAgent);
 
-    await pollingAgent.startPolling();
+    pollingAgent.start();
   }
 
-  private async quit(): Promise<void> {
-    assert(this.pollingAbortController, "Polling abort controller not set");
-
-    await this.pollingAbortController.abort();
-
+  private async stop(): Promise<void> {
     await Promise.all(this.pollingAgents.map((agent) => agent.quit()));
 
     log("All polling agents quit", {
@@ -618,7 +572,7 @@ export class Differential {
     return {
       definition: service,
       start: () => this.listen(service),
-      stop: () => this.quit(),
+      stop: () => this.stop(),
     };
   }
 

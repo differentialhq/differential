@@ -47,7 +47,6 @@ describe("monolith", () => {
   }, 10000);
 
   it("should be able to call a service from another service", async () => {
-    await facadeService.start();
     const result = await d
       .client<typeof facadeService>("facade")
       .interFunctionCall({
@@ -74,5 +73,5 @@ describe("monolith", () => {
     await expect(expertService.start()).rejects.toThrowError(
       "Service is already started"
     );
-  }, 20000);
+  });
 });
