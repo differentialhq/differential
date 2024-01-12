@@ -501,6 +501,16 @@ export class Differential {
   }
 
   private async listen(service: ServiceDefinition<any>) {
+    if (
+      this.pollingAgents.find(
+        (p) => p.serviceName === service.name && p.polling
+      )
+    ) {
+      throw new DifferentialError(`Service is already started`, {
+        serviceName: service.name,
+      });
+    }
+
     this.pollingAbortController = new AbortController();
 
     this.pollingClient = createClient(
@@ -517,15 +527,6 @@ export class Differential {
       },
       this.jobPollWaitTime
     );
-
-    if (
-      this.pollingAgents.find(
-        (p) => p.serviceName === service.name && p.polling
-      )
-    ) {
-      log("Polling agent already exists. This is a no-op", { service });
-      return;
-    }
 
     this.pollingAgents.push(pollingAgent);
 
