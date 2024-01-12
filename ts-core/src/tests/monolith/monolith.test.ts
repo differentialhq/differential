@@ -4,6 +4,16 @@ import { expertService } from "./expert";
 import { facadeService } from "./facade";
 
 describe("monolith", () => {
+  beforeAll(async () => {
+    await expertService.start();
+    await facadeService.start();
+  });
+
+  afterAll(async () => {
+    await expertService.stop();
+    await facadeService.stop();
+  }, 10000);
+
   it("should not import a service, if we're just consuming it", async () => {
     const db = d.client<typeof dbService>("db", { background: true });
 
@@ -16,20 +26,14 @@ describe("monolith", () => {
   });
 
   it("should be able to call a service", async () => {
-    await expertService.start();
-
     const result = await d
       .client<typeof expertService>("expert")
       .callExpert("Can't touch this");
 
     expect(result).toBe("Expert says: Can't touch this");
-
-    await expertService.stop();
   }, 10000);
 
   it("service client should return the same result as 'call'", async () => {
-    await expertService.start();
-
     const result = await d.call<typeof expertService, "callExpert">(
       "expert",
       "callExpert",
@@ -40,14 +44,9 @@ describe("monolith", () => {
     const clientResult = await client.callExpert("Can't touch this");
 
     expect(clientResult).toBe(result);
-
-    await expertService.stop();
   }, 10000);
 
   it("should be able to call a service from another service", async () => {
-    await facadeService.start();
-    await expertService.start();
-
     const result = await d
       .client<typeof facadeService>("facade")
       .interFunctionCall({
@@ -68,15 +67,11 @@ describe("monolith", () => {
   "Expert says: foobar",
 ]
 `);
-
-    await facadeService.stop();
-    await expertService.stop();
   }, 10000);
 
-  it("should be ok to start the service idempotently", async () => {
-    await expertService.start();
-    await expertService.start();
-
-    await expertService.stop();
-  }, 20000);
+  it("should not let an already started service start again", async () => {
+    await expect(expertService.start()).rejects.toThrowError(
+      "Service is already started"
+    );
+  });
 });
