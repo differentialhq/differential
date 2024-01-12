@@ -168,8 +168,6 @@ class PollingAgent {
       return;
     }
 
-    log({ functionRegistry });
-
     // TODO: cache this
     const functions = Object.entries(functionRegistry)
       .filter(([, { name }]) => name === this.service.name)
@@ -195,11 +193,19 @@ class PollingAgent {
           },
         })
         .catch((e) => {
-          log(`Failed to poll for next job: ${e.message}`);
+          if (e.name === "AbortError") {
+            log("Polling aborted");
 
-          return {
-            status: -1,
-          } as const;
+            return {
+              status: -1,
+            } as const;
+          } else {
+            log(`Failed to poll for next job: ${e.message}`);
+
+            return {
+              status: -1,
+            } as const;
+          }
         });
 
       if (pollResult.status === 400) {
@@ -221,7 +227,44 @@ class PollingAgent {
               registered: !!registered,
             });
 
-            let result: Result;
+            const onComplete = async (result: Result) => {
+              log("Persisting job result", {
+                id: job.id,
+                resultType: result.type,
+                functionExecutionTime: result.functionExecutionTime,
+              });
+
+              await this.controlPlaneClient
+                .persistJobResult({
+                  body: {
+                    result: pack(result.content),
+                    resultType: result.type,
+                    functionExecutionTime: result.functionExecutionTime,
+                  },
+                  params: {
+                    jobId: job.id,
+                  },
+                  headers: {
+                    authorization: this.authHeader,
+                  },
+                })
+                .then((res) => {
+                  if (res.status === 204) {
+                    log("Completed job", job.id, job.targetFn);
+                  } else {
+                    throw new DifferentialError(
+                      `Failed to persist job: ${res.status}`,
+                      {
+                        jobId: job.id,
+                        body: res.body,
+                      }
+                    );
+                  }
+                })
+                .finally(() => {
+                  this.pollState.current -= 1;
+                });
+            };
 
             if (!registered) {
               const error = new DifferentialError(
@@ -232,10 +275,11 @@ class PollingAgent {
                 )}'`
               );
 
-              result = {
-                content: serializeError(error),
+              await onComplete({
                 type: "rejection",
-              };
+                content: serializeError(error),
+                functionExecutionTime: 0,
+              });
             } else {
               const args: Parameters<AsyncFunction> = unpack(job.targetArgs);
 
@@ -245,45 +289,6 @@ class PollingAgent {
                 registeredFn: registered.fn,
                 args,
               });
-
-              const onComplete = async (result: Result) => {
-                log("Persisting job result", {
-                  id: job.id,
-                  resultType: result.type,
-                  functionExecutionTime: result.functionExecutionTime,
-                });
-
-                await this.controlPlaneClient
-                  .persistJobResult({
-                    body: {
-                      result: pack(result.content),
-                      resultType: result.type,
-                      functionExecutionTime: result.functionExecutionTime,
-                    },
-                    params: {
-                      jobId: job.id,
-                    },
-                    headers: {
-                      authorization: this.authHeader,
-                    },
-                  })
-                  .then((res) => {
-                    if (res.status === 204) {
-                      log("Completed job", job.id, job.targetFn);
-                    } else {
-                      throw new DifferentialError(
-                        `Failed to persist job: ${res.status}`,
-                        {
-                          jobId: job.id,
-                          body: res.body,
-                        }
-                      );
-                    }
-                  })
-                  .finally(() => {
-                    this.pollState.current -= 1;
-                  });
-              };
 
               this.taskQueue.addTask(registered.fn, args, onComplete);
             }
@@ -309,7 +314,11 @@ class PollingAgent {
 
     return new Promise<void>((resolve) => {
       this.pollJobsTimer = setInterval(async () => {
-        const result = await this.pollForNextJob();
+        this.pollState.polling = true;
+
+        const result = await this.pollForNextJob().finally(() => {
+          this.pollState.polling = false;
+        });
 
         if (!resolved) {
           resolved = true;
@@ -331,6 +340,7 @@ class PollingAgent {
   }
 
   quit(): Promise<void> {
+    log("Quitting polling agent", { service: this.service });
     clearInterval(this.pollJobsTimer);
 
     return new Promise(async (resolve) => {
@@ -428,7 +438,6 @@ export class Differential {
 
   private jobPollWaitTime?: number;
   private pollingAgents: PollingAgent[] = [];
-  private clientAbortController = new AbortController();
 
   /**
    * Initializes a new Differential instance.
@@ -535,7 +544,7 @@ export class Differential {
     });
   }
 
-  private register<T extends AsyncFunction>({
+  private register({
     fn,
     name,
     serviceName,
@@ -741,6 +750,8 @@ export class Differential {
         authorization: this.authHeader,
       },
     });
+
+    log("Job created", { service, fn, args, body: result.body });
 
     if (result.status === 201) {
       return result.body.id;
