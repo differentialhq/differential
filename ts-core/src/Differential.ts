@@ -1,4 +1,4 @@
-import { initClient } from "@ts-rest/core";
+import { initClient, tsRestFetchApi } from "@ts-rest/core";
 import debug from "debug";
 import { contract } from "./contract";
 import { DifferentialError } from "./errors";
@@ -6,6 +6,7 @@ import { extractDifferentialConfig, isFunctionIdempotent } from "./functions";
 import { pack, unpack } from "./serialize";
 import { Result, TaskQueue } from "./task-queue";
 import { AsyncFunction } from "./types";
+import assert from "assert";
 
 const log = debug("differential:client");
 
@@ -34,12 +35,24 @@ export type RegisteredService<T extends ServiceDefinition<any>> = {
   stop: () => Promise<void>;
 };
 
-const createClient = (baseUrl: string, machineId: string) =>
+const createClient = (
+  baseUrl: string,
+  machineId: string,
+  clientAbortController?: AbortController
+) =>
   initClient(contract, {
     baseUrl,
     baseHeaders: {
       "x-machine-id": machineId,
     },
+    api: clientAbortController
+      ? (args) => {
+          return tsRestFetchApi({
+            ...args,
+            signal: clientAbortController.signal,
+          });
+        }
+      : undefined,
   });
 
 const pollForJob = async (
@@ -48,6 +61,8 @@ const pollForJob = async (
   authHeader: string,
   attempt = 1
 ): Promise<Result> => {
+  log("Polling for job", { attempt });
+
   const result = await client.getJobStatus({
     params: {
       jobId: params.jobId,
@@ -122,7 +137,10 @@ class PollingAgent {
   };
 
   constructor(
-    private controlPlaneClient: ReturnType<typeof createClient>,
+    private controlPlaneClient: Pick<
+      ReturnType<typeof createClient>,
+      "createJobsRequest" | "persistJobResult"
+    >,
     private authHeader: string,
     private service: {
       name: string;
@@ -400,8 +418,17 @@ export class Differential {
   private machineId: string;
   private controlPlaneClient: ReturnType<typeof createClient>;
 
+  private pollingClient:
+    | Pick<
+        ReturnType<typeof createClient>,
+        "createJobsRequest" | "persistJobResult"
+      >
+    | undefined;
+  private pollingAbortController: AbortController | undefined;
+
   private jobPollWaitTime?: number;
   private pollingAgents: PollingAgent[] = [];
+  private clientAbortController = new AbortController();
 
   /**
    * Initializes a new Differential instance.
@@ -465,8 +492,16 @@ export class Differential {
   }
 
   private async listen(service: ServiceDefinition<any>) {
+    this.pollingAbortController = new AbortController();
+
+    this.pollingClient = createClient(
+      this.endpoint,
+      this.machineId,
+      this.pollingAbortController
+    );
+
     const pollingAgent = new PollingAgent(
-      this.controlPlaneClient,
+      this.pollingClient,
       this.authHeader,
       {
         name: service.name,
@@ -489,6 +524,10 @@ export class Differential {
   }
 
   private async quit(): Promise<void> {
+    assert(this.pollingAbortController, "Polling abort controller not set");
+
+    await this.pollingAbortController.abort();
+
     await Promise.all(this.pollingAgents.map((agent) => agent.quit()));
 
     log("All polling agents quit", {
@@ -638,12 +677,16 @@ export class Differential {
     // create a job
     const id = await this.createJob<T, U>(service, fn, args);
 
+    log("Waiting for job to complete", { id });
+
     // wait for the job to complete
     const result = await pollForJob(
       this.controlPlaneClient,
       { jobId: id },
       this.authHeader
     );
+
+    log("Result received", { id, result });
 
     if (result.type === "resolution") {
       // return the result
