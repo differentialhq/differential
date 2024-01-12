@@ -16,22 +16,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          fetch-depth: '0' # fetch all history for all tags and branches so that changeset-builder can generate changelogs
+          fetch-depth: "0" # fetch all history for all tags and branches so that changeset-builder can generate changelogs
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
           node-version: 20
-          registry-url: 'https://registry.npmjs.org'
-          scope: '@differentialhq'
+          registry-url: "https://registry.npmjs.org"
+          scope: "@differentialhq"
 
       - name: Install dependencies on root
         run: npm install
 
+      - name: Set DIFFERENTIAL_API_SECRET
+        run: echo "DIFFERENTIAL_API_SECRET=$(curl https://api.differential.dev/demo/token)" >> $GITHUB_ENV
+
       - name: Run tests
         run: npx lerna run test
         env:
-          DIFFERENTIAL_API_SECRET: ${{ secrets.DIFFERENTIAL_API_SECRET }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           JWKS_URL: ${{ secrets.JWKS_URL }}
 

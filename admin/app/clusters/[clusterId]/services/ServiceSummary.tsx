@@ -11,7 +11,7 @@ import Link from "next/link";
 const Service = (props: {
   clusterId: string;
   name: string;
-  functions: Array<{ name: string }>;
+  functions?: Array<{ name: string }>;
 }) => {
   return (
     <Link
@@ -26,7 +26,7 @@ const Service = (props: {
         <CardContent>
           <p className="text-sm text-gray-500">functions</p>
           <ul>
-            {props.functions.map((fn) => (
+            {props.functions?.map((fn) => (
               <li className="font-mono" key={fn.name}>
                 {fn.name}()
               </li>
@@ -40,7 +40,7 @@ const Service = (props: {
 
 export const ServiceSummary = (props: {
   clusterId: string;
-  services: Array<{ name: string; functions: Array<{ name: string }> }>;
+  services: Array<{ name: string; functions?: Array<{ name: string }> }>;
 }) => {
   return (
     <div className="flex">
