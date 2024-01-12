@@ -10,14 +10,14 @@ const NextJobSchema = z.object({
 });
 
 export const contract = c.router({
-  getNextJobs: {
-    method: "GET",
-    path: "/jobs",
+  createJobsRequest: {
+    method: "POST",
+    path: "/jobs-request",
     headers: z.object({
       authorization: z.string(),
       "x-machine-id": z.string(),
     }),
-    query: z.object({
+    body: z.object({
       limit: z.coerce.number().default(1),
       service: z.string(),
       ttl: z.coerce.number().min(5000).max(20000).default(20000),
@@ -208,36 +208,23 @@ export const contract = c.router({
             functionExecutionTime: z.number().nullable(),
           })
         ),
-        services: z.array(
-          z.object({
-            name: z.string(),
-            functions: z.array(
-              z.object({
-                name: z.string(),
-                totalSuccess: z.number(),
-                totalFailure: z.number(),
-                avgExecutionTimeSuccess: z.number().nullable(),
-                avgExecutionTimeFailure: z.number().nullable(),
-              })
-            ),
-          })
-        ),
         definitions: z.array(
           z.object({
             name: z.string(),
-            functions: z.array(
-              z.object({
-                name: z.string(),
-                idempotent: z.boolean().optional(),
-                rate: z
-                  .object({
-                    per: z.enum(["minute", "hour"]),
-                    limit: z.number(),
-                  })
-                  .optional(),
-                cacheTTL: z.number().optional(),
-              })
-            ),
+            functions: z
+              .array(
+                z.object({
+                  name: z.string(),
+                  idempotent: z.boolean().optional(),
+                  rate: z
+                    .object({
+                      per: z.enum(["minute", "hour"]),
+                      limit: z.number(),
+                    })
+                    .optional(),
+                  cacheTTL: z.number().optional(),
+                })
+              ).optional()
           })
         ),
       }),

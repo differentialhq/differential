@@ -30,12 +30,11 @@ export function ServiceLiveTables({
     }[];
     service?: {
       name: string;
-      functions: Array<{
+      functions?: Array<{
         name: string;
-        totalSuccess: number;
-        totalFailure: number;
-        avgExecutionTimeSuccess: number | null;
-        avgExecutionTimeFailure: number | null;
+        idempotent?: boolean | null;
+        rate?: { per: "minute" | "hour"; limit: number } | null;
+        cacheTTL?: number | null;
       }>;
     };
   }>({
@@ -63,7 +62,7 @@ export function ServiceLiveTables({
           jobs: clusterResult.body.jobs
             .filter((f) => f.service == serviceName)
             .slice(-10),
-          service: clusterResult.body.services
+          service: clusterResult.body.definitions
             .filter((s) => s.name == serviceName)
             .pop(),
         });
@@ -87,27 +86,25 @@ export function ServiceLiveTables({
       {(data.service !== undefined && (
         <div>
           <div className="mt-12">
+            <h2 className="text-xl mb-4">Function Registry</h2>
+            <p className="text-gray-400 mb-8">
+              These are the functions that are registered for this service.
+            </p>
             <DataTable
-              data={data.service.functions.map((s) => ({
-                Function: s.name,
-                "Total Requests": s.totalSuccess + s.totalFailure,
-                "Failure Rate": `${(
-                  (s.totalFailure / (s.totalSuccess + s.totalFailure)) *
-                  99
-                ).toFixed(2)}%`,
-                "Average Execution Time (Success)": `${
-                  s.avgExecutionTimeSuccess === undefined ||
-                  s.avgExecutionTimeSuccess === null
-                    ? "N/A"
-                    : `${s.avgExecutionTimeSuccess?.toFixed(2)}ms`
-                }`,
-                "Average Execution Time (Failure)": `${
-                  s.avgExecutionTimeFailure === undefined ||
-                  s.avgExecutionTimeFailure === null
-                    ? "N/A"
-                    : `${s.avgExecutionTimeFailure?.toFixed(2)}ms`
-                }`,
-              }))}
+              data={
+                data.service.functions?.map((s) => ({
+                  Function: s.name,
+                  Idempotent: s.idempotent ? "Yes" : "No",
+                  "Rate Limit":
+                    s.rate === null || s.rate === undefined
+                      ? "N/A"
+                      : `${s.rate?.limit}/${s.rate?.per}`,
+                  "Cache TTL":
+                    s.cacheTTL === null || s.cacheTTL === undefined
+                      ? "N/A"
+                      : `${s.cacheTTL}s`,
+                })) ?? []
+              }
               noDataMessage="No functions have been detected recently."
             />
           </div>
