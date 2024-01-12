@@ -17,9 +17,9 @@ const client = jwksClient({
 });
 
 const getKey: GetPublicKeyOrSecret = (header, callback) => {
-  client.getSigningKey(header.kid, function (err, key) {
+  return client.getSigningKey(header.kid, function (err, key) {
     var signingKey = key?.getPublicKey();
-    callback(null, signingKey);
+    callback(err, signingKey);
   });
 };
 

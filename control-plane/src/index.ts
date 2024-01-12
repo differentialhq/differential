@@ -4,6 +4,7 @@ import { initServer } from "@ts-rest/fastify";
 import fastify from "fastify";
 import process from "process";
 import * as router from "./modules/router";
+import * as jobs from "./modules/jobs";
 import cors from "@fastify/cors";
 
 const app = fastify({
@@ -25,6 +26,8 @@ app.setErrorHandler((error, request, reply) => {
 });
 
 const start = async () => {
+  await jobs.start();
+
   try {
     await app.listen({ port: 4000, host: "0.0.0.0" });
     console.log("Server listening on port 4000");

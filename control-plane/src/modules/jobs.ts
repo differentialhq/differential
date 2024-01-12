@@ -160,4 +160,5 @@ export async function selfHealJobs() {
   );
 }
 
-cron.registerCron(selfHealJobs, { interval: 1000 * 20 }); // 20 seconds
+export const start = () =>
+  cron.registerCron(selfHealJobs, { interval: 1000 * 20 }); // 20 seconds
