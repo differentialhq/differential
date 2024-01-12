@@ -5,7 +5,7 @@ describe("Idempotency", () => {
   it("should call the functions only once", async () => {
     await countService.start();
 
-    const client = d.client<typeof countService>("hello");
+    const client = d.client<typeof countService>("count");
 
     const key = Math.random().toString(36);
 

@@ -11,7 +11,7 @@ export const count = async (echo: string) => {
 };
 
 export const countService = d.service({
-  name: "hello",
+  name: "count",
   functions: {
     count: idempotent(count),
   },

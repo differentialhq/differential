@@ -3,7 +3,6 @@ import { helloService } from "./hello";
 
 describe("e2ee", () => {
   it("should be able to call a service", async () => {
-
     await helloService.start();
 
     const result = await d

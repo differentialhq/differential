@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import * as data from "./data";
 import jwt from "jsonwebtoken";
-import { invariant } from "../utils";
+import { invariant } from "../utilities/invariant";
 
 const jwtSecret = invariant(
   process.env.JWT_SECRET,

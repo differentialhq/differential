@@ -1,4 +1,4 @@
-require("dotenv").config();
+import "./utilities/env";
 
 import { initServer } from "@ts-rest/fastify";
 import fastify from "fastify";
