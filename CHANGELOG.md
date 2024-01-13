@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.7.1](https://github.com/differentialhq/differential/compare/v3.7.0...v3.7.1) (2024-01-13)
+
+### Bug Fixes
+
+- Add initiate profiler on startup ([1e84624](https://github.com/differentialhq/differential/commit/1e846246e20d176cbca20cc3b86b0c78d196feaf))
+- Close handle on cron ([#58](https://github.com/differentialhq/differential/issues/58)) ([87d29ca](https://github.com/differentialhq/differential/commit/87d29ca27b0d6fa0dd12aa2b67a604f9b0bf2664))
+- Improve polling and shutdown stability ([#62](https://github.com/differentialhq/differential/issues/62)) ([db017d6](https://github.com/differentialhq/differential/commit/db017d677b5133496647bcefc471a06fac2fd447))
+- Reduce open handles ([#57](https://github.com/differentialhq/differential/issues/57)) ([0dbf051](https://github.com/differentialhq/differential/commit/0dbf051d689b285b80229ce0053c5b8f4452d63b))
+- Remove the deprecated services object ([07206ac](https://github.com/differentialhq/differential/commit/07206ace86971d4873c3df90f76ac08b23b333a2))
+
+### Features
+
+- Client metric ingestion endpoint ([#68](https://github.com/differentialhq/differential/issues/68)) ([6b4c0ca](https://github.com/differentialhq/differential/commit/6b4c0caa094f03b6c5d47deaded5cb49c0f3b330)), closes [#69](https://github.com/differentialhq/differential/issues/69)
+- Render service definition in front end ([#51](https://github.com/differentialhq/differential/issues/51)) ([a1bd0d4](https://github.com/differentialhq/differential/commit/a1bd0d402aec09a17ac63ae4708d6138ab2cd945)), closes [#47](https://github.com/differentialhq/differential/issues/47) [#43](https://github.com/differentialhq/differential/issues/43)
+
 # [3.7.0](https://github.com/differentialhq/differential/compare/v3.6.1...v3.7.0) (2024-01-11)
 
 ### Bug Fixes
