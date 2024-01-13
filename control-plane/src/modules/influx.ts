@@ -16,7 +16,5 @@ export const queryClient = INFLUXDB_ORG
 
 export const writeClient =
   INFLUXDB_ORG && INFLUXDB_BUCKET
-    ? client?.getWriteApi(INFLUXDB_ORG, INFLUXDB_BUCKET, "ms", {
-        flushInterval: 2000,
-      })
+    ? client?.getWriteApi(INFLUXDB_ORG, INFLUXDB_BUCKET, "ms")
     : undefined;
