@@ -28,9 +28,12 @@ jobs:
       - name: Run tests
         run: npx lerna run test
         env:
-          DIFFERENTIAL_API_SECRET: ${{ secrets.DIFFERENTIAL_API_SECRET }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           JWKS_URL: ${{ secrets.JWKS_URL }}
+          INFLUXDB_TOKEN: ${{ secrets.INFLUXDB_TOKEN }}
+          INFLUXDB_URL: ${{ secrets.INFLUXDB_URL }}
+          INFLUXDB_ORG: ${{ secrets.INFLUXDB_ORG }}
+          INFLUXDB_BUCKET: ${{ secrets.INFLUXDB_BUCKET }}
 
       - name: Build packages
         run: npx lerna run build
