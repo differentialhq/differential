@@ -268,4 +268,26 @@ export const contract = c.router({
       stop: z.date().optional(),
     }),
   },
+  ingestClientEvents: {
+    method: "POST",
+    path: "/metrics",
+    headers: z.object({
+      authorization: z.string(),
+      "x-machine-id": z.string(),
+    }),
+    responses: {
+      204: z.undefined(),
+      401: z.undefined(),
+    },
+    body: z.object({
+      events: z.array(
+        z.object({
+          timestamp: z.coerce.date(),
+          type: z.enum(["machineResourceProbe", "functionInvocation"]),
+          tags: z.record(z.string()).optional(),
+          intFields: z.record(z.number()).optional(),
+        })
+      ),
+    }),
+  }
 });

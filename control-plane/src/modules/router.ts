@@ -303,4 +303,28 @@ export const router = s.router(contract, {
       },
     };
   },
+  ingestClientEvents: async (request) => {
+    const owner = await auth.jobOwnerHash(request.headers.authorization);
+
+    if (!owner) {
+      return {
+        status: 401,
+      };
+    }
+
+    request.body.events.forEach((event) => {
+      if (!event.tags) {
+        event.tags = {}
+      }
+
+      event.tags.machineId = request.headers["x-machine-id"]
+      event.tags.clusterId = owner.clusterId
+      writeEvent(event)
+    })
+
+    return {
+      status: 204,
+      body: undefined,
+    };
+  },
 });
