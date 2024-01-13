@@ -1,9 +1,10 @@
 import { Point } from "@influxdata/influxdb-client"
 import { writeClient } from "./influx"
 
-type EventTypes = 'jobCreated' | 'jobResulted' | 'machinePing'
+type EventTypes = 'jobCreated' | 'jobResulted' | 'machinePing' | 'machineResourceProbe' | 'functionInvocation'
 type Event = {
   type: EventTypes
+  timestamp?: Date
   tags?: Record<string, string | null>
   intFields?: Record<string, number | null>
   stringFields?: Record<string, string | null >
@@ -12,6 +13,9 @@ type Event = {
 
 export const writeEvent = (event: Event) => {
   const point = new Point(event.type)
+  if (event.timestamp) {
+    point.timestamp(event.timestamp)
+  }
 
   event.tags && Object.entries(event.tags).forEach(([key, value]) => {
     value != undefined && point.tag(key, value)
