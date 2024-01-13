@@ -9,7 +9,7 @@ import { contract } from "./contract";
 import * as data from "./data";
 import { createJob, getJobStatus, nextJobs } from "./jobs";
 import * as management from "./management";
-import * as metrics from "./eventAggregation";
+import * as metrics from "./event-aggregation";
 import { writeEvent } from "./events";
 import * as serviceDefinitions from "./service-definitions";
 import * as routingHelpers from "./routing-helpers";
