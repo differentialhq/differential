@@ -7,6 +7,7 @@ import { pack, unpack } from "./serialize";
 import { Result, TaskQueue } from "./task-queue";
 import { AsyncFunction } from "./types";
 import assert from "assert";
+import { Events } from "./events";
 
 const log = debug("differential:client");
 
@@ -404,6 +405,8 @@ export class Differential {
   private jobPollWaitTime?: number;
   private pollingAgents: PollingAgent[] = [];
 
+  private events: Events
+
   /**
    * Initializes a new Differential instance.
    * @param apiSecret The API Secret for your Differential cluster. You can obtain one from https://api.differential.dev/demo/token.
@@ -463,9 +466,21 @@ export class Differential {
     });
 
     this.controlPlaneClient = createClient(this.endpoint, this.machineId);
+    this.events = new Events(async (events) => {
+      const result = await this.controlPlaneClient.ingestClientEvents({
+        body: {events: events},
+        headers: {
+          authorization: this.authHeader
+        }
+      })
+      log("Sent metrics to control plane", {
+        result: result
+      })
+    })
   }
 
   private async listen(service: ServiceDefinition<any>) {
+    this.events.startResourceProbe()
     if (
       this.pollingAgents.find(
         (p) => p.serviceName === service.name && p.polling
@@ -492,6 +507,8 @@ export class Differential {
   }
 
   private async stop(): Promise<void> {
+    this.events.stopResourceProbe()
+
     await Promise.all(this.pollingAgents.map((agent) => agent.quit()));
 
     log("All polling agents quit", {
@@ -638,6 +655,8 @@ export class Differential {
     fn: U,
     ...args: Parameters<T["definition"]["functions"][U]>
   ): Promise<ReturnType<T["definition"]["functions"][U]>> {
+
+    const start = Date.now();
     // create a job
     const id = await this.createJob<T, U>(service, fn, args);
 
@@ -649,6 +668,19 @@ export class Differential {
       { jobId: id },
       this.authHeader
     );
+    const end = Date.now();
+
+    this.events.push({
+      timestamp: new Date(),
+      type: 'functionInvocation',
+      tags: {
+        function: fn as string,
+        service: service,
+      },
+      intFields: {
+        roundTripTime: end - start
+      }
+    })
 
     log("Result received", { id, result });
 
