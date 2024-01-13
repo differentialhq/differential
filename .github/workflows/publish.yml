@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies on root
         run: npm install
 
+      - name: Set DIFFERENTIAL_API_SECRET
+        run: echo "DIFFERENTIAL_API_SECRET=$(curl https://api.differential.dev/demo/token)" >> $GITHUB_ENV
+
       - name: Run tests
         run: npx lerna run test
         env:
