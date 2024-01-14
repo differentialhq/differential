@@ -79,7 +79,7 @@ export const router = s.router(contract, {
         result,
         result_type: resultType,
         resulted_at: sql`now()`,
-        function_execution_time_ms: functionExecutionTime,
+          function_execution_time_ms: functionExecutionTime,
         status: "success",
       })
       .where(
