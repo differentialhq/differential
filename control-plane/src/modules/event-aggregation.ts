@@ -8,7 +8,7 @@ type TimeRange = {
 
 type JobComposite = {
   clusterId: string;
-  serviceName: string;
+  serviceName?: string;
   functionName?: string;
 };
 
@@ -22,10 +22,14 @@ export const resultExecutionTimeQuery = (
   |> range(start: ${range.start}, stop: ${range.stop})
   |> filter(fn: (r) => r["_measurement"] == "jobResulted")
   |> filter(fn: (r) => r["clusterId"] == "${target.clusterId}")
-  |> filter(fn: (r) => r["service"] == "${target.serviceName}")
-  |> filter(fn: (r) => r["_field"] == "functionExecutionTime")
   |> filter(fn: (r) => r["resultType"] == "resolution" or r["resultType"] == "rejection")
+  |> filter(fn: (r) => r["_field"] == "functionExecutionTime")
 `.toString()
+
+  if (target.serviceName) {
+    query += flux`|> filter(fn: (r) => r["service"] == "${target.serviceName}")
+`.toString()
+  }
 
   if (target.functionName) {
     query += flux`|> filter(fn: (r) => r["function"] == "${target.functionName}")
@@ -47,16 +51,21 @@ export const resultCountQuery = (
   |> range(start: ${range.start}, stop: ${range.stop})
   |> filter(fn: (r) => r["_measurement"] == "jobResulted")
   |> filter(fn: (r) => r["clusterId"] == "${target.clusterId}")
-  |> filter(fn: (r) => r["service"] == "${target.serviceName}")
+  |> filter(fn: (r) => r["resultType"] == "resolution" or r["resultType"] == "rejection")
+  |> filter(fn: (r) => r["_field"] == "functionExecutionTime")
 `.toString()
+
+  if (target.serviceName) {
+    query += flux`|> filter(fn: (r) => r["service"] == "${target.serviceName}")
+`.toString()
+  }
 
   if (target.functionName) {
     query += flux`|> filter(fn: (r) => r["function"] == "${target.functionName}")
 `.toString()
   }
 
-  query += `|> filter(fn: (r) => r["_field"] == "functionExecutionTime")
-  |> aggregateWindow(every: 1m, fn: count, createEmpty: true)
+  query += `|> aggregateWindow(every: 1m, fn: count, createEmpty: true)
 `.toString()
 
   return query
@@ -64,11 +73,13 @@ export const resultCountQuery = (
 
 type Point = {timestamp: Date, value: number}
 export const getFunctionMetrics = async (
-  clusterId: string,
-  serviceName: string,
-  start: Date,
-  stop: Date,
-  functionName?: string
+  query: {
+    clusterId: string,
+    serviceName?: string,
+    functionName?: string
+    start: Date,
+    stop: Date,
+  }
 ): Promise<{
     success: {
       count: Array<Point>
@@ -86,6 +97,8 @@ export const getFunctionMetrics = async (
       "InfluxDB client not initialized. Metrics are not available."
     );
   }
+
+  const { clusterId, serviceName, functionName, start, stop } = query;
 
   // TODO: See if these can be typed better
   const executionCount = await queryClient.collectRows(

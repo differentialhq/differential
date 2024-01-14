@@ -16,13 +16,13 @@ describe("getFunctionMetrics", () => {
     const start = new Date(Date.now() - 86400000);
     const stop = new Date();
 
-    const result = await metrics.getFunctionMetrics(
+    const result = await metrics.getFunctionMetrics({
       clusterId,
       serviceName,
       start,
       stop,
       functionName
-    );
+    });
 
     expect(result).toEqual({
       success: {
@@ -126,13 +126,13 @@ describe("getFunctionMetrics", () => {
     let result;
 
     do {
-      result = await metrics.getFunctionMetrics(
+      result = await metrics.getFunctionMetrics({
         clusterId,
         serviceName,
         start,
         stop,
         functionName
-      );
+      });
 
       if (result.success.count.length !== 1 || result.failure.count.length !== 1) {
         console.log(`Waiting for metrics to be aggregated...`, result);

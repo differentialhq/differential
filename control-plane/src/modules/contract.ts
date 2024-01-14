@@ -236,9 +236,9 @@ export const contract = c.router({
       clusterId: z.string(),
     }),
   },
-  getServiceMetrics: {
+  getMetrics: {
     method: "GET",
-    path: "/clusters/:clusterId/services/:serviceName/metrics",
+    path: "/clusters/:clusterId/metrics",
     headers: z.object({
       authorization: z.string(),
     }),
@@ -260,12 +260,12 @@ export const contract = c.router({
     },
     pathParams: z.object({
       clusterId: z.string(),
-      serviceName: z.string(),
     }),
     query: z.object({
       start: z.coerce.date().optional(),
       stop: z.coerce.date().optional(),
       functionName: z.string().optional(),
+      serviceName: z.string().optional(),
     }),
   },
   ingestClientEvents: {
