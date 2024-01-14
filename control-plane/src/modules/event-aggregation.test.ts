@@ -19,9 +19,9 @@ describe("getFunctionMetrics", () => {
     const result = await metrics.getFunctionMetrics(
       clusterId,
       serviceName,
-      functionName,
       start,
-      stop
+      stop,
+      functionName
     );
 
     expect(result).toEqual({
@@ -129,9 +129,9 @@ describe("getFunctionMetrics", () => {
       result = await metrics.getFunctionMetrics(
         clusterId,
         serviceName,
-        functionName,
         start,
-        stop
+        stop,
+        functionName
       );
 
       if (result.success.count.length !== 2 || result.failure.count.length !== 2) {
