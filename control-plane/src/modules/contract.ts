@@ -236,9 +236,9 @@ export const contract = c.router({
       clusterId: z.string(),
     }),
   },
-  getFunctionMetrics: {
+  getMetrics: {
     method: "GET",
-    path: "/clusters/:clusterId/services/:serviceName/functions/:functionName/metrics",
+    path: "/clusters/:clusterId/metrics",
     headers: z.object({
       authorization: z.string(),
     }),
@@ -247,25 +247,25 @@ export const contract = c.router({
         start: z.date(),
         stop: z.date(),
         success: z.object({
-          count: z.number(),
-          avgExecutionTime: z.number().nullable(),
+          count: z.array(z.object({timestamp: z.date(), value: z.number()})),
+          avgExecutionTime: z.array(z.object({timestamp: z.date(), value: z.number()})),
         }),
         failure: z.object({
-          count: z.number(),
-          avgExecutionTime: z.number().nullable(),
-        }),
+          count: z.array(z.object({timestamp: z.date(), value: z.number()})),
+          avgExecutionTime: z.array(z.object({timestamp: z.date(), value: z.number()})),
+        })
       }),
       401: z.undefined(),
       404: z.undefined(),
     },
     pathParams: z.object({
       clusterId: z.string(),
-      serviceName: z.string(),
-      functionName: z.string(),
     }),
     query: z.object({
-      start: z.date().optional(),
-      stop: z.date().optional(),
+      start: z.coerce.date().optional(),
+      stop: z.coerce.date().optional(),
+      functionName: z.string().optional(),
+      serviceName: z.string().optional(),
     }),
   },
   ingestClientEvents: {

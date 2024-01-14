@@ -96,7 +96,7 @@ export const router = s.router(contract, {
         resultType,
       },
       intFields: {
-        ...(functionExecutionTime ? { functionExecutionTime } : {}),
+        ...(functionExecutionTime !== undefined ? { functionExecutionTime } : {}),
       },
       stringFields: {
         jobId,
@@ -275,31 +275,32 @@ export const router = s.router(contract, {
       body: cluster,
     };
   },
-  getFunctionMetrics: async (request) => {
+  getMetrics: async (request) => {
     await routingHelpers.validateManagementAccess(request);
 
     // TODO: Validate serviceName and functionName
     // We don't currently store and service/function names in the database to validate against.
-    const { clusterId, serviceName, functionName } = request.params;
+    const { clusterId } = request.params;
+    const { functionName, serviceName } = request.query;
 
     // Default to last 24 hours
-    const start = request.query.stop ?? new Date(Date.now() - 86400000);
-    const stop = request.query.start ?? new Date();
+    const start = request.query.start ?? new Date(Date.now() - 86400000);
+    const stop = request.query.stop ?? new Date();
 
-    const result = await metrics.getFunctionMetrics(
+    const result = await metrics.getFunctionMetrics({
       clusterId,
       serviceName,
       functionName,
       start,
       stop
-    );
+      });
 
     return {
       status: 200,
       body: {
         start: start,
         stop: stop,
-        ...result,
+        ...result
       },
     };
   },
