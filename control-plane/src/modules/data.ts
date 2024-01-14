@@ -14,7 +14,7 @@ import { sql } from "drizzle-orm";
 
 const connectionString = invariant(
   process.env.DATABASE_URL,
-  "DATABASE_URL must be set"
+  "DATABASE_URL must be set",
 );
 
 const sslDisabled = process.env.DATABASE_SSL_DISABLED === "true";
@@ -78,14 +78,14 @@ export const jobs = pgTable(
     resulted_at: timestamp("resulted_at", { withTimezone: true }),
     function_execution_time_ms: integer("function_execution_time_ms"),
     timing_out_at: timestamp("timed_out_at", { withTimezone: true }).default(
-      sql`now() + interval '300 seconds'`
+      sql`now() + interval '300 seconds'`,
     ),
     timeout_interval_seconds: integer("timeout_interval").default(300),
     service: varchar("service", { length: 1024 }).notNull(),
   },
   (table) => ({
     pk: primaryKey(table.owner_hash, table.target_fn, table.idempotency_key),
-  })
+  }),
 );
 
 export const machines = pgTable("machines", {
@@ -121,7 +121,7 @@ export const services = pgTable(
   },
   (table) => ({
     pk: primaryKey(table.cluster_id, table.service),
-  })
+  }),
 );
 
 export const db = drizzle(pool);

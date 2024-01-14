@@ -1,15 +1,14 @@
 import { initServer } from "@ts-rest/fastify";
-import { and, eq, sql } from "drizzle-orm";
 import fs from "fs";
 import path from "path";
 import util from "util";
 import * as admin from "./admin";
 import * as auth from "./auth";
-import * as jobs from "./jobs";
 import { contract } from "./contract";
 import * as data from "./data";
 import * as metrics from "./event-aggregation";
 import { writeEvent } from "./events";
+import * as jobs from "./jobs";
 import * as management from "./management";
 import * as routingHelpers from "./routing-helpers";
 
@@ -169,7 +168,7 @@ export const router = s.router(contract, {
           path.join(__dirname, "..", "..", "src", "./modules/contract.ts"),
           {
             encoding: "utf-8",
-          }
+          },
         ),
       },
     };

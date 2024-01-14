@@ -71,8 +71,8 @@ export const hasAccessToCluster = async ({
     .where(
       and(
         eq(data.clusters.id, clusterId),
-        eq(data.clusters.owner_id, verified.userId)
-      )
+        eq(data.clusters.owner_id, verified.userId),
+      ),
     );
 
   return clusters.length > 0;
@@ -145,9 +145,9 @@ export const getClusterDetailsForUser = async ({
         // in the last 1 hour
         gte(
           data.machines.last_ping_at,
-          new Date(Date.now() - 1000 * 60 * 60 * 1)
-        )
-      )
+          new Date(Date.now() - 1000 * 60 * 60 * 1),
+        ),
+      ),
     );
 
   const jobs = await data.db
@@ -165,8 +165,8 @@ export const getClusterDetailsForUser = async ({
       and(
         eq(data.jobs.owner_hash, clusterId),
         // in the last 5 minutes
-        gte(data.jobs.created_at, new Date(Date.now() - 1000 * 60 * 5))
-      )
+        gte(data.jobs.created_at, new Date(Date.now() - 1000 * 60 * 5)),
+      ),
     );
 
   return {
@@ -205,8 +205,8 @@ export const getClusterServiceDetailsForUser = async ({
     .where(
       and(
         eq(data.jobs.owner_hash, clusterId),
-        eq(data.jobs.service, serviceName)
-      )
+        eq(data.jobs.service, serviceName),
+      ),
     )
     .limit(limit);
 
@@ -223,7 +223,7 @@ export const getClusterServiceDetailsForUser = async ({
     jobs,
     definition:
       parseServiceDefinition(clusters.map((c) => c.definitions)).find(
-        (c) => c.name === serviceName
+        (c) => c.name === serviceName,
       ) ?? null,
   };
 };

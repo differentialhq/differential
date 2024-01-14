@@ -91,7 +91,7 @@ export const nextJobs = async ({
   });
 
   const results = await data.db.execute(
-    sql`UPDATE jobs SET status = 'running', remaining = remaining - 1 WHERE id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining > 0)) AND owner_hash = ${owner.clusterId} AND service = ${service} LIMIT ${limit}) RETURNING *`
+    sql`UPDATE jobs SET status = 'running', remaining = remaining - 1 WHERE id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining > 0)) AND owner_hash = ${owner.clusterId} AND service = ${service} LIMIT ${limit}) RETURNING *`,
   );
 
   storeMachineInfoBG(machineId, ip, owner);
@@ -147,7 +147,7 @@ export const getJobStatus = async ({
     })
     .from(data.jobs)
     .where(
-      and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId))
+      and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
     );
 
   if (job) {
@@ -168,7 +168,7 @@ export const getJobStatus = async ({
 const storeMachineInfoBG = backgrounded(async function storeMachineInfo(
   machineId: string,
   ip: string,
-  owner: { clusterId: string }
+  owner: { clusterId: string },
 ) {
   await data.db
     .insert(data.machines)
@@ -213,7 +213,7 @@ export async function persistJobResult({
       status: "success",
     })
     .where(
-      and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId))
+      and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
     )
     .returning({ service: data.jobs.service, function: data.jobs.target_fn });
 
@@ -250,13 +250,13 @@ export async function persistJobResult({
 export async function selfHealJobs() {
   // TODO: writeJobActivity
   await data.db.execute(
-    sql`UPDATE jobs SET status = 'failure' WHERE status = 'running' AND remaining = 0 AND timed_out_at < now()`
+    sql`UPDATE jobs SET status = 'failure' WHERE status = 'running' AND remaining = 0 AND timed_out_at < now()`,
   );
 
   // TODO: writeJobActivity
   // make jobs that have failed but still have remaining attempts into pending jobs
   await data.db.execute(
-    sql`UPDATE jobs SET status = 'pending' WHERE status = 'failure' AND remaining > 0`
+    sql`UPDATE jobs SET status = 'pending' WHERE status = 'failure' AND remaining > 0`,
   );
 }
 

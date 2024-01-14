@@ -15,7 +15,7 @@ type JobComposite = {
 // Build a flux query to get the average execution time for a given function over a given time range
 export const resultExecutionTimeQuery = (
   target: JobComposite,
-  range: TimeRange
+  range: TimeRange,
 ) => {
   let query = flux`from(bucket: "${INFLUXDB_BUCKET}")
   |> range(start: ${range.start}, stop: ${range.stop})
@@ -90,7 +90,7 @@ export const getFunctionMetrics = async (query: {
   // QueryClient can be non-optinal once the influxdb flag is removed
   if (!queryClient) {
     throw new Error(
-      "InfluxDB client not initialized. Metrics are not available."
+      "InfluxDB client not initialized. Metrics are not available.",
     );
   }
 
@@ -107,8 +107,8 @@ export const getFunctionMetrics = async (query: {
       {
         start,
         stop,
-      }
-    )
+      },
+    ),
   );
   const executionTime = await queryClient.collectRows(
     resultExecutionTimeQuery(
@@ -120,8 +120,8 @@ export const getFunctionMetrics = async (query: {
       {
         start,
         stop,
-      }
-    )
+      },
+    ),
   );
 
   let metrics = {
@@ -138,7 +138,7 @@ export const getFunctionMetrics = async (query: {
   // Build metrics object based on results by resultType
   const processResults = (
     result: any,
-    property: "count" | "avgExecutionTime"
+    property: "count" | "avgExecutionTime",
   ): void => {
     if (result["resultType"] === "resolution") {
       metrics.success[property].push({
