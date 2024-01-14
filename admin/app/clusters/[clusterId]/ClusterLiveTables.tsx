@@ -6,20 +6,13 @@ import { formatRelative } from "date-fns";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { DataTable } from "../../../components/ui/DataTable";
+import {
+  DeadGrayCircle,
+  LiveGreenCircle,
+  functionStatusToCircle,
+} from "./helpers";
 import { ServiceSummary } from "./services/ServiceSummary";
-
-function LiveGreenCircle() {
-  // a green circle that is green when the machine is live
-  // with a green glow
-  return (
-    <div className="w-4 h-4 rounded-full bg-green-500 animate-pulse"></div>
-  );
-}
-
-function DeadGrayCircle() {
-  // a gray circle that is gray when the machine is dead
-  return <div className="w-4 h-4 rounded-full bg-gray-500"></div>;
-}
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function ClusterLiveTables({
   token,
@@ -104,58 +97,116 @@ export function ClusterLiveTables({
           <ServiceSummary services={data.definitions} clusterId={clusterId} />
         </div>
       </div>
-      <div className="mt-12">
-        <h2 className="text-xl mb-4">Machine Status</h2>
-        {data.machines.length > 0 && (
+      <div className="flex flex-row mt-12 space-x-12 mb-12">
+        <div className="flex-shrink" style={{ minWidth: 500 }}>
+          <h2 className="text-xl mb-4">Machine Status</h2>
           <p className="text-gray-400 mb-8">
-            These are all the machines that have connected to the cluster within
-            the last hour.
+            Recently active machines in the cluster.
           </p>
-        )}
-        <DataTable
-          data={data.machines
-            .sort((a, b) => (a.lastPingAt! > b.lastPingAt! ? -1 : 1))
-            .map((s) => ({
-              machineId: s.id,
-              ip: s.ip,
-              ping: `Seen ${formatRelative(
-                new Date(s.lastPingAt!),
-                new Date()
-              )}`,
-              status:
-                new Date().getTime() - new Date(s.lastPingAt!).getTime() < 30000
-                  ? "live"
-                  : "dead",
-            }))}
-          noDataMessage="No machines have been detected in the cluster lately."
-          columnDef={[
-            {
-              accessorKey: "machineId",
-              header: "Machine ID",
-            },
-            {
-              accessorKey: "ip",
-              header: "IP Address",
-            },
-            {
-              accessorKey: "ping",
-              header: "Last Ping",
-            },
-            {
-              accessorKey: "status",
-              header: "Status",
-              cell: ({ row }) => {
-                const status = row.getValue("status");
+          <ScrollArea className="rounded-md border" style={{ height: 400 }}>
+            <DataTable
+              data={data.machines
+                .sort((a, b) => (a.lastPingAt! > b.lastPingAt! ? -1 : 1))
+                .map((s) => ({
+                  machineId: s.id,
+                  ip: s.ip,
+                  ping: formatRelative(new Date(s.lastPingAt!), new Date()),
+                  status:
+                    new Date().getTime() - new Date(s.lastPingAt!).getTime() <
+                    30000
+                      ? "live"
+                      : "dead",
+                }))}
+              noDataMessage="No machines have been detected in the cluster lately."
+              columnDef={[
+                {
+                  accessorKey: "machineId",
+                  header: "Machine ID",
+                  cell: ({ row }) => {
+                    const machineId = row.getValue("machineId");
 
-                return status === "live" ? (
-                  <LiveGreenCircle />
-                ) : (
-                  <DeadGrayCircle />
-                );
-              },
-            },
-          ]}
-        />
+                    return (
+                      <p className="font-mono text-sm">{machineId as string}</p>
+                    );
+                  },
+                },
+                {
+                  accessorKey: "ip",
+                  header: "IP",
+                },
+                {
+                  accessorKey: "ping",
+                  header: "Last Ping",
+                },
+                {
+                  accessorKey: "status",
+                  header: "",
+                  cell: ({ row }) => {
+                    const status = row.getValue("status");
+
+                    return status === "live" ? (
+                      <LiveGreenCircle />
+                    ) : (
+                      <DeadGrayCircle />
+                    );
+                  },
+                },
+              ]}
+            />
+          </ScrollArea>
+        </div>
+        <div className="flex-grow">
+          <h2 className="text-xl mb-4">Live Cluster Activity</h2>
+          <p className="text-gray-400 mb-8">
+            Currently active and recently completed functions.
+          </p>
+          <ScrollArea className="rounded-md border" style={{ height: 400 }}>
+            <DataTable
+              data={data.jobs
+                .sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1))
+                .map((s) => ({
+                  jobId: s.id,
+                  targetFn: s.targetFn,
+                  status: s.status,
+                  createdAt: formatRelative(new Date(s.createdAt), new Date()),
+                  functionExecutionTime: s.functionExecutionTime,
+                }))}
+              noDataMessage="No functions have been detected in the cluster lately."
+              columnDef={[
+                {
+                  accessorKey: "jobId",
+                  header: "Execution ID",
+                  cell: ({ row }) => {
+                    const jobId: string = row.getValue("jobId");
+
+                    return (
+                      <p className="font-mono text-sm">
+                        {jobId.substring(jobId.length - 6)}
+                      </p>
+                    );
+                  },
+                },
+                {
+                  accessorKey: "targetFn",
+                  header: "Function",
+                },
+                {
+                  accessorKey: "createdAt",
+                  header: "Called",
+                },
+                {
+                  accessorKey: "status",
+                  header: "",
+                  cell: ({ row }) => {
+                    const status = row.getValue("status");
+
+                    return functionStatusToCircle(status as string);
+                  },
+                },
+              ]}
+            />
+          </ScrollArea>
+        </div>
       </div>
     </div>
   );

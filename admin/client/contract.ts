@@ -224,7 +224,8 @@ export const contract = c.router({
                     .optional(),
                   cacheTTL: z.number().optional(),
                 })
-              ).optional()
+              )
+              .optional(),
           })
         ),
       }),
@@ -233,6 +234,58 @@ export const contract = c.router({
     },
     pathParams: z.object({
       clusterId: z.string(),
+    }),
+  },
+  getClusterServiceDetailsForUser: {
+    method: "GET",
+    path: "/clusters/:clusterId/service/:serviceName",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.object({
+        jobs: z.array(
+          z.object({
+            id: z.string(),
+            targetFn: z.string(),
+            service: z.string().nullable(),
+            status: z.string(),
+            resultType: z.string().nullable(),
+            createdAt: z.date(),
+            functionExecutionTime: z.number().nullable(),
+          })
+        ),
+        definition: z
+          .object({
+            name: z.string(),
+            functions: z
+              .array(
+                z.object({
+                  name: z.string(),
+                  idempotent: z.boolean().optional(),
+                  rate: z
+                    .object({
+                      per: z.enum(["minute", "hour"]),
+                      limit: z.number(),
+                    })
+                    .optional(),
+                  cacheTTL: z.number().optional(),
+                })
+              )
+              .optional(),
+          })
+          .nullable(),
+      }),
+      401: z.undefined(),
+      404: z.undefined(),
+    },
+    pathParams: z.object({
+      clusterId: z.string(),
+      serviceName: z.string(),
+    }),
+    query: z.object({
+      limit: z.coerce.number().min(100).max(1000).default(100),
+      offset: z.coerce.number().min(0).default(0),
     }),
   },
   getFunctionMetrics: {
@@ -265,6 +318,28 @@ export const contract = c.router({
     query: z.object({
       start: z.date().optional(),
       stop: z.date().optional(),
+    }),
+  },
+  ingestClientEvents: {
+    method: "POST",
+    path: "/metrics",
+    headers: z.object({
+      authorization: z.string(),
+      "x-machine-id": z.string(),
+    }),
+    responses: {
+      204: z.undefined(),
+      401: z.undefined(),
+    },
+    body: z.object({
+      events: z.array(
+        z.object({
+          timestamp: z.coerce.date(),
+          type: z.enum(["machineResourceProbe", "functionInvocation"]),
+          tags: z.record(z.string()).optional(),
+          intFields: z.record(z.number()).optional(),
+        })
+      ),
     }),
   },
 });

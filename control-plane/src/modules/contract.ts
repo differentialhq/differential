@@ -236,6 +236,57 @@ export const contract = c.router({
       clusterId: z.string(),
     }),
   },
+  getClusterServiceDetailsForUser: {
+    method: "GET",
+    path: "/clusters/:clusterId/service/:serviceName",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.object({
+        jobs: z.array(
+          z.object({
+            id: z.string(),
+            targetFn: z.string(),
+            service: z.string().nullable(),
+            status: z.string(),
+            resultType: z.string().nullable(),
+            createdAt: z.date(),
+            functionExecutionTime: z.number().nullable(),
+          })
+        ),
+        definition: z
+          .object({
+            name: z.string(),
+            functions: z
+              .array(
+                z.object({
+                  name: z.string(),
+                  idempotent: z.boolean().optional(),
+                  rate: z
+                    .object({
+                      per: z.enum(["minute", "hour"]),
+                      limit: z.number(),
+                    })
+                    .optional(),
+                  cacheTTL: z.number().optional(),
+                })
+              )
+              .optional(),
+          })
+          .nullable(),
+      }),
+      401: z.undefined(),
+      404: z.undefined(),
+    },
+    pathParams: z.object({
+      clusterId: z.string(),
+      serviceName: z.string(),
+    }),
+    query: z.object({
+      limit: z.coerce.number().min(100).max(5000).default(2000),
+    }),
+  },
   getFunctionMetrics: {
     method: "GET",
     path: "/clusters/:clusterId/services/:serviceName/functions/:functionName/metrics",
@@ -289,5 +340,5 @@ export const contract = c.router({
         })
       ),
     }),
-  }
+  },
 });

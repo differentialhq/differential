@@ -260,7 +260,6 @@ export const router = s.router(contract, {
     const { clusterId } = request.params;
 
     const cluster = await management.getClusterDetailsForUser({
-      managementToken,
       clusterId,
     });
 
@@ -273,6 +272,31 @@ export const router = s.router(contract, {
     return {
       status: 200,
       body: cluster,
+    };
+  },
+  getClusterServiceDetailsForUser: async (request) => {
+    await routingHelpers.validateManagementAccess(request);
+
+    const { clusterId, serviceName } = request.params;
+
+    const cluster = await management.getClusterServiceDetailsForUser({
+      clusterId,
+      serviceName,
+      limit: request.query.limit,
+    });
+
+    if (!cluster) {
+      return {
+        status: 404,
+      };
+    }
+
+    return {
+      status: 200,
+      body: {
+        jobs: cluster.jobs,
+        definition: cluster.definition,
+      },
     };
   },
   getFunctionMetrics: async (request) => {
@@ -314,13 +338,13 @@ export const router = s.router(contract, {
 
     request.body.events.forEach((event) => {
       if (!event.tags) {
-        event.tags = {}
+        event.tags = {};
       }
 
-      event.tags.machineId = request.headers["x-machine-id"]
-      event.tags.clusterId = owner.clusterId
-      writeEvent(event)
-    })
+      event.tags.machineId = request.headers["x-machine-id"];
+      event.tags.clusterId = owner.clusterId;
+      writeEvent(event);
+    });
 
     return {
       status: 204,

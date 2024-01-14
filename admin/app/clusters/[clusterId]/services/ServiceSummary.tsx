@@ -43,7 +43,7 @@ export const ServiceSummary = (props: {
   services: Array<{ name: string; functions?: Array<{ name: string }> }>;
 }) => {
   return (
-    <div className="flex">
+    <div className="flex flex-wrap">
       {props.services.map((s) => (
         <Service
           key={s.name}

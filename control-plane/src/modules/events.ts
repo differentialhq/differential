@@ -7,6 +7,7 @@ type EventTypes =
   | "machinePing"
   | "machineResourceProbe"
   | "functionInvocation";
+
 type Event = {
   type: EventTypes;
   timestamp?: Date;
