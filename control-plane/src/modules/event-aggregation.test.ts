@@ -134,20 +134,20 @@ describe("getFunctionMetrics", () => {
         functionName
       );
 
-      if (result.success.count.length !== 2 || result.failure.count.length !== 2) {
+      if (result.success.count.length !== 1 || result.failure.count.length !== 1) {
         console.log(`Waiting for metrics to be aggregated...`, result);
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-    } while (result.success.count.length !== 2 || result.failure.count.length !== 2);
+    } while (result.success.count.length !== 1 || result.failure.count.length !== 1);
 
     expect(result).toEqual({
       success: {
-        count: [expect.objectContaining({ value: 2 })],
-        avgExecutionTime: [expect.objectContaining({ value: 150 })],
+        count: [{ timestamp: expect.anything(), value: 2 }],
+        avgExecutionTime: [{ timestamp: expect.anything(), value: 150 }],
       },
       failure: {
-        count: [expect.objectContaining({ value: 2 })],
-        avgExecutionTime: [expect.objectContaining({ value: 350 })],
+        count: [{ timestamp: expect.anything(), value: 2 }],
+        avgExecutionTime: [{ timestamp: expect.anything(), value: 350 }],
       },
     });
   }, 20000);
