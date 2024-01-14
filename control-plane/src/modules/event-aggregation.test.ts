@@ -21,7 +21,7 @@ describe("getFunctionMetrics", () => {
       serviceName,
       start,
       stop,
-      functionName
+      functionName,
     });
 
     expect(result).toEqual({
@@ -131,14 +131,20 @@ describe("getFunctionMetrics", () => {
         serviceName,
         start,
         stop,
-        functionName
+        functionName,
       });
 
-      if (result.success.count.length !== 1 || result.failure.count.length !== 1) {
+      if (
+        result.success.count.length !== 1 ||
+        result.failure.count.length !== 1
+      ) {
         console.log(`Waiting for metrics to be aggregated...`, result);
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-    } while (result.success.count.length !== 1 || result.failure.count.length !== 1);
+    } while (
+      result.success.count.length !== 1 ||
+      result.failure.count.length !== 1
+    );
 
     expect(result).toEqual({
       success: {

@@ -17,7 +17,7 @@
   },
   "repository": "https://github.com/differentialhq/differential",
   "lint-staged": {
-    "*.{js,css,md}": "prettier --write"
+    "*.{js,css,md,ts,tsx}": "prettier --write"
   },
   "scripts": {
     "prepare": "husky install"

@@ -7,11 +7,10 @@ import * as admin from "./admin";
 import * as auth from "./auth";
 import { contract } from "./contract";
 import * as data from "./data";
-import { createJob, getJobStatus, nextJobs } from "./jobs";
-import * as management from "./management";
 import * as metrics from "./event-aggregation";
 import { writeEvent } from "./events";
-import * as serviceDefinitions from "./service-definitions";
+import { createJob, getJobStatus, nextJobs } from "./jobs";
+import * as management from "./management";
 import * as routingHelpers from "./routing-helpers";
 
 const readFile = util.promisify(fs.readFile);
