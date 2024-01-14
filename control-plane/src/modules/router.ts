@@ -1,5 +1,4 @@
 import { initServer } from "@ts-rest/fastify";
-import { and, eq, sql } from "drizzle-orm";
 import fs from "fs";
 import path from "path";
 import util from "util";
@@ -9,7 +8,7 @@ import { contract } from "./contract";
 import * as data from "./data";
 import * as metrics from "./event-aggregation";
 import { writeEvent } from "./events";
-import { createJob, getJobStatus, nextJobs } from "./jobs";
+import * as jobs from "./jobs";
 import * as management from "./management";
 import * as routingHelpers from "./routing-helpers";
 
@@ -29,7 +28,7 @@ export const router = s.router(contract, {
 
     const limit = request.body.limit ?? 1;
 
-    let jobs: {
+    let collection: {
       id: string;
       targetFn: string;
       targetArgs: string;
@@ -38,7 +37,7 @@ export const router = s.router(contract, {
     const start = Date.now();
 
     do {
-      jobs = await nextJobs({
+      collection = await jobs.nextJobs({
         owner,
         limit,
         machineId: request.headers["x-machine-id"],
@@ -50,14 +49,14 @@ export const router = s.router(contract, {
         },
       });
 
-      if (jobs.length === 0) {
+      if (collection.length === 0) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-    } while (jobs.length === 0 && Date.now() - start < request.body.ttl);
+    } while (collection.length === 0 && Date.now() - start < request.body.ttl);
 
     return {
       status: 200,
-      body: jobs,
+      body: collection,
     };
   },
   persistJobResult: async (request) => {
@@ -72,36 +71,13 @@ export const router = s.router(contract, {
     const { jobId } = request.params;
     const { result, resultType, functionExecutionTime } = request.body;
 
-    const updateResult = await data.db
-      .update(data.jobs)
-      .set({
-        result,
-        result_type: resultType,
-        resulted_at: sql`now()`,
-        function_execution_time_ms: functionExecutionTime,
-        status: "success",
-      })
-      .where(
-        and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
-      )
-      .returning({ service: data.jobs.service, function: data.jobs.target_fn });
-
-    writeEvent({
-      type: "jobResulted",
-      tags: {
-        clusterId: owner.clusterId,
-        service: updateResult[0]?.service,
-        function: updateResult[0]?.function,
-        resultType,
-      },
-      intFields: {
-        ...(functionExecutionTime !== undefined
-          ? { functionExecutionTime }
-          : {}),
-      },
-      stringFields: {
-        jobId,
-      },
+    await jobs.persistJobResult({
+      result,
+      resultType,
+      functionExecutionTime,
+      jobId,
+      owner,
+      machineId: request.headers["x-machine-id"] as string,
     });
 
     return {
@@ -121,8 +97,8 @@ export const router = s.router(contract, {
     const { targetFn, targetArgs, pool, service, idempotencyKey } =
       request.body;
 
-    const { id } = await createJob({
-      service: service || null,
+    const { id } = await jobs.createJob({
+      service,
       targetFn,
       targetArgs,
       owner,
@@ -148,12 +124,12 @@ export const router = s.router(contract, {
 
     const { jobId } = request.params;
 
-    let job: Awaited<ReturnType<typeof getJobStatus>>;
+    let job: Awaited<ReturnType<typeof jobs.getJobStatus>>;
 
     const start = Date.now();
 
     do {
-      job = await getJobStatus({
+      job = await jobs.getJobStatus({
         jobId,
         owner,
       });
@@ -261,7 +237,6 @@ export const router = s.router(contract, {
     const { clusterId } = request.params;
 
     const cluster = await management.getClusterDetailsForUser({
-      managementToken,
       clusterId,
     });
 
@@ -274,6 +249,31 @@ export const router = s.router(contract, {
     return {
       status: 200,
       body: cluster,
+    };
+  },
+  getClusterServiceDetailsForUser: async (request) => {
+    await routingHelpers.validateManagementAccess(request);
+
+    const { clusterId, serviceName } = request.params;
+
+    const cluster = await management.getClusterServiceDetailsForUser({
+      clusterId,
+      serviceName,
+      limit: request.query.limit,
+    });
+
+    if (!cluster) {
+      return {
+        status: 404,
+      };
+    }
+
+    return {
+      status: 200,
+      body: {
+        jobs: cluster.jobs,
+        definition: cluster.definition,
+      },
     };
   },
   getMetrics: async (request) => {

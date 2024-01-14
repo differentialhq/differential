@@ -33,7 +33,7 @@ export const contract = c.router({
               })
               .optional(),
             cacheTTL: z.number().optional(),
-          })
+          }),
         )
         .optional(),
     }),
@@ -159,7 +159,7 @@ export const contract = c.router({
           apiSecret: z.string(),
           createdAt: z.date(),
           description: z.string().nullable(),
-        })
+        }),
       ),
       401: z.undefined(),
     },
@@ -195,7 +195,7 @@ export const contract = c.router({
             pool: z.string().nullable(),
             lastPingAt: z.date().nullable(),
             ip: z.string().nullable(),
-          })
+          }),
         ),
         jobs: z.array(
           z.object({
@@ -206,7 +206,7 @@ export const contract = c.router({
             resultType: z.string().nullable(),
             createdAt: z.date(),
             functionExecutionTime: z.number().nullable(),
-          })
+          }),
         ),
         definitions: z.array(
           z.object({
@@ -223,10 +223,10 @@ export const contract = c.router({
                     })
                     .optional(),
                   cacheTTL: z.number().optional(),
-                })
+                }),
               )
               .optional(),
-          })
+          }),
         ),
       }),
       401: z.undefined(),
@@ -234,6 +234,58 @@ export const contract = c.router({
     },
     pathParams: z.object({
       clusterId: z.string(),
+    }),
+  },
+  getClusterServiceDetailsForUser: {
+    method: "GET",
+    path: "/clusters/:clusterId/service/:serviceName",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.object({
+        jobs: z.array(
+          z.object({
+            id: z.string(),
+            targetFn: z.string(),
+            service: z.string().nullable(),
+            status: z.string(),
+            resultType: z.string().nullable(),
+            createdAt: z.date(),
+            functionExecutionTime: z.number().nullable(),
+          }),
+        ),
+        definition: z
+          .object({
+            name: z.string(),
+            functions: z
+              .array(
+                z.object({
+                  name: z.string(),
+                  idempotent: z.boolean().optional(),
+                  rate: z
+                    .object({
+                      per: z.enum(["minute", "hour"]),
+                      limit: z.number(),
+                    })
+                    .optional(),
+                  cacheTTL: z.number().optional(),
+                }),
+              )
+              .optional(),
+          })
+          .nullable(),
+      }),
+      401: z.undefined(),
+      404: z.undefined(),
+    },
+    pathParams: z.object({
+      clusterId: z.string(),
+      serviceName: z.string(),
+    }),
+    query: z.object({
+      limit: z.coerce.number().min(100).max(1000).default(100),
+      offset: z.coerce.number().min(0).default(0),
     }),
   },
   getMetrics: {
@@ -247,13 +299,17 @@ export const contract = c.router({
         start: z.date(),
         stop: z.date(),
         success: z.object({
-          count: z.array(z.object({timestamp: z.date(), value: z.number()})),
-          avgExecutionTime: z.array(z.object({timestamp: z.date(), value: z.number()})),
+          count: z.array(z.object({ timestamp: z.date(), value: z.number() })),
+          avgExecutionTime: z.array(
+            z.object({ timestamp: z.date(), value: z.number() }),
+          ),
         }),
         failure: z.object({
-          count: z.array(z.object({timestamp: z.date(), value: z.number()})),
-          avgExecutionTime: z.array(z.object({timestamp: z.date(), value: z.number()})),
-        })
+          count: z.array(z.object({ timestamp: z.date(), value: z.number() })),
+          avgExecutionTime: z.array(
+            z.object({ timestamp: z.date(), value: z.number() }),
+          ),
+        }),
       }),
       401: z.undefined(),
       404: z.undefined(),
@@ -286,8 +342,8 @@ export const contract = c.router({
           type: z.enum(["machineResourceProbe", "functionInvocation"]),
           tags: z.record(z.string()).optional(),
           intFields: z.record(z.number()).optional(),
-        })
+        }),
       ),
     }),
-  }
+  },
 });

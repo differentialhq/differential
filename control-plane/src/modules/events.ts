@@ -6,7 +6,9 @@ type EventTypes =
   | "jobResulted"
   | "machinePing"
   | "machineResourceProbe"
-  | "functionInvocation";
+  | "functionInvocation"
+  | "jobActivity";
+
 type Event = {
   type: EventTypes;
   timestamp?: Date;
@@ -43,7 +45,28 @@ export const writeEvent = (event: Event) => {
       value !== undefined && point.booleanField(key, value);
     });
 
-  console.log("writing event", point.toLineProtocol());
-
   writeClient?.writePoint(point);
+};
+
+export const writeJobActivity = (params: {
+  service: string;
+  clusterId: string;
+  jobId: string;
+  type: string;
+  meta: object;
+  machineId?: string;
+}) => {
+  writeEvent({
+    type: "jobActivity",
+    tags: {
+      jobId: params.jobId,
+      type: params.type,
+      clusterId: params.clusterId,
+      service: params.service,
+      machineId: params.machineId || null,
+    },
+    stringFields: {
+      meta: JSON.stringify(params.meta),
+    },
+  });
 };

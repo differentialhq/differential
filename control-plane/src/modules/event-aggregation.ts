@@ -157,3 +157,44 @@ export const getFunctionMetrics = async (query: {
 
   return metrics;
 };
+
+export const getJobActivityByJobId = async (params: {
+  clusterId: string;
+  jobId: string;
+}) => {
+  let query = flux`from(bucket: "${INFLUXDB_BUCKET}")
+  |> range(start: -7d)
+  |> filter(fn: (r) => r["_measurement"] == "jobActivity")
+  |> filter(fn: (r) => r["_field"] == "meta")
+  |> filter(fn: (r) => r["clusterId"] == "${params.clusterId}")
+  |> filter(fn: (r) => r["jobId"] == "${params.jobId}")
+`.toString();
+
+  type JobActivity = {
+    _field: string;
+    _measurement: string;
+    _start: string;
+    _stop: string;
+    _time: string;
+    _value: string;
+    clusterId: string; // or number, depending on the actual type
+    jobId: string; // or number, depending on the actual type
+    result: string;
+    service?: string;
+    machineId?: string;
+    table: number;
+    type: string;
+  };
+
+  const result: JobActivity[] = (await queryClient?.collectRows(query)) ?? [];
+
+  return result.map((point) => ({
+    timestamp: point._time,
+    type: point.type,
+    service: point.service,
+    meta: point._value,
+    clusterId: point.clusterId,
+    jobId: point.jobId,
+    machineId: point.machineId,
+  }));
+};
