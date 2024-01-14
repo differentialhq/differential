@@ -79,11 +79,11 @@ export const router = s.router(contract, {
         result,
         result_type: resultType,
         resulted_at: sql`now()`,
-          function_execution_time_ms: functionExecutionTime,
+        function_execution_time_ms: functionExecutionTime,
         status: "success",
       })
       .where(
-        and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId))
+        and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
       )
       .returning({ service: data.jobs.service, function: data.jobs.target_fn });
 
@@ -96,7 +96,9 @@ export const router = s.router(contract, {
         resultType,
       },
       intFields: {
-        ...(functionExecutionTime !== undefined ? { functionExecutionTime } : {}),
+        ...(functionExecutionTime !== undefined
+          ? { functionExecutionTime }
+          : {}),
       },
       stringFields: {
         jobId,
@@ -191,7 +193,7 @@ export const router = s.router(contract, {
           path.join(__dirname, "..", "..", "src", "./modules/contract.ts"),
           {
             encoding: "utf-8",
-          }
+          },
         ),
       },
     };
@@ -292,15 +294,15 @@ export const router = s.router(contract, {
       serviceName,
       functionName,
       start,
-      stop
-      });
+      stop,
+    });
 
     return {
       status: 200,
       body: {
         start: start,
         stop: stop,
-        ...result
+        ...result,
       },
     };
   },
@@ -315,13 +317,13 @@ export const router = s.router(contract, {
 
     request.body.events.forEach((event) => {
       if (!event.tags) {
-        event.tags = {}
+        event.tags = {};
       }
 
-      event.tags.machineId = request.headers["x-machine-id"]
-      event.tags.clusterId = owner.clusterId
-      writeEvent(event)
-    })
+      event.tags.machineId = request.headers["x-machine-id"];
+      event.tags.clusterId = owner.clusterId;
+      writeEvent(event);
+    });
 
     return {
       status: 204,
