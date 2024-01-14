@@ -1,11 +1,14 @@
 "use client";
 
 import { client } from "@/client/client";
+import { contract } from "@/client/contract";
+import { useAuth } from "@clerk/nextjs";
 import { formatRelative } from "date-fns";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { z } from "zod";
 import { DataTable } from "../../../../../components/ui/DataTable";
-import { useAuth } from "@clerk/nextjs";
+import { functionStatusToCircle } from "../../helpers";
 
 export function ServiceLiveTables({
   token,
@@ -18,38 +21,22 @@ export function ServiceLiveTables({
 }) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
 
-  const [data, setData] = useState<{
-    jobs: {
-      id: string;
-      createdAt: Date;
-      targetFn: string;
-      service: string | null;
-      status: string;
-      resultType: string | null;
-      functionExecutionTime: number | null;
-    }[];
-    service?: {
-      name: string;
-      functions?: Array<{
-        name: string;
-        idempotent?: boolean | null;
-        rate?: { per: "minute" | "hour"; limit: number } | null;
-        cacheTTL?: number | null;
-      }>;
-    };
-  }>({
+  const [data, setData] = useState<
+    z.infer<(typeof contract.getClusterServiceDetailsForUser.responses)["200"]>
+  >({
     jobs: [],
-    service: undefined,
+    definition: null,
   });
 
   useEffect(() => {
     const fetchData = async () => {
-      const clusterResult = await client.getClusterDetailsForUser({
+      const clusterResult = await client.getClusterServiceDetailsForUser({
         headers: {
           authorization: `Bearer ${await getToken()}`,
         },
         params: {
           clusterId,
+          serviceName: serviceName,
         },
       });
 
@@ -58,14 +45,7 @@ export function ServiceLiveTables({
       }
 
       if (clusterResult.status === 200) {
-        setData({
-          jobs: clusterResult.body.jobs
-            .filter((f) => f.service == serviceName)
-            .slice(-10),
-          service: clusterResult.body.definitions
-            .filter((s) => s.name == serviceName)
-            .pop(),
-        });
+        setData(clusterResult.body);
       } else {
         toast.error("Failed to fetch cluster details.");
       }
@@ -73,74 +53,100 @@ export function ServiceLiveTables({
 
     // initial fetch
     fetchData();
-
-    const interval = setInterval(fetchData, 5000); // Refresh every 5 seconds
-
-    return () => {
-      clearInterval(interval); // Clear the interval when the component unmounts
-    };
   }, [token, clusterId, serviceName, isLoaded, isSignedIn, getToken]);
 
   return (
     <div>
-      {(data.service !== undefined && (
-        <div>
-          <div className="mt-12">
-            <h2 className="text-xl mb-4">Function Registry</h2>
-            <p className="text-gray-400 mb-8">
-              These are the functions that are registered for this service.
-            </p>
-            <DataTable
-              data={
-                data.service.functions?.map((s) => ({
-                  Function: s.name,
-                  Idempotent: s.idempotent ? "Yes" : "No",
-                  "Rate Limit":
-                    s.rate === null || s.rate === undefined
-                      ? "N/A"
-                      : `${s.rate?.limit}/${s.rate?.per}`,
-                  "Cache TTL":
-                    s.cacheTTL === null || s.cacheTTL === undefined
-                      ? "N/A"
-                      : `${s.cacheTTL}s`,
-                })) ?? []
-              }
-              noDataMessage="No functions have been detected recently."
-            />
-          </div>
-          <div className="mt-12">
-            <h2 className="text-xl mb-4">Live function calls</h2>
-            {data.jobs.length > 0 && (
-              <p className="text-gray-400 mb-8">
-                These are the last {data.jobs.length} function calls that have
-                been made to the cluster.
-              </p>
-            )}
-            <DataTable
-              data={data.jobs
-                .sort((a, b) => {
-                  return a.createdAt > b.createdAt ? -1 : 1;
-                })
-                .map((s) => ({
-                  "Execution id": s.id,
-                  Function: s.targetFn,
-                  Status: s.status,
-                  Resolution: s.resultType ?? "N/A",
-                  Called: formatRelative(new Date(s.createdAt), new Date()),
-                  "Execution Time":
-                    s.functionExecutionTime === null
-                      ? "N/A"
-                      : `${s.functionExecutionTime}ms`,
-                }))}
-              noDataMessage="No services with function calls have been detected in the cluster lately."
-            />
-          </div>
+      <div>
+        <div className="mt-12">
+          <h2 className="text-xl mb-4">Function Registry</h2>
+          <p className="text-gray-400 mb-8">
+            Currently registered functions for this service.
+          </p>
+          <DataTable
+            data={
+              data.definition?.functions?.map((s) => ({
+                Function: s.name,
+                Idempotent: s.idempotent ? "Yes" : "No",
+                "Rate Limit":
+                  s.rate === null || s.rate === undefined
+                    ? "N/A"
+                    : `${s.rate?.limit}/${s.rate?.per}`,
+                "Cache TTL":
+                  s.cacheTTL === null || s.cacheTTL === undefined
+                    ? "N/A"
+                    : `${s.cacheTTL}s`,
+              })) ?? []
+            }
+            noDataMessage="No functions have been detected recently."
+          />
         </div>
-      )) || (
-        <div className="mt-6">
-          <p>Service {serviceName} does not have any recent data to display.</p>
+        <div className="mt-12">
+          <h2 className="text-xl mb-4">Function calls</h2>
+          <p className="text-gray-400 mb-8">
+            Last {data.jobs.length} completed function calls to this service.
+          </p>
+          <DataTable
+            data={data.jobs
+              .sort((a, b) => {
+                return a.createdAt > b.createdAt ? -1 : 1;
+              })
+              .map((s) => ({
+                jobId: s.id,
+                targetFn: s.targetFn,
+                status: s.status,
+                resolution: s.resultType ?? "N/A",
+                createdAt: formatRelative(new Date(s.createdAt), new Date()),
+                "Execution Time":
+                  s.functionExecutionTime === null
+                    ? "N/A"
+                    : `${s.functionExecutionTime}ms`,
+              }))}
+            noDataMessage="No services with function calls have been detected in the cluster lately."
+            columnDef={[
+              {
+                accessorKey: "jobId",
+                header: "Execution ID",
+                cell: ({ row }) => {
+                  const jobId: string = row.getValue("jobId");
+
+                  return (
+                    <p className="font-mono text-sm">
+                      {jobId.substring(jobId.length - 6)}
+                    </p>
+                  );
+                },
+              },
+              {
+                accessorKey: "targetFn",
+                header: "Function",
+              },
+              {
+                accessorKey: "createdAt",
+                header: "Called",
+              },
+              {
+                accessorKey: "resolution",
+                header: "Result",
+              },
+              {
+                accessorKey: "Execution Time",
+                header: "Execution Time",
+              },
+              {
+                accessorKey: "status",
+                header: "",
+                cell: ({ row }) => {
+                  const status = row.getValue("status");
+
+                  return functionStatusToCircle(status as string);
+                },
+              },
+            ]}
+            pagination
+          />
         </div>
-      )}
+      </div>
     </div>
   );
 }

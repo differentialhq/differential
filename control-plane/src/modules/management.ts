@@ -1,12 +1,31 @@
-import * as data from "./data";
-import { and, eq, gte, sql } from "drizzle-orm";
-import { randomName } from "./names";
 import crypto from "crypto";
+import { and, eq, gte } from "drizzle-orm";
+import * as data from "./data";
+import * as errors from "../utilities/errors";
 import * as jwt from "./jwt";
+import { randomName } from "./names";
 import {
   ServiceDefinition,
   parseServiceDefinition,
 } from "./service-definitions";
+
+type Job = {
+  id: string;
+  targetFn: string;
+  service: string | null;
+  resultType: string | null;
+  status: string;
+  createdAt: Date;
+  functionExecutionTime: number | null;
+};
+
+type Machine = {
+  id: string;
+  description: string | null;
+  pool: string | null;
+  lastPingAt: Date | null;
+  ip: string | null;
+};
 
 export const getClusters = async ({
   managementToken,
@@ -84,40 +103,17 @@ export const createCluster = async ({
 };
 
 export const getClusterDetailsForUser = async ({
-  managementToken,
   clusterId,
 }: {
-  managementToken: string;
   clusterId: string;
-}): Promise<
-  | {
-      id: string;
-      apiSecret: string;
-      createdAt: Date;
-      machines: Array<{
-        id: string;
-        description: string | null;
-        pool: string | null;
-        lastPingAt: Date | null;
-        ip: string | null;
-      }>;
-      jobs: Array<{
-        id: string;
-        targetFn: string;
-        service: string | null;
-        resultType: string | null;
-        status: string;
-        createdAt: Date;
-        functionExecutionTime: number | null;
-      }>;
-      definitions: Array<ServiceDefinition>;
-    }
-  | undefined
-> => {
-  const verified = await jwt.verifyManagementToken({ managementToken });
-
-  // TODO: make this a single query
-
+}): Promise<{
+  id: string;
+  apiSecret: string;
+  createdAt: Date;
+  machines: Array<Machine>;
+  jobs: Array<Job>;
+  definitions: Array<ServiceDefinition>;
+}> => {
   const clusters = await data.db
     .select({
       id: data.clusters.id,
@@ -127,18 +123,11 @@ export const getClusterDetailsForUser = async ({
       definitions: data.services.definition,
     })
     .from(data.clusters)
-    .where(
-      and(
-        eq(data.clusters.id, clusterId),
-        eq(data.clusters.owner_id, verified.userId)
-      )
-    )
+    .where(and(eq(data.clusters.id, clusterId)))
     .leftJoin(data.services, eq(data.services.cluster_id, data.clusters.id));
 
-  console.log({ clusters });
-
   if (clusters.length === 0) {
-    return undefined;
+    throw new errors.NotFoundError("Cluster not found");
   }
 
   const machines = await data.db
@@ -153,10 +142,10 @@ export const getClusterDetailsForUser = async ({
     .where(
       and(
         eq(data.machines.cluster_id, clusterId),
-        // in the last 12 hours
+        // in the last 1 hour
         gte(
           data.machines.last_ping_at,
-          new Date(Date.now() - 1000 * 60 * 60 * 12)
+          new Date(Date.now() - 1000 * 60 * 60 * 1)
         )
       )
     );
@@ -175,8 +164,8 @@ export const getClusterDetailsForUser = async ({
     .where(
       and(
         eq(data.jobs.owner_hash, clusterId),
-        // in the last 12 hours
-        gte(data.jobs.created_at, new Date(Date.now() - 1000 * 60 * 60 * 12))
+        // in the last 5 minutes
+        gte(data.jobs.created_at, new Date(Date.now() - 1000 * 60 * 5))
       )
     );
 
@@ -187,5 +176,54 @@ export const getClusterDetailsForUser = async ({
     definitions: parseServiceDefinition(clusters.map((c) => c.definitions)),
     machines,
     jobs,
+  };
+};
+
+export const getClusterServiceDetailsForUser = async ({
+  clusterId,
+  serviceName,
+  limit,
+}: {
+  clusterId: string;
+  serviceName: string;
+  limit: number;
+}): Promise<{
+  jobs: Array<Job>;
+  definition: ServiceDefinition | null;
+}> => {
+  const jobs = await data.db
+    .select({
+      id: data.jobs.id,
+      targetFn: data.jobs.target_fn,
+      service: data.jobs.service,
+      status: data.jobs.status,
+      resultType: data.jobs.result_type,
+      createdAt: data.jobs.created_at,
+      functionExecutionTime: data.jobs.function_execution_time_ms,
+    })
+    .from(data.jobs)
+    .where(
+      and(
+        eq(data.jobs.owner_hash, clusterId),
+        eq(data.jobs.service, serviceName)
+      )
+    )
+    .limit(limit);
+
+  const clusters = await data.db
+    .select({
+      id: data.clusters.id,
+      definitions: data.services.definition,
+    })
+    .from(data.clusters)
+    .where(and(eq(data.clusters.id, clusterId)))
+    .leftJoin(data.services, eq(data.services.cluster_id, data.clusters.id));
+
+  return {
+    jobs,
+    definition:
+      parseServiceDefinition(clusters.map((c) => c.definitions)).find(
+        (c) => c.name === serviceName
+      ) ?? null,
   };
 };

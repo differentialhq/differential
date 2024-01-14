@@ -70,6 +70,15 @@ export const nextJobs = async ({
   ip: string;
   definition?: ServiceDefinition;
 }) => {
+  writeEvent({
+    type: "machinePing",
+    tags: {
+      clusterId: owner.clusterId,
+      machineId,
+      ip,
+    },
+  });
+
   const results = await data.db.execute(
     sql`UPDATE jobs SET status = 'running', remaining = remaining - 1 WHERE id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining > 0)) AND owner_hash = ${owner.clusterId} AND service = ${service} LIMIT ${limit}) RETURNING *`
   );
@@ -79,14 +88,6 @@ export const nextJobs = async ({
   if (definition) {
     storeServiceDefinitionBG(service, definition, owner);
   }
-
-  writeEvent({
-    type: "machinePing",
-    tags: {
-      clusterId: owner.clusterId,
-      machineId,
-    },
-  });
 
   if (results.rowCount === 0) {
     return [];
