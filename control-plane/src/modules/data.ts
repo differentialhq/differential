@@ -81,7 +81,7 @@ export const jobs = pgTable(
       sql`now() + interval '300 seconds'`
     ),
     timeout_interval_seconds: integer("timeout_interval").default(300),
-    service: varchar("service", { length: 1024 }),
+    service: varchar("service", { length: 1024 }).notNull(),
   },
   (table) => ({
     pk: primaryKey(table.owner_hash, table.target_fn, table.idempotency_key),

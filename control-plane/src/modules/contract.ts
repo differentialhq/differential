@@ -58,7 +58,7 @@ export const contract = c.router({
       targetFn: z.string(),
       targetArgs: z.string(),
       pool: z.string().optional(),
-      service: z.string().optional(),
+      service: z.string().default("unknown"),
       idempotencyKey: z.string().optional(),
     }),
   },
@@ -247,13 +247,17 @@ export const contract = c.router({
         start: z.date(),
         stop: z.date(),
         success: z.object({
-          count: z.array(z.object({timestamp: z.date(), value: z.number()})),
-          avgExecutionTime: z.array(z.object({timestamp: z.date(), value: z.number()})),
+          count: z.array(z.object({ timestamp: z.date(), value: z.number() })),
+          avgExecutionTime: z.array(
+            z.object({ timestamp: z.date(), value: z.number() })
+          ),
         }),
         failure: z.object({
-          count: z.array(z.object({timestamp: z.date(), value: z.number()})),
-          avgExecutionTime: z.array(z.object({timestamp: z.date(), value: z.number()})),
-        })
+          count: z.array(z.object({ timestamp: z.date(), value: z.number() })),
+          avgExecutionTime: z.array(
+            z.object({ timestamp: z.date(), value: z.number() })
+          ),
+        }),
       }),
       401: z.undefined(),
       404: z.undefined(),
@@ -289,5 +293,5 @@ export const contract = c.router({
         })
       ),
     }),
-  }
+  },
 });
