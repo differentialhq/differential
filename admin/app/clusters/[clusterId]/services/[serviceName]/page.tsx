@@ -46,7 +46,6 @@ export default async function Page({
       </div>
 
       <ServiceMetrics
-        token={token}
         clusterId={params.clusterId}
         serviceName={params.serviceName}
       />
