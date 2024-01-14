@@ -24,7 +24,7 @@ export const resultExecutionTimeQuery = (
   |> filter(fn: (r) => r["function"] == "${target.functionName}")
   |> filter(fn: (r) => r["resultType"] == "resolution" or r["resultType"] == "rejection")
   |> filter(fn: (r) => r["_field"] == "functionExecutionTime")
-  |> mean()
+  |> aggregateWindow(every: 1m, fn: mean, createEmpty: true)
 `;
 
 // Build a flux query to get the total number of calls for a given function over a given time range
@@ -39,9 +39,10 @@ export const resultCountQuery = (
   |> filter(fn: (r) => r["function"] == "${target.functionName}")
   |> filter(fn: (r) => r["resultType"] == "resolution" or r["resultType"] == "rejection")
   |> filter(fn: (r) => r["_field"] == "functionExecutionTime")
-  |> count()
+  |> aggregateWindow(every: 1m, fn: count, createEmpty: true)
 `;
 
+type Point = {timestamp: Date, value: number}
 export const getFunctionMetrics = async (
   clusterId: string,
   serviceName: string,
@@ -49,15 +50,15 @@ export const getFunctionMetrics = async (
   start: Date,
   stop: Date
 ): Promise<{
-  success: {
-    count: number;
-    avgExecutionTime: number;
-  };
-  failure: {
-    count: number;
-    avgExecutionTime: number;
-  };
-}> => {
+    success: {
+      count: Array<Point>
+      avgExecutionTime: Array<Point>;
+    };
+    failure: {
+      count: Array<Point>
+      avgExecutionTime: Array<Point>;
+    };
+  }> => {
   // Temporarily throw an error if the client is not initialized / enabled
   // QueryClient can be non-optinal once the influxdb flag is removed
   if (!queryClient) {
@@ -96,12 +97,12 @@ export const getFunctionMetrics = async (
 
   let metrics = {
     success: {
-      count: 0,
-      avgExecutionTime: 0,
+      count: [],
+      avgExecutionTime: [],
     },
     failure: {
-      count: 0,
-      avgExecutionTime: 0,
+      count: [],
+      avgExecutionTime: [],
     },
   };
 
@@ -111,9 +112,15 @@ export const getFunctionMetrics = async (
     property: "count" | "avgExecutionTime"
   ): void => {
     if (result["resultType"] === "resolution") {
-      metrics.success[property] = Math.round(result._value);
+      (metrics.success[property] as any).push({
+        timestamp: result["_time"],
+        value: Math.round(result._value)
+      })
     } else if (result.resultType === "rejection") {
-      metrics.failure[property] = Math.round(result._value);
+      (metrics.failure[property] as any).push({
+        timestamp: result["_time"],
+        value: Math.round(result._value)
+      })
     }
   };
   executionCount.forEach((x: any) => processResults(x, "count"));

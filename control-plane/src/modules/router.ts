@@ -96,7 +96,7 @@ export const router = s.router(contract, {
         resultType,
       },
       intFields: {
-        ...(functionExecutionTime ? { functionExecutionTime } : {}),
+        ...(functionExecutionTime !== undefined ? { functionExecutionTime } : {}),
       },
       stringFields: {
         jobId,
@@ -283,8 +283,8 @@ export const router = s.router(contract, {
     const { clusterId, serviceName, functionName } = request.params;
 
     // Default to last 24 hours
-    const start = request.query.stop ?? new Date(Date.now() - 86400000);
-    const stop = request.query.start ?? new Date();
+    const start = request.query.start ?? new Date(Date.now() - 86400000);
+    const stop = request.query.stop ?? new Date();
 
     const result = await metrics.getFunctionMetrics(
       clusterId,
@@ -299,7 +299,7 @@ export const router = s.router(contract, {
       body: {
         start: start,
         stop: stop,
-        ...result,
+        ...result
       },
     };
   },

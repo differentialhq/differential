@@ -26,12 +26,12 @@ describe("getFunctionMetrics", () => {
 
     expect(result).toEqual({
       success: {
-        count: 0,
-        avgExecutionTime: 0,
+        count: [],
+        avgExecutionTime: [],
       },
       failure: {
-        count: 0,
-        avgExecutionTime: 0,
+        count: [],
+        avgExecutionTime: [],
       },
     });
   });
@@ -134,20 +134,20 @@ describe("getFunctionMetrics", () => {
         stop
       );
 
-      if (result.success.count !== 2 || result.failure.count !== 2) {
+      if (result.success.count.length !== 2 || result.failure.count.length !== 2) {
         console.log(`Waiting for metrics to be aggregated...`, result);
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-    } while (result.success.count !== 2 || result.failure.count !== 2);
+    } while (result.success.count.length !== 2 || result.failure.count.length !== 2);
 
     expect(result).toEqual({
       success: {
-        count: 2,
-        avgExecutionTime: 150,
+        count: [expect.objectContaining({ value: 2 })],
+        avgExecutionTime: [expect.objectContaining({ value: 150 })],
       },
       failure: {
-        count: 2,
-        avgExecutionTime: 350,
+        count: [expect.objectContaining({ value: 2 })],
+        avgExecutionTime: [expect.objectContaining({ value: 350 })],
       },
     });
   }, 20000);
