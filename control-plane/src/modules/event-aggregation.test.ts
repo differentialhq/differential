@@ -16,22 +16,22 @@ describe("getFunctionMetrics", () => {
     const start = new Date(Date.now() - 86400000);
     const stop = new Date();
 
-    const result = await metrics.getFunctionMetrics(
+    const result = await metrics.getFunctionMetrics({
       clusterId,
       serviceName,
-      functionName,
       start,
-      stop
-    );
+      stop,
+      functionName
+    });
 
     expect(result).toEqual({
       success: {
-        count: 0,
-        avgExecutionTime: 0,
+        count: [],
+        avgExecutionTime: [],
       },
       failure: {
-        count: 0,
-        avgExecutionTime: 0,
+        count: [],
+        avgExecutionTime: [],
       },
     });
   });
@@ -126,28 +126,28 @@ describe("getFunctionMetrics", () => {
     let result;
 
     do {
-      result = await metrics.getFunctionMetrics(
+      result = await metrics.getFunctionMetrics({
         clusterId,
         serviceName,
-        functionName,
         start,
-        stop
-      );
+        stop,
+        functionName
+      });
 
-      if (result.success.count !== 2 || result.failure.count !== 2) {
+      if (result.success.count.length !== 1 || result.failure.count.length !== 1) {
         console.log(`Waiting for metrics to be aggregated...`, result);
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-    } while (result.success.count !== 2 || result.failure.count !== 2);
+    } while (result.success.count.length !== 1 || result.failure.count.length !== 1);
 
     expect(result).toEqual({
       success: {
-        count: 2,
-        avgExecutionTime: 150,
+        count: [{ timestamp: expect.anything(), value: 2 }],
+        avgExecutionTime: [{ timestamp: expect.anything(), value: 150 }],
       },
       failure: {
-        count: 2,
-        avgExecutionTime: 350,
+        count: [{ timestamp: expect.anything(), value: 2 }],
+        avgExecutionTime: [{ timestamp: expect.anything(), value: 350 }],
       },
     });
   }, 20000);
