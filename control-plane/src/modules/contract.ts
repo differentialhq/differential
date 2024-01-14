@@ -58,7 +58,7 @@ export const contract = c.router({
       targetFn: z.string(),
       targetArgs: z.string(),
       pool: z.string().optional(),
-      service: z.string().optional(),
+      service: z.string().default("unknown"),
       idempotencyKey: z.string().optional(),
     }),
   },

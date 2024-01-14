@@ -17,79 +17,75 @@ export const resultExecutionTimeQuery = (
   target: JobComposite,
   range: TimeRange
 ) => {
-
   let query = flux`from(bucket: "${INFLUXDB_BUCKET}")
   |> range(start: ${range.start}, stop: ${range.stop})
   |> filter(fn: (r) => r["_measurement"] == "jobResulted")
   |> filter(fn: (r) => r["clusterId"] == "${target.clusterId}")
   |> filter(fn: (r) => r["resultType"] == "resolution" or r["resultType"] == "rejection")
   |> filter(fn: (r) => r["_field"] == "functionExecutionTime")
-`.toString()
+`.toString();
 
   if (target.serviceName) {
     query += flux`|> filter(fn: (r) => r["service"] == "${target.serviceName}")
-`.toString()
+`.toString();
   }
 
   if (target.functionName) {
-    query += flux`|> filter(fn: (r) => r["function"] == "${target.functionName}")
-`.toString()
+    query +=
+      flux`|> filter(fn: (r) => r["function"] == "${target.functionName}")
+`.toString();
   }
 
   query += flux`|> aggregateWindow(every: 1m, fn: mean, createEmpty: true)
-`.toString()
+`.toString();
 
-  return query
+  return query;
 };
 
 // Build a flux query to get the total number of calls for a given function over a given time range
-export const resultCountQuery = (
-  target: JobComposite,
-  range: TimeRange
-) => {
+export const resultCountQuery = (target: JobComposite, range: TimeRange) => {
   let query = flux`from(bucket: "${INFLUXDB_BUCKET}")
   |> range(start: ${range.start}, stop: ${range.stop})
   |> filter(fn: (r) => r["_measurement"] == "jobResulted")
   |> filter(fn: (r) => r["clusterId"] == "${target.clusterId}")
   |> filter(fn: (r) => r["resultType"] == "resolution" or r["resultType"] == "rejection")
   |> filter(fn: (r) => r["_field"] == "functionExecutionTime")
-`.toString()
+`.toString();
 
   if (target.serviceName) {
     query += flux`|> filter(fn: (r) => r["service"] == "${target.serviceName}")
-`.toString()
+`.toString();
   }
 
   if (target.functionName) {
-    query += flux`|> filter(fn: (r) => r["function"] == "${target.functionName}")
-`.toString()
+    query +=
+      flux`|> filter(fn: (r) => r["function"] == "${target.functionName}")
+`.toString();
   }
 
   query += `|> aggregateWindow(every: 1m, fn: count, createEmpty: true)
-`.toString()
+`.toString();
 
-  return query
-}
+  return query;
+};
 
-type Point = {timestamp: Date, value: number}
-export const getFunctionMetrics = async (
-  query: {
-    clusterId: string,
-    serviceName?: string,
-    functionName?: string
-    start: Date,
-    stop: Date,
-  }
-): Promise<{
-    success: {
-      count: Array<Point>
-      avgExecutionTime: Array<Point>;
-    };
-    failure: {
-      count: Array<Point>
-      avgExecutionTime: Array<Point>;
-    };
-  }> => {
+type Point = { timestamp: Date; value: number };
+export const getFunctionMetrics = async (query: {
+  clusterId: string;
+  serviceName?: string;
+  functionName?: string;
+  start: Date;
+  stop: Date;
+}): Promise<{
+  success: {
+    count: Array<Point>;
+    avgExecutionTime: Array<Point>;
+  };
+  failure: {
+    count: Array<Point>;
+    avgExecutionTime: Array<Point>;
+  };
+}> => {
   // Temporarily throw an error if the client is not initialized / enabled
   // QueryClient can be non-optinal once the influxdb flag is removed
   if (!queryClient) {
@@ -147,17 +143,58 @@ export const getFunctionMetrics = async (
     if (result["resultType"] === "resolution") {
       metrics.success[property].push({
         timestamp: result["_time"],
-        value: Math.round(result._value)
-      })
+        value: Math.round(result._value),
+      });
     } else if (result.resultType === "rejection") {
       metrics.failure[property].push({
         timestamp: result["_time"],
-        value: Math.round(result._value)
-      })
+        value: Math.round(result._value),
+      });
     }
   };
   executionCount.forEach((x: any) => processResults(x, "count"));
   executionTime.forEach((x: any) => processResults(x, "avgExecutionTime"));
 
   return metrics;
+};
+
+export const getJobActivityByJobId = async (params: {
+  clusterId: string;
+  jobId: string;
+}) => {
+  let query = flux`from(bucket: "${INFLUXDB_BUCKET}")
+  |> range(start: -7d)
+  |> filter(fn: (r) => r["_measurement"] == "jobActivity")
+  |> filter(fn: (r) => r["_field"] == "meta")
+  |> filter(fn: (r) => r["clusterId"] == "${params.clusterId}")
+  |> filter(fn: (r) => r["jobId"] == "${params.jobId}")
+`.toString();
+
+  type JobActivity = {
+    _field: string;
+    _measurement: string;
+    _start: string;
+    _stop: string;
+    _time: string;
+    _value: string;
+    clusterId: string; // or number, depending on the actual type
+    jobId: string; // or number, depending on the actual type
+    result: string;
+    service?: string;
+    machineId?: string;
+    table: number;
+    type: string;
+  };
+
+  const result: JobActivity[] = (await queryClient?.collectRows(query)) ?? [];
+
+  return result.map((point) => ({
+    timestamp: point._time,
+    type: point.type,
+    service: point.service,
+    meta: point._value,
+    clusterId: point.clusterId,
+    jobId: point.jobId,
+    machineId: point.machineId,
+  }));
 };
