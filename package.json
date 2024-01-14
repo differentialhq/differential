@@ -20,6 +20,6 @@
     "*.{js,css,md,ts,tsx}": "prettier --write"
   },
   "scripts": {
-    "prepare": "husky install"
+    "prepare": "npx husky install"
   }
 }
