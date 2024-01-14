@@ -1,53 +1,37 @@
 "use client";
 
-import { client } from '@/client/client';
-import { useAuth } from '@clerk/nextjs';
-import { useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
-import { AreaChart, Area, Tooltip, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { client } from "@/client/client";
+import { useAuth } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import {
+  AreaChart,
+  Area,
+  Tooltip,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+} from "recharts";
 
 export function ServiceMetrics({
   clusterId,
   serviceName,
   functionName,
 }: {
-    clusterId: string;
-    serviceName: string;
-    functionName?: string;
+  clusterId: string;
+  serviceName: string;
+  functionName?: string;
 }) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
 
   const [data, setData] = useState<{
-    success: {
-      count: Array<{
-        timestamp: Date;
-        value: number;
-      }>
-      avgExecutionTime: Array<{
-        timestamp: Date;
-        value: number;
-      }>
-    }
-    failure: {
-      count: Array<{
-        timestamp: Date;
-        value: number;
-      }>
-      avgExecutionTime: Array<{
-        timestamp: Date;
-        value: number;
-      }>
-    }
-
+    count: Array<{
+      timestamp: Date;
+      success: number;
+      failure: number;
+    }>;
   }>({
-    success: {
-      count: [],
-      avgExecutionTime: []
-    },
-    failure: {
-      count: [],
-      avgExecutionTime: []
-    }
+    count: [],
   });
 
   useEffect(() => {
@@ -64,18 +48,27 @@ export function ServiceMetrics({
           stop: new Date(Date.now()),
           functionName: functionName,
           serviceName: serviceName,
-        }
+        },
       });
-
 
       if (metricsResult.status === 401) {
         window.location.reload();
       }
 
       if (metricsResult.status === 200) {
+        // Merge the success and failure counts into a single map for rendering
+        const countMap = new Map();
+        metricsResult.body.success.count.forEach(
+          (item: { value: number; timestamp: Date }) =>
+            attributePoint(countMap, item, "success"),
+        );
+        metricsResult.body.failure.count.forEach(
+          (item: { value: number; timestamp: Date }) =>
+            attributePoint(countMap, item, "failure"),
+        );
+
         setData({
-          success: metricsResult.body.success,
-          failure: metricsResult.body.failure
+          count: Array.from(countMap.values()),
         });
       } else {
         toast.error("Failed to fetch service metrics.");
@@ -92,7 +85,7 @@ export function ServiceMetrics({
     };
   }, [clusterId, serviceName, isLoaded, isSignedIn, getToken]);
 
-  return data.success.count.length > 0 ? (
+  return data.count.length > 0 ? (
     <div>
       <div className="mt-12">
         <h2 className="text-xl mb-4">Service Calls</h2>
@@ -101,38 +94,80 @@ export function ServiceMetrics({
         </p>
       </div>
       <div className="rounded-md border" style={{ maxWidth: 1276 }}>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart
-              width={500}
-              height={500}
-              margin={{
-                top: 30,
-                right: 30,
-                left: 30,
-                bottom: 30,
+        <ResponsiveContainer width="100%" height={300}>
+          <AreaChart
+            width={500}
+            height={500}
+            margin={{
+              top: 30,
+              right: 30,
+              left: 30,
+              bottom: 30,
+            }}
+            data={data.count}
+          >
+            <Tooltip
+              contentStyle={{ backgroundColor: "#1F2937", color: "#fff" }}
+              formatter={(value, _name, props) => {
+                if (
+                  isNaN(value as number) ||
+                  isNaN(props.payload.success) ||
+                  isNaN(props.payload.failure) ||
+                  props.payload.success + props.payload.failure === 0
+                ) {
+                  return value;
+                }
+
+                const percent =
+                  ((value as number) /
+                    (props.payload.success + props.payload.failure)) *
+                  100;
+                return `${value} (${percent.toFixed(2)}%)`;
               }}
-              data={data.success.count}>
-              <Tooltip
-                contentStyle={{ backgroundColor: "#1F2937", color: "#fff" }}
-              />
-              <YAxis
-                dataKey="value"
-              />
-              <XAxis dataKey="timestamp"
-                name="Time"
-                tickFormatter={(time) => {
-                  const date = new Date(time);
-                  return `${date.getHours()}:${date.getMinutes()}`;
-                }}
-              />
-              <Area type="monotone"
-                dataKey="value"
-                stroke="#8884d8"
-                fill="#8884d8"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+            />
+            <YAxis dataKey="success" />
+            <XAxis
+              dataKey="timestamp"
+              name="Time"
+              tickFormatter={(time) => {
+                const date = new Date(time);
+                return `${date.getHours()}:${date.getMinutes()}`;
+              }}
+            />
+            <Area
+              type="monotone"
+              dataKey="success"
+              stroke="#8884d8"
+              fill="#8884d8"
+            />
+            <Area
+              type="monotone"
+              dataKey="failure"
+              stroke="#82ca9d"
+              fill="#82ca9d"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
     </div>
   ) : null;
+}
+
+const attributePoint = (
+  pointMap: Map<Date, { success: number; failure: number; timestamp: Date }>,
+  item: { value: number; timestamp: Date },
+  type: "success" | "failure",
+) => {
+  console.log(pointMap);
+  const existing = pointMap.get(item.timestamp);
+  if (existing) {
+    existing[type] = item.value;
+  } else {
+    pointMap.set(item.timestamp, {
+      timestamp: item.timestamp,
+      success: 0,
+      failure: 0,
+    });
+    attributePoint(pointMap, item, type);
+  }
 };
