@@ -32,8 +32,8 @@ export function ServiceMetrics({
     }>;
     executionTime: Array<{
       timestamp: Date;
-      function: number;
-      roundTrip: number;
+      success: number;
+      failure: number;
     }>;
   }>({
     count: [],
