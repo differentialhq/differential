@@ -10,15 +10,9 @@ export default async function Page({
 }) {
   const { getToken } = await auth();
 
-  const token = await getToken();
-
-  if (!token) {
-    return null;
-  }
-
   const clusterResult = await client.getClusterDetailsForUser({
     headers: {
-      authorization: `Bearer ${token}`,
+      authorization: `Bearer ${await getToken()}`,
     },
     params: {
       clusterId: params.clusterId,
@@ -44,7 +38,7 @@ export default async function Page({
         <SecretKeyReveal secretKey={clusterResult.body.apiSecret} />
       </div>
 
-      <ClusterLiveTables token={token} clusterId={params.clusterId} />
+      <ClusterLiveTables clusterId={params.clusterId} />
     </section>
   );
 }
