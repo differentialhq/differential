@@ -1,5 +1,5 @@
 import * as metrics from "./event-aggregation";
-import { writeEvent } from "./events";
+import { writeEvent, writeJobActivity } from "./events";
 import * as influx from "./influx";
 
 const serviceName = `event-aggregation-test`;
@@ -21,7 +21,7 @@ describe("getFunctionMetrics", () => {
       serviceName,
       start,
       stop,
-      functionName
+      functionName,
     });
 
     expect(result).toEqual({
@@ -131,14 +131,20 @@ describe("getFunctionMetrics", () => {
         serviceName,
         start,
         stop,
-        functionName
+        functionName,
       });
 
-      if (result.success.count.length !== 1 || result.failure.count.length !== 1) {
+      if (
+        result.success.count.length !== 1 ||
+        result.failure.count.length !== 1
+      ) {
         console.log(`Waiting for metrics to be aggregated...`, result);
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-    } while (result.success.count.length !== 1 || result.failure.count.length !== 1);
+    } while (
+      result.success.count.length !== 1 ||
+      result.failure.count.length !== 1
+    );
 
     expect(result).toEqual({
       success: {
@@ -151,4 +157,72 @@ describe("getFunctionMetrics", () => {
       },
     });
   }, 20000);
+
+  it("records and returns job activity", async () => {
+    const service = "service";
+    const clusterId = Math.random().toString();
+    const jobId = Math.random().toString();
+
+    const targetFn = "fn";
+    const targetArgs = JSON.stringify({ foo: "bar" });
+
+    writeJobActivity({
+      service,
+      clusterId,
+      jobId,
+      type: "RECEIVED_BY_CONTROL_PLANE",
+      meta: {
+        targetFn,
+        targetArgs,
+      },
+    });
+
+    writeJobActivity({
+      service,
+      clusterId,
+      jobId,
+      type: "RESULT_SENT_TO_CONTROL_PLANE",
+      machineId: "machineId",
+      meta: {
+        targetFn,
+        resultType: "resolution",
+        result: "baz",
+      },
+    });
+
+    // wait 2s for the events to be written
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    await influx.writeClient?.flush(true);
+
+    const retrieved = await metrics.getJobActivityByJobId({
+      clusterId,
+      jobId,
+    });
+
+    expect(retrieved).toEqual([
+      {
+        timestamp: expect.any(String),
+        type: "RECEIVED_BY_CONTROL_PLANE",
+        service,
+        meta: JSON.stringify({ targetFn, targetArgs }),
+        clusterId,
+        jobId,
+        machineId: undefined,
+      },
+      {
+        timestamp: expect.any(String),
+        type: "RESULT_SENT_TO_CONTROL_PLANE",
+        service,
+        meta: JSON.stringify({
+          targetFn,
+          resultType: "resolution",
+          result: "baz",
+        }),
+        clusterId,
+        jobId,
+        machineId: "machineId",
+      },
+    ]);
+  }, 10000);
 });

@@ -33,7 +33,7 @@ export const contract = c.router({
               })
               .optional(),
             cacheTTL: z.number().optional(),
-          })
+          }),
         )
         .optional(),
     }),
@@ -159,7 +159,7 @@ export const contract = c.router({
           apiSecret: z.string(),
           createdAt: z.date(),
           description: z.string().nullable(),
-        })
+        }),
       ),
       401: z.undefined(),
     },
@@ -195,7 +195,7 @@ export const contract = c.router({
             pool: z.string().nullable(),
             lastPingAt: z.date().nullable(),
             ip: z.string().nullable(),
-          })
+          }),
         ),
         jobs: z.array(
           z.object({
@@ -206,7 +206,7 @@ export const contract = c.router({
             resultType: z.string().nullable(),
             createdAt: z.date(),
             functionExecutionTime: z.number().nullable(),
-          })
+          }),
         ),
         definitions: z.array(
           z.object({
@@ -223,10 +223,10 @@ export const contract = c.router({
                     })
                     .optional(),
                   cacheTTL: z.number().optional(),
-                })
+                }),
               )
               .optional(),
-          })
+          }),
         ),
       }),
       401: z.undefined(),
@@ -286,8 +286,8 @@ export const contract = c.router({
           type: z.enum(["machineResourceProbe", "functionInvocation"]),
           tags: z.record(z.string()).optional(),
           intFields: z.record(z.number()).optional(),
-        })
+        }),
       ),
     }),
-  }
+  },
 });

@@ -3,7 +3,7 @@ import { ulid } from "ulid";
 import * as cron from "./cron";
 import * as data from "./data";
 import { backgrounded } from "./util";
-import { writeEvent } from "./events";
+import { writeEvent, writeJobActivity } from "./events";
 import {
   ServiceDefinition,
   storeServiceDefinitionBG,
@@ -17,7 +17,7 @@ export const createJob = async ({
   pool,
   idempotencyKey,
 }: {
-  service: string | null;
+  service: string;
   targetFn: string;
   targetArgs: string;
   owner: { clusterId: string };
@@ -52,6 +52,17 @@ export const createJob = async ({
     },
   });
 
+  writeJobActivity({
+    service,
+    clusterId: owner.clusterId,
+    jobId,
+    type: "RECEIVED_BY_CONTROL_PLANE",
+    meta: {
+      targetFn,
+      targetArgs,
+    },
+  });
+
   return { id: jobId };
 };
 
@@ -70,8 +81,17 @@ export const nextJobs = async ({
   ip: string;
   definition?: ServiceDefinition;
 }) => {
+  writeEvent({
+    type: "machinePing",
+    tags: {
+      clusterId: owner.clusterId,
+      machineId,
+      ip,
+    },
+  });
+
   const results = await data.db.execute(
-    sql`UPDATE jobs SET status = 'running', remaining = remaining - 1 WHERE id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining > 0)) AND owner_hash = ${owner.clusterId} AND service = ${service} LIMIT ${limit}) RETURNING *`
+    sql`UPDATE jobs SET status = 'running', remaining = remaining - 1 WHERE id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining > 0)) AND owner_hash = ${owner.clusterId} AND service = ${service} LIMIT ${limit}) RETURNING *`,
   );
 
   storeMachineInfoBG(machineId, ip, owner);
@@ -79,14 +99,6 @@ export const nextJobs = async ({
   if (definition) {
     storeServiceDefinitionBG(service, definition, owner);
   }
-
-  writeEvent({
-    type: "machinePing",
-    tags: {
-      clusterId: owner.clusterId,
-      machineId,
-    },
-  });
 
   if (results.rowCount === 0) {
     return [];
@@ -102,6 +114,20 @@ export const nextJobs = async ({
     targetArgs: row.target_args as string,
   }));
 
+  jobs.forEach((job) => {
+    writeJobActivity({
+      service,
+      clusterId: owner.clusterId,
+      jobId: job.id,
+      type: "RECEIVED_BY_MACHINE",
+      meta: {
+        targetFn: job.targetFn,
+        targetArgs: job.targetArgs,
+      },
+      machineId,
+    });
+  });
+
   return jobs;
 };
 
@@ -114,14 +140,27 @@ export const getJobStatus = async ({
 }) => {
   const [job] = await data.db
     .select({
+      service: data.jobs.service,
       status: data.jobs.status,
       result: data.jobs.result,
       resultType: data.jobs.result_type,
     })
     .from(data.jobs)
     .where(
-      and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId))
+      and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
     );
+
+  if (job) {
+    writeJobActivity({
+      service: job.service,
+      clusterId: owner.clusterId,
+      jobId,
+      type: "JOB_STATUS_REQUESTED",
+      meta: {
+        status: job.status,
+      },
+    });
+  }
 
   return job;
 };
@@ -129,7 +168,7 @@ export const getJobStatus = async ({
 const storeMachineInfoBG = backgrounded(async function storeMachineInfo(
   machineId: string,
   ip: string,
-  owner: { clusterId: string }
+  owner: { clusterId: string },
 ) {
   await data.db
     .insert(data.machines)
@@ -149,14 +188,75 @@ const storeMachineInfoBG = backgrounded(async function storeMachineInfo(
     });
 });
 
+export async function persistJobResult({
+  result,
+  resultType,
+  functionExecutionTime,
+  jobId,
+  owner,
+  machineId,
+}: {
+  result: string;
+  resultType: "resolution" | "rejection";
+  functionExecutionTime: number | undefined;
+  jobId: string;
+  owner: { organizationId: string | null; clusterId: string };
+  machineId: string;
+}) {
+  const updateResult = await data.db
+    .update(data.jobs)
+    .set({
+      result,
+      result_type: resultType,
+      resulted_at: sql`now()`,
+      function_execution_time_ms: functionExecutionTime,
+      status: "success",
+    })
+    .where(
+      and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
+    )
+    .returning({ service: data.jobs.service, function: data.jobs.target_fn });
+
+  writeEvent({
+    type: "jobResulted",
+    tags: {
+      clusterId: owner.clusterId,
+      service: updateResult[0]?.service,
+      function: updateResult[0]?.function,
+      resultType,
+    },
+    intFields: {
+      ...(functionExecutionTime !== undefined ? { functionExecutionTime } : {}),
+    },
+    stringFields: {
+      jobId,
+    },
+  });
+
+  writeJobActivity({
+    service: updateResult[0]?.service,
+    clusterId: owner.clusterId,
+    jobId,
+    type: "RESULT_SENT_TO_CONTROL_PLANE",
+    machineId,
+    meta: {
+      targetFn: updateResult[0]?.function,
+      resultType,
+      result,
+    },
+  });
+}
+
 export async function selfHealJobs() {
+  // TODO: writeJobActivity
   await data.db.execute(
-    sql`UPDATE jobs SET status = 'failure' WHERE status = 'running' AND remaining = 0 AND timed_out_at < now()`
+    sql`UPDATE jobs SET status = 'failure' WHERE status = 'running' AND remaining = 0 AND timed_out_at < now()`,
   );
 
+  // TODO: writeJobActivity
   // make jobs that have failed but still have remaining attempts into pending jobs
   await data.db.execute(
-    sql`UPDATE jobs SET status = 'pending' WHERE status = 'failure' AND remaining > 0`
+    sql`UPDATE jobs SET status = 'pending' WHERE status = 'failure' AND remaining > 0`,
   );
 }
 
