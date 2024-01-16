@@ -1,4 +1,4 @@
-import { flux } from "@influxdata/influxdb-client";
+import { ParameterizedQuery, flux } from "@influxdata/influxdb-client";
 import { INFLUXDB_BUCKET, queryClient } from "./influx";
 
 type TimeRange = {
@@ -12,61 +12,72 @@ type JobComposite = {
   functionName?: string;
 };
 
+const defaultFilter = (
+  target: JobComposite,
+  range: TimeRange,
+): ParameterizedQuery => {
+  return flux`from(bucket: "${INFLUXDB_BUCKET}")
+  |> range(start: ${range.start}, stop: ${range.stop})
+  |> filter(fn: (r) => r["clusterId"] == "${target.clusterId}")`;
+};
+
+// Filter by service name and function name if they are provided
+const functionFilter = (target: JobComposite): string => {
+  let query = ``;
+
+  if (target.serviceName) {
+    query += flux`|> filter(fn: (r) => r["service"] == "${target.serviceName}")
+`.toString();
+  }
+
+  if (target.functionName) {
+    query +=
+      flux`|> filter(fn: (r) => r["function"] == "${target.functionName}")
+`.toString();
+  }
+
+  return query;
+};
+
+const aggregateWindow = (range: TimeRange, fn: "count" | "mean"): string => {
+  const delta = range.stop.getTime() - range.start.getTime();
+  // If the time range is less than 1 hour, aggregate by 1 minute
+  if (delta < 3600000) {
+    return `|> aggregateWindow(every: 1m, fn: ${fn}, createEmpty: true)`;
+    // If the time range is less than 1 day, aggregate by 5 minutes
+  } else if (delta < 86400000) {
+    return `|> aggregateWindow(every: 5m, fn: ${fn}, createEmpty: true)`;
+    // Otherwise, aggregate by 1 hour
+  } else {
+    return `|> aggregateWindow(every: 1h, fn: ${fn}, createEmpty: true)`;
+  }
+};
+
 // Build a flux query to get the average execution time for a given function over a given time range
 export const resultExecutionTimeQuery = (
   target: JobComposite,
   range: TimeRange,
 ) => {
-  let query = flux`from(bucket: "${INFLUXDB_BUCKET}")
-  |> range(start: ${range.start}, stop: ${range.stop})
+  return (
+    flux`${defaultFilter(target, range)}
   |> filter(fn: (r) => r["_measurement"] == "jobResulted")
-  |> filter(fn: (r) => r["clusterId"] == "${target.clusterId}")
   |> filter(fn: (r) => r["resultType"] == "resolution" or r["resultType"] == "rejection")
-  |> filter(fn: (r) => r["_field"] == "functionExecutionTime")
-`.toString();
-
-  if (target.serviceName) {
-    query += flux`|> filter(fn: (r) => r["service"] == "${target.serviceName}")
-`.toString();
-  }
-
-  if (target.functionName) {
-    query +=
-      flux`|> filter(fn: (r) => r["function"] == "${target.functionName}")
-`.toString();
-  }
-
-  query += flux`|> aggregateWindow(every: 1m, fn: mean, createEmpty: true)
-`.toString();
-
-  return query;
+  |> filter(fn: (r) => r["_field"] == "functionExecutionTime")`.toString() +
+    functionFilter(target) +
+    aggregateWindow(range, "mean")
+  );
 };
 
 // Build a flux query to get the total number of calls for a given function over a given time range
 export const resultCountQuery = (target: JobComposite, range: TimeRange) => {
-  let query = flux`from(bucket: "${INFLUXDB_BUCKET}")
-  |> range(start: ${range.start}, stop: ${range.stop})
+  return (
+    flux`${defaultFilter(target, range)}
   |> filter(fn: (r) => r["_measurement"] == "jobResulted")
-  |> filter(fn: (r) => r["clusterId"] == "${target.clusterId}")
   |> filter(fn: (r) => r["resultType"] == "resolution" or r["resultType"] == "rejection")
-  |> filter(fn: (r) => r["_field"] == "functionExecutionTime")
-`.toString();
-
-  if (target.serviceName) {
-    query += flux`|> filter(fn: (r) => r["service"] == "${target.serviceName}")
-`.toString();
-  }
-
-  if (target.functionName) {
-    query +=
-      flux`|> filter(fn: (r) => r["function"] == "${target.functionName}")
-`.toString();
-  }
-
-  query += `|> aggregateWindow(every: 1m, fn: count, createEmpty: true)
-`.toString();
-
-  return query;
+  |> filter(fn: (r) => r["_field"] == "functionExecutionTime")` +
+    functionFilter(target) +
+    aggregateWindow(range, "count")
+  );
 };
 
 type Point = { timestamp: Date; value: number };
