@@ -1,6 +1,7 @@
 "use client";
 
 import { client } from "@/client/client";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@clerk/nextjs";
 import { formatRelative } from "date-fns";
 import { useEffect, useState } from "react";
@@ -12,15 +13,8 @@ import {
   functionStatusToCircle,
 } from "./helpers";
 import { ServiceSummary } from "./services/ServiceSummary";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
-export function ClusterLiveTables({
-  token,
-  clusterId,
-}: {
-  token: string;
-  clusterId: string;
-}) {
+export function ClusterLiveTables({ clusterId }: { clusterId: string }) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
 
   const [data, setData] = useState<{
@@ -82,7 +76,7 @@ export function ClusterLiveTables({
     return () => {
       clearInterval(interval); // Clear the interval when the component unmounts
     };
-  }, [token, clusterId, isLoaded, isSignedIn, getToken]);
+  }, [clusterId, isLoaded, isSignedIn, getToken]);
 
   return (
     <div>

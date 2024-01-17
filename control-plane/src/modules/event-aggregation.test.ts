@@ -198,6 +198,7 @@ describe("getFunctionMetrics", () => {
     const retrieved = await metrics.getJobActivityByJobId({
       clusterId,
       jobId,
+      interval: "7d",
     });
 
     expect(retrieved).toEqual([
@@ -206,9 +207,8 @@ describe("getFunctionMetrics", () => {
         type: "RECEIVED_BY_CONTROL_PLANE",
         service,
         meta: JSON.stringify({ targetFn, targetArgs }),
-        clusterId,
         jobId,
-        machineId: undefined,
+        machineId: null,
       },
       {
         timestamp: expect.any(String),
@@ -219,7 +219,6 @@ describe("getFunctionMetrics", () => {
           resultType: "resolution",
           result: "baz",
         }),
-        clusterId,
         jobId,
         machineId: "machineId",
       },

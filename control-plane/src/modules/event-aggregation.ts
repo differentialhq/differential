@@ -172,6 +172,7 @@ export const getFunctionMetrics = async (query: {
 export const getJobActivityByJobId = async (params: {
   clusterId: string;
   jobId: string;
+  interval: string;
 }) => {
   let query = flux`from(bucket: "${INFLUXDB_BUCKET}")
   |> range(start: -7d)
@@ -199,13 +200,14 @@ export const getJobActivityByJobId = async (params: {
 
   const result: JobActivity[] = (await queryClient?.collectRows(query)) ?? [];
 
+  // this is a completely flat list of all events, so we need to group them by timestamp
+  // on the client side.
   return result.map((point) => ({
     timestamp: point._time,
     type: point.type,
-    service: point.service,
+    service: point.service ?? null,
     meta: point._value,
-    clusterId: point.clusterId,
     jobId: point.jobId,
-    machineId: point.machineId,
+    machineId: point.machineId ?? null,
   }));
 };

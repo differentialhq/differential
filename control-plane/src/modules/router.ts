@@ -329,4 +329,22 @@ export const router = s.router(contract, {
       body: undefined,
     };
   },
+  getActivity: async (request) => {
+    await routingHelpers.validateManagementAccess(request);
+
+    const { clusterId } = request.params;
+
+    const { jobId } = request.query;
+
+    const result = await metrics.getJobActivityByJobId({
+      clusterId,
+      jobId,
+      interval: request.query.interval,
+    });
+
+    return {
+      status: 200,
+      body: result,
+    };
+  },
 });
