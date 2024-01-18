@@ -2,12 +2,11 @@ import { initClient, tsRestFetchApi } from "@ts-rest/core";
 import debug from "debug";
 import { contract } from "./contract";
 import { DifferentialError } from "./errors";
+import { Events } from "./events";
 import { extractDifferentialConfig, isFunctionIdempotent } from "./functions";
 import { pack, unpack } from "./serialize";
 import { Result, TaskQueue } from "./task-queue";
 import { AsyncFunction } from "./types";
-import assert from "assert";
-import { Events } from "./events";
 
 const log = debug("differential:client");
 
@@ -39,7 +38,7 @@ export type RegisteredService<T extends ServiceDefinition<any>> = {
 const createClient = (
   baseUrl: string,
   machineId: string,
-  clientAbortController?: AbortController
+  clientAbortController?: AbortController,
 ) =>
   initClient(contract, {
     baseUrl,
@@ -60,7 +59,7 @@ const pollForJob = async (
   client: ReturnType<typeof createClient>,
   params: { jobId: string },
   authHeader: string,
-  attempt = 1
+  attempt = 1,
 ): Promise<Result> => {
   log("Polling for job", { attempt });
 
@@ -148,12 +147,12 @@ class PollingAgent {
       idleTimeout?: number;
       onIdle?: () => void;
     },
-    private ttl?: number
+    private ttl?: number,
   ) {
     this.client = createClient(
       this.endpoint,
       this.machineId,
-      this.abortController
+      this.abortController,
     );
   }
 
@@ -182,7 +181,7 @@ class PollingAgent {
       .createJobsRequest({
         body: {
           limit: Math.ceil(
-            (this.pollState.concurrency - this.pollState.current) / 2
+            (this.pollState.concurrency - this.pollState.current) / 2,
           ),
           ttl: this.ttl,
           service: this.service.name,
@@ -258,7 +257,7 @@ class PollingAgent {
                     {
                       jobId: job.id,
                       body: res.body,
-                    }
+                    },
                   );
                 }
               })
@@ -272,8 +271,8 @@ class PollingAgent {
               `Function was not registered. name='${
                 job.targetFn
               }' registeredFunctions='${Object.keys(functionRegistry).join(
-                ","
-              )}'`
+                ",",
+              )}'`,
             );
 
             await onComplete({
@@ -293,7 +292,7 @@ class PollingAgent {
 
             this.taskQueue.addTask(registered.fn, args, onComplete);
           }
-        })
+        }),
       );
 
       return {
@@ -405,7 +404,7 @@ export class Differential {
   private jobPollWaitTime?: number;
   private pollingAgents: PollingAgent[] = [];
 
-  private events: Events
+  private events: Events;
 
   /**
    * Initializes a new Differential instance.
@@ -434,7 +433,7 @@ export class Differential {
       endpoint?: string;
       encryptionKeys?: Buffer[];
       jobPollWaitTime?: number;
-    }
+    },
   ) {
     this.authHeader = `Basic ${this.apiSecret}`;
     this.endpoint = options?.endpoint || "https://api.differential.dev";
@@ -443,19 +442,15 @@ export class Differential {
     options?.encryptionKeys?.forEach((key, i) => {
       if (key.length !== 32) {
         throw new DifferentialError(
-          `Encryption keys must be 32 bytes long. Received key of length ${key.length} at index ${i}`
+          `Encryption keys must be 32 bytes long. Received key of length ${key.length} at index ${i}`,
         );
       }
     });
 
-    if (
-      (options?.jobPollWaitTime !== undefined &&
-        options!.jobPollWaitTime! < 5000) ||
-      options!.jobPollWaitTime! > 20000
-    ) {
-      throw new DifferentialError(
-        "jobPollWaitTime must be between 5000 and 20000ms"
-      );
+    const jobPollWaitTime = options?.jobPollWaitTime || 20000;
+
+    if (jobPollWaitTime < 5000) {
+      throw new DifferentialError("jobPollWaitTime must be at least 5000ms");
     }
 
     this.jobPollWaitTime = options?.jobPollWaitTime;
@@ -468,22 +463,22 @@ export class Differential {
     this.controlPlaneClient = createClient(this.endpoint, this.machineId);
     this.events = new Events(async (events) => {
       const result = await this.controlPlaneClient.ingestClientEvents({
-        body: {events: events},
+        body: { events: events },
         headers: {
-          authorization: this.authHeader
-        }
-      })
+          authorization: this.authHeader,
+        },
+      });
       log("Sent metrics to control plane", {
-        result: result
-      })
-    })
+        result: result,
+      });
+    });
   }
 
   private async listen(service: ServiceDefinition<any>) {
-    this.events.startResourceProbe()
+    this.events.startResourceProbe();
     if (
       this.pollingAgents.find(
-        (p) => p.serviceName === service.name && p.polling
+        (p) => p.serviceName === service.name && p.polling,
       )
     ) {
       throw new DifferentialError(`Service is already started`, {
@@ -498,7 +493,7 @@ export class Differential {
       {
         name: service.name,
       },
-      this.jobPollWaitTime
+      this.jobPollWaitTime,
     );
 
     this.pollingAgents.push(pollingAgent);
@@ -507,7 +502,7 @@ export class Differential {
   }
 
   private async stop(): Promise<void> {
-    this.events.stopResourceProbe()
+    this.events.stopResourceProbe();
 
     await Promise.all(this.pollingAgents.map((agent) => agent.quit()));
 
@@ -570,12 +565,12 @@ export class Differential {
    * ```
    */
   service<T extends ServiceDefinition<N>, N extends string>(
-    service: T
+    service: T,
   ): RegisteredService<T> {
     for (const [key, value] of Object.entries(service.functions)) {
       if (functionRegistry[key]) {
         throw new DifferentialError(
-          `Function name '${key}' is already registered by another service.`
+          `Function name '${key}' is already registered by another service.`,
         );
       } else {
         this.register({
@@ -594,12 +589,12 @@ export class Differential {
   }
 
   client<T extends RegisteredService<any>>(
-    service: T["definition"]["name"]
+    service: T["definition"]["name"],
   ): ServiceClient<T>;
 
   client<T extends RegisteredService<any>>(
     service: T["definition"]["name"],
-    options: { background: true }
+    options: { background: true },
   ): BackgroundServiceClient<T>;
 
   /**
@@ -622,7 +617,7 @@ export class Differential {
     service: T["definition"]["name"],
     options?: {
       background?: boolean;
-    }
+    },
   ): ServiceClient<T> {
     const d = this;
 
@@ -655,7 +650,6 @@ export class Differential {
     fn: U,
     ...args: Parameters<T["definition"]["functions"][U]>
   ): Promise<ReturnType<T["definition"]["functions"][U]>> {
-
     const start = Date.now();
     // create a job
     const id = await this.createJob<T, U>(service, fn, args);
@@ -666,21 +660,21 @@ export class Differential {
     const result = await pollForJob(
       this.controlPlaneClient,
       { jobId: id },
-      this.authHeader
+      this.authHeader,
     );
     const end = Date.now();
 
     this.events.push({
       timestamp: new Date(),
-      type: 'functionInvocation',
+      type: "functionInvocation",
       tags: {
         function: fn as string,
         service: service,
       },
       intFields: {
-        roundTripTime: end - start
-      }
-    })
+        roundTripTime: end - start,
+      },
+    });
 
     log("Result received", { id, result });
 
@@ -719,7 +713,7 @@ export class Differential {
   >(
     service: T["definition"]["name"],
     fn: string | number | symbol,
-    args: Parameters<T["definition"]["functions"][U]>
+    args: Parameters<T["definition"]["functions"][U]>,
   ) {
     log("Creating job", { service, fn, args });
 
