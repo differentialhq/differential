@@ -13,20 +13,23 @@ Learn to build an end to end Differential app in under 2 minutes with TypeScript
 Run the following command in your terminal to set up a hello world project
 
 ```bash
-git clone git@github.com:differentialhq/app.git my-app && \ 
-cd my-app && \ 
-npm run setup
+git clone git@github.com:differentialhq/app.git my-app && \
+cd my-app && \
+npm run setup && \
+npm i -g tsx
 ```
 
 This will:
-  - Clone the [Differential app template](https://github.com/differentialhq/app) into a dirctory called `my-app`
-  - Install the dependencies
-  - Fetch a temporary API secret for you to use and insert it to src/d.ts file
+
+- Clone the [Differential app template](https://github.com/differentialhq/app) into a dirctory called `my-app`
+- Install the dependencies
+- Fetch a temporary API secret for you to use and insert it to src/d.ts file
+- Install the `tsx` CLI tool globally so you can run ts files directly
 
 ### 2. Start the hello service
 
 ```
-npm run service --name=hello
+tsx src/run/hello-service.ts
 ```
 
 This will start a [service called `hello`](https://github.com/differentialhq/app/blob/master/src/services/hello.ts) and register itself with the Cloud control-plane.
@@ -34,7 +37,7 @@ This will start a [service called `hello`](https://github.com/differentialhq/app
 ### 3. Call the running service
 
 ```
-npm run command --name=greet
+tsx src/commands/greet.ts
 ```
 
 This will call the [`greet` command](https://github.com/differentialhq/app/blob/master/src/commands/greet.ts) on the `hello` service and print the result.
@@ -55,7 +58,7 @@ async function helloInAnotherLanguage(params: {
   console.log("Responding to hello request in", params.language);
 
   const languageDefinitions = await fetch(
-    `https://raw.githubusercontent.com/differentialhq/app/master/fake-api/hello.json`
+    `https://raw.githubusercontent.com/differentialhq/app/master/fake-api/hello.json`,
   ).then((res) => res.json());
 
   const greeting = languageDefinitions[params.language];
@@ -105,21 +108,15 @@ async function greet(name: string = "World", language: string = "english") {
 
   console.log(`Received response: ${result.message}`);
 }
-
-if (starting()) {
-  greet(process.argv[3], process.argv[4]).then(() => {
-    console.log("Done!");
-  });
-}
 ```
 
 ### 4. Call the new command
 
 ```bash
-npm run command --name=greet -- "Dali" "spanish"
+tsx src/commands/greet.ts -- "Dali" "spanish"
 # => Received response: Hola Dali! I'm a service running on pid 1234!
 
-npm run command --name=greet -- "Mario" "italian"
+tsx src/commands/greet.ts -- "Mario" "italian"
 # => Received response: Ciao Mario! I'm a service running on pid 1234!
 
 # try other languages!
