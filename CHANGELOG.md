@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.8.0](https://github.com/differentialhq/differential/compare/v3.7.1...v3.8.0) (2024-01-18)
+
+### Bug Fixes
+
+- Fix job poll timer initialization ([#82](https://github.com/differentialhq/differential/issues/82)) ([de383d6](https://github.com/differentialhq/differential/commit/de383d63a5f62654975cade8476fa7f07aaa9ff8))
+- Fix the husky command on console ([366a26e](https://github.com/differentialhq/differential/commit/366a26efd46fcaf07ecb842ee71de802a9b160ba))
+- Update cluster definition ([449ba0a](https://github.com/differentialhq/differential/commit/449ba0aca92a593d28ef54537fb6acb88cd90805))
+- Use getToken for retrieving auth token ([#74](https://github.com/differentialhq/differential/issues/74)) ([ea13436](https://github.com/differentialhq/differential/commit/ea134363fadbca552870d1c27778e4e836bff23e)), closes [#72](https://github.com/differentialhq/differential/issues/72)
+
+### Features
+
+- Activity log for jobs ([#80](https://github.com/differentialhq/differential/issues/80)) ([9bd3bd7](https://github.com/differentialhq/differential/commit/9bd3bd73dd8abeae95784abc4520c97ecb605b0d))
+- Adding cluster activity ([#73](https://github.com/differentialhq/differential/issues/73)) ([f3b9545](https://github.com/differentialhq/differential/commit/f3b95457a2dae93e653516d2c3dc74202a2a4f84))
+- Display average execution ([#79](https://github.com/differentialhq/differential/issues/79)) ([ba714cb](https://github.com/differentialhq/differential/commit/ba714cb21871b9e13445b3bb7e5590ccdd03870a))
+- Publish client metrics to control plane ([#69](https://github.com/differentialhq/differential/issues/69)) ([b7b1e74](https://github.com/differentialhq/differential/commit/b7b1e74cdaaaa54de622591dafa0273bcc994f26)), closes [#68](https://github.com/differentialhq/differential/issues/68)
+- Render failure rate for request count ([#78](https://github.com/differentialhq/differential/issues/78)) ([a556217](https://github.com/differentialhq/differential/commit/a5562174fab2c7529769da64817e2ba8a460239f))
+- Request count graph ([#72](https://github.com/differentialhq/differential/issues/72)) ([ba67a37](https://github.com/differentialhq/differential/commit/ba67a3746da21d579c47cd567cf83c290ddcea54)), closes [#71](https://github.com/differentialhq/differential/issues/71)
+- Return metrics as time series array ([#71](https://github.com/differentialhq/differential/issues/71)) ([ed6c362](https://github.com/differentialhq/differential/commit/ed6c3622f894acb5956936a53c51ddcda8d6ae8f)), closes [#72](https://github.com/differentialhq/differential/issues/72)
+- Write job activity to influxdb ([#75](https://github.com/differentialhq/differential/issues/75)) ([93b9648](https://github.com/differentialhq/differential/commit/93b96482144d91d3cb22387b18b63c1ad5830852))
+
 ## [3.7.1](https://github.com/differentialhq/differential/compare/v3.7.0...v3.7.1) (2024-01-13)
 
 ### Bug Fixes
