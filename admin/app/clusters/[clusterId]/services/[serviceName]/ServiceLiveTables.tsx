@@ -4,6 +4,8 @@ import { client } from "@/client/client";
 import { contract } from "@/client/contract";
 import { useAuth } from "@clerk/nextjs";
 import { formatRelative } from "date-fns";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { z } from "zod";
@@ -54,6 +56,12 @@ export function ServiceLiveTables({
     // initial fetch
     fetchData();
   }, [token, clusterId, serviceName, isLoaded, isSignedIn, getToken]);
+
+  const path = usePathname();
+
+  const searchParams = useSearchParams();
+
+  const jobId = searchParams.get("jobId");
 
   return (
     <div>
@@ -111,9 +119,12 @@ export function ServiceLiveTables({
                   const jobId: string = row.getValue("jobId");
 
                   return (
-                    <p className="font-mono text-sm">
+                    <Link
+                      className="font-mono text-md underline"
+                      href={`/clusters/${clusterId}/activity?jobId=${jobId}`}
+                    >
                       {jobId.substring(jobId.length - 6)}
-                    </p>
+                    </Link>
                   );
                 },
               },

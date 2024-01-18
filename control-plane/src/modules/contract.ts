@@ -9,7 +9,7 @@ const NextJobSchema = z.object({
   targetArgs: z.string(),
 });
 
-export const contract = c.router({
+export const definition = {
   createJobsRequest: {
     method: "POST",
     path: "/jobs-request",
@@ -345,4 +345,31 @@ export const contract = c.router({
       ),
     }),
   },
-});
+  getActivity: {
+    method: "GET",
+    path: "/clusters/:clusterId/activity",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.array(
+        z.object({
+          jobId: z.string(),
+          type: z.string(),
+          meta: z.string().optional(),
+          machineId: z.string().nullable(),
+          timestamp: z.string(),
+          service: z.string().nullable(),
+        }),
+      ),
+      401: z.undefined(),
+      404: z.undefined(),
+    },
+    query: z.object({
+      jobId: z.string(),
+      interval: z.literal("-7d"),
+    }),
+  },
+} as const;
+
+export const contract = c.router(definition);
