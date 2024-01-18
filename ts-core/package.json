@@ -5,7 +5,7 @@
   "main": "bin/index.js",
   "scripts": {
     "test": "jest ./src --runInBand --forceExit --detectOpenHandles",
-    "build": "make update-contract && tsc",
+    "build": "tsc",
     "clean": "rm -rf ./bin",
     "docs": "typedoc --plugin typedoc-plugin-markdown --out docs --excludePrivate --hideBreadcrumbs --allReflectionsHaveOwnDocument"
   },
