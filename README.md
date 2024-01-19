@@ -2,9 +2,13 @@
   <img src="https://cdn.differential.dev/logo.png" width="200" style="border-radius: 10px" />
 </p>
 
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/differentialhq/differential/test-and-docs.yml) ![NPM Downloads](https://img.shields.io/npm/dm/%40differentialhq%2Fcore) ![Libraries.io dependency status for latest release](https://img.shields.io/librariesio/release/npm/%40differentialhq%2Fcore) ![GitHub Release](https://img.shields.io/github/v/release/differentialhq/differential) ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/differentialhq/differential)
+
 # Differential
 
-Differential allows you to break up your monolithic services into highly malleable and composable services, without the boilerplate.
+Differential allows you to break up your monolithic Typescript service into highly malleable and composable services, without the boilerplate.
+
+![Alt text](assets/image-3.png)
 
 ## The Problem
 
@@ -28,7 +32,11 @@ This is a lot of work, and it's not even the fun part of building a product. If 
 
 ## The Solution
 
-Differential is an application code aware service mesh. It is designed to bring the aforementioned overhead to near-zero.
+Differential is an **application code aware service mesh, and a distributed orchestrator**. It is designed to:
+
+1. Make it easy to break up your monolith into services
+2. Make it easy to change the boundaries of your services as your business requirements change
+3. Make it easy to hit "Abort" and go back to a monolith if you need to
 
 | Problem                                                                                               | Solution                                                                                                                                                                       |
 | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -41,16 +49,49 @@ Differential is an application code aware service mesh. It is designed to bring 
 | Write the service interfaces for each service (e.g. protobufs, OpenAPI, ts-rest/zod).                 | ✅ Differential infers your service interface from your function types. Your services become end-to-end typesafe. There's no need for another interchange format.              |
 | Document the interplay of services for other developers.                                              | ✅ Differential's dev console gives you a full view of your service registry, which functions are registered, and the live status for each.                                    |
 
-# Overview
+# Features
+
+- [x] [Open-Source Control Plane and Function Orchestration](https://github.com/differentialhq/differential/tree/main/control-plane)
+- [x] [Stable Typescript SDK](https://docs.differential.dev/getting-started/quick-start/)
+- [x] [Differential Cloud Beta](https://forms.fillout.com/t/9M1VhL8Wxyus)
+- [x] [End-to-end Encryption](https://docs.differential.dev/advanced/advanced-usage/#end-to-end-encryption)
+- [x] [Run functions idempotently](https://docs.differential.dev/advanced/advanced-usage/#idempotency)
+- [x] [Observability and tracing at the function level](https://forms.fillout.com/t/9M1VhL8Wxyus)
+- [x] [Service registry](https://forms.fillout.com/t/9M1VhL8Wxyus)
+- [ ] Cache function results globally
+- [ ] Per-function rate limiting
+- [ ] One-line deployment to AWS Lambda
+- [ ] AI-generated developer documentation
+- [ ] Generate integration tests from telemetry data
+- [ ] Managed API gateways for external access to your functions
+
+...and more! Join our [Discord](https://discord.gg/WtZkXv74) to stay up to date.
+
+# Documentation
+
+All documentation is hosted at [docs.differential.dev](https://docs.differential.dev). Here are some quick links to get you started:
+
+- [Quick Start](https://docs.differential.dev/getting-started/quick-start/)
+- [Thinking in Differential](https://docs.differential.dev/getting-started/thinking/)
+- [How it works under the hood](https://docs.differential.dev/advanced/architecture/)
+- Self-hosting (Coming soon)
+
+# Differential Cloud
+
+Differential Cloud is a managed version of Differential. It is currently in beta. You can sign up for the waitlist [here](https://forms.fillout.com/t/9M1VhL8Wxyus).
+
+![](assets/differential-cloud.gif)
+
+# About this repo
 
 This is a mono-repo for almost all of the Differential codebase. It contains the following repositories:
 
 ## Application
 
-- [Control Plane](./control-plane/) The control plane is the central command & control for a differential cluster. This is fully open source and can be run on your own infrastructure without using the cloud offering.
-- [Typescript SDK](./ts-core/) The Typescript SDK is the main way to interact with Differential. It is used to define services, call services, and run services.
+- [Control Plane](./control-plane/) The control plane is the central command & control for a differential cluster. This is fully open source and can be run on your own infrastructure. We also offer a hosted version of the control plane at [www.differential.dev](https://differential.dev).
+- [Typescript SDK](./ts-core/) The Typescript SDK is the main way to interact with Differential. It is used to define, run and call services.
+- [Admin Console](./admin) The admin console is a web-based UI for Differential. It is used to visualize the service registry, view logs, and more.
 
 ## Auxiliary
 
 - [Docs](./docs/) The docs are the main source of information for Differential. They are hosted at [docs.differential.dev](https://docs.differential.dev).
-- [Changeset Builder](./changeset-builder/) A utility to help us manage changesets and packages across all of our packages.
