@@ -11,7 +11,7 @@ import {
 import { backgrounded } from "./util";
 
 const createJobStrategies = {
-  idempotece: async ({
+  idempotence: async ({
     service,
     targetFn,
     targetArgs,
@@ -203,7 +203,7 @@ export const createJob = async ({
 }) => {
   // TODO: refactor this
   if (idempotencyKey) {
-    const { id } = await createJobStrategies.idempotece({
+    const { id } = await createJobStrategies.idempotence({
       service,
       targetFn,
       targetArgs,
