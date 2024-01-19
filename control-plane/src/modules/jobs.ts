@@ -2,33 +2,102 @@ import { and, eq, sql } from "drizzle-orm";
 import { ulid } from "ulid";
 import * as cron from "./cron";
 import * as data from "./data";
-import { backgrounded } from "./util";
 import { writeEvent, writeJobActivity } from "./events";
 import {
   ServiceDefinition,
+  getServiceDefinitions,
   storeServiceDefinitionBG,
 } from "./service-definitions";
+import { backgrounded } from "./util";
 
-export const createJob = async ({
-  service,
-  targetFn,
-  targetArgs,
-  owner,
-  pool,
-  idempotencyKey,
-}: {
-  service: string;
-  targetFn: string;
-  targetArgs: string;
-  owner: { clusterId: string };
-  pool?: string;
-  idempotencyKey?: string;
-}) => {
-  const jobId = idempotencyKey ?? ulid();
+const createJobStrategies = {
+  idempotence: async ({
+    service,
+    targetFn,
+    targetArgs,
+    owner,
+    pool,
+    idempotencyKey,
+  }: {
+    service: string;
+    targetFn: string;
+    targetArgs: string;
+    owner: { clusterId: string };
+    pool?: string;
+    idempotencyKey: string;
+  }) => {
+    const jobId = idempotencyKey;
 
-  await data.db
-    .insert(data.jobs)
-    .values({
+    await data.db
+      .insert(data.jobs)
+      .values({
+        id: idempotencyKey,
+        target_fn: targetFn,
+        target_args: targetArgs,
+        idempotency_key: jobId,
+        status: "pending",
+        owner_hash: owner.clusterId,
+        machine_type: pool,
+        service,
+      })
+      .onConflictDoNothing();
+
+    return { id: jobId };
+  },
+  cached: async ({
+    service,
+    targetFn,
+    targetArgs,
+    owner,
+    pool,
+    cacheKey,
+  }: {
+    service: string;
+    targetFn: string;
+    targetArgs: string;
+    owner: { clusterId: string };
+    pool?: string;
+    cacheKey: string;
+  }) => {
+    const cacheTTL = await getServiceDefinitions(owner)
+      .then(
+        (defs) =>
+          defs
+            ?.find((def) => def.name === service)
+            ?.functions?.find((fn) => fn.name === targetFn)?.cacheTTL,
+      )
+      .catch(() => undefined); // on error, just don't cache
+
+    // has a job been completed within the TTL?
+    // if so, return the jobId
+
+    const [job] = await data.db
+      .select({
+        id: data.jobs.id,
+      })
+      .from(data.jobs)
+      .where(
+        and(
+          eq(data.jobs.cache_key, cacheKey),
+          eq(data.jobs.owner_hash, owner.clusterId),
+          eq(data.jobs.service, service),
+          eq(data.jobs.target_fn, targetFn),
+          eq(data.jobs.status, "success"),
+          eq(data.jobs.result_type, "resolution"),
+          sql`resulted_at > now() - interval '${cacheTTL} ms'`,
+        ),
+      )
+      .orderBy(data.jobs.resulted_at, sql`DESC`)
+      .limit(1);
+
+    if (job) {
+      return { id: job.id };
+    }
+
+    // if not, create a job
+    const jobId = ulid();
+
+    await data.db.insert(data.jobs).values({
       id: jobId,
       target_fn: targetFn,
       target_args: targetArgs,
@@ -37,9 +106,60 @@ export const createJob = async ({
       owner_hash: owner.clusterId,
       machine_type: pool,
       service,
-    })
-    .onConflictDoNothing();
+      cache_key: cacheKey,
+    });
 
+    return { id: jobId };
+  },
+  default: async ({
+    service,
+    targetFn,
+    targetArgs,
+    owner,
+    pool,
+  }: {
+    service: string;
+    targetFn: string;
+    targetArgs: string;
+    owner: { clusterId: string };
+    pool?: string;
+  }) => {
+    const jobId = ulid();
+
+    await data.db.insert(data.jobs).values({
+      id: jobId,
+      target_fn: targetFn,
+      target_args: targetArgs,
+      idempotency_key: jobId,
+      status: "pending",
+      owner_hash: owner.clusterId,
+      machine_type: pool,
+      service,
+    });
+
+    return { id: jobId };
+  },
+};
+
+const onAfterJobCreated = async ({
+  service,
+  targetFn,
+  targetArgs,
+  owner,
+  pool,
+  idempotencyKey,
+  cacheKey,
+  jobId,
+}: {
+  service: string;
+  targetFn: string;
+  targetArgs: string;
+  owner: { clusterId: string };
+  pool?: string;
+  idempotencyKey?: string;
+  cacheKey?: string;
+  jobId: string;
+}) => {
   writeEvent({
     type: "jobCreated",
     tags: {
@@ -62,8 +182,88 @@ export const createJob = async ({
       targetArgs,
     },
   });
+};
 
-  return { id: jobId };
+export const createJob = async ({
+  service,
+  targetFn,
+  targetArgs,
+  owner,
+  pool,
+  idempotencyKey,
+  cacheKey,
+}: {
+  service: string;
+  targetFn: string;
+  targetArgs: string;
+  owner: { clusterId: string };
+  pool?: string;
+  idempotencyKey?: string;
+  cacheKey?: string;
+}) => {
+  // TODO: refactor this
+  if (idempotencyKey) {
+    const { id } = await createJobStrategies.idempotence({
+      service,
+      targetFn,
+      targetArgs,
+      owner,
+      pool,
+      idempotencyKey,
+    });
+
+    onAfterJobCreated({
+      service,
+      targetFn,
+      targetArgs,
+      owner,
+      pool,
+      idempotencyKey,
+      jobId: id,
+    });
+
+    return { id };
+  } else if (cacheKey) {
+    const { id } = await createJobStrategies.cached({
+      service,
+      targetFn,
+      targetArgs,
+      owner,
+      pool,
+      cacheKey,
+    });
+
+    onAfterJobCreated({
+      service,
+      targetFn,
+      targetArgs,
+      owner,
+      pool,
+      cacheKey,
+      jobId: id,
+    });
+
+    return { id };
+  } else {
+    const { id } = await createJobStrategies.default({
+      service,
+      targetFn,
+      targetArgs,
+      owner,
+      pool,
+    });
+
+    onAfterJobCreated({
+      service,
+      targetFn,
+      targetArgs,
+      owner,
+      pool,
+      jobId: id,
+    });
+
+    return { id };
+  }
 };
 
 export const nextJobs = async ({
