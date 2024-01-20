@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
   integer,
@@ -10,7 +11,6 @@ import {
 } from "drizzle-orm/pg-core";
 import { Pool } from "pg";
 import { invariant } from "../utilities/invariant";
-import { sql } from "drizzle-orm";
 
 const connectionString = invariant(
   process.env.DATABASE_URL,
@@ -60,6 +60,7 @@ export const jobs = pgTable(
     target_fn: varchar("target_fn", { length: 1024 }).notNull(),
     target_args: text("target_args").notNull(),
     idempotency_key: varchar("idempotency_key", { length: 1024 }).notNull(),
+    cache_key: varchar("cache_key", { length: 1024 }),
     status: text("status", {
       enum: ["pending", "running", "success", "failure"],
     }).notNull(),

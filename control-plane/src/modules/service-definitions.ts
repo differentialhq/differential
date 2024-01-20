@@ -1,7 +1,13 @@
 import { and, eq } from "drizzle-orm";
+import NodeCache from "node-cache";
+import { z } from "zod";
 import * as data from "./data";
 import { backgrounded } from "./util";
-import { z } from "zod";
+
+const cache = new NodeCache({
+  stdTTL: 5,
+  maxKeys: 10000,
+});
 
 export type ServiceDefinition = {
   name: string;
@@ -31,17 +37,17 @@ export const serviceDefinitionsSchema = z.array(
             })
             .optional(),
           cacheTTL: z.number().optional(),
-        })
+        }),
       )
       .optional(),
-  })
+  }),
 );
 
 export const storeServiceDefinitionBG = backgrounded(
   async function storeServiceDefinition(
     service: string,
     definition: ServiceDefinition,
-    owner: { clusterId: string }
+    owner: { clusterId: string },
   ) {
     await data.db
       .insert(data.services)
@@ -56,10 +62,14 @@ export const storeServiceDefinitionBG = backgrounded(
           definition,
         },
       });
-  }
+  },
 );
 
 export async function getServiceDefinitions(owner: { clusterId: string }) {
+  if (cache.has(owner.clusterId)) {
+    return cache.get<ServiceDefinition[]>(owner.clusterId);
+  }
+
   const serviceDefinitions = await data.db
     .select({
       definition: data.services.definition,
@@ -67,9 +77,21 @@ export async function getServiceDefinitions(owner: { clusterId: string }) {
     .from(data.services)
     .where(and(eq(data.services.cluster_id, owner.clusterId)));
 
-  return serviceDefinitionsSchema.parse([serviceDefinitions[0]?.definition]);
+  const retrieved = serviceDefinitionsSchema.parse([
+    serviceDefinitions[0]?.definition,
+  ]);
+
+  cache.set(owner.clusterId, retrieved);
+
+  return retrieved;
 }
 
-export const parseServiceDefinition = (input: unknown): ServiceDefinition[] => {
+export const parseServiceDefinition = (
+  input: unknown[],
+): ServiceDefinition[] => {
+  if (!input || input.filter((i) => i).length === 0) {
+    return [];
+  }
+
   return input ? serviceDefinitionsSchema.parse(input) : [];
 };

@@ -9,7 +9,7 @@ const NextJobSchema = z.object({
   targetArgs: z.string(),
 });
 
-export const contract = c.router({
+export const definition = {
   createJobsRequest: {
     method: "POST",
     path: "/jobs-request",
@@ -58,7 +58,7 @@ export const contract = c.router({
       targetFn: z.string(),
       targetArgs: z.string(),
       pool: z.string().optional(),
-      service: z.string().optional(),
+      service: z.string().default("unknown"),
       idempotencyKey: z.string().optional(),
     }),
   },
@@ -236,9 +236,60 @@ export const contract = c.router({
       clusterId: z.string(),
     }),
   },
-  getFunctionMetrics: {
+  getClusterServiceDetailsForUser: {
     method: "GET",
-    path: "/clusters/:clusterId/services/:serviceName/functions/:functionName/metrics",
+    path: "/clusters/:clusterId/service/:serviceName",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.object({
+        jobs: z.array(
+          z.object({
+            id: z.string(),
+            targetFn: z.string(),
+            service: z.string().nullable(),
+            status: z.string(),
+            resultType: z.string().nullable(),
+            createdAt: z.date(),
+            functionExecutionTime: z.number().nullable(),
+          }),
+        ),
+        definition: z
+          .object({
+            name: z.string(),
+            functions: z
+              .array(
+                z.object({
+                  name: z.string(),
+                  idempotent: z.boolean().optional(),
+                  rate: z
+                    .object({
+                      per: z.enum(["minute", "hour"]),
+                      limit: z.number(),
+                    })
+                    .optional(),
+                  cacheTTL: z.number().optional(),
+                }),
+              )
+              .optional(),
+          })
+          .nullable(),
+      }),
+      401: z.undefined(),
+      404: z.undefined(),
+    },
+    pathParams: z.object({
+      clusterId: z.string(),
+      serviceName: z.string(),
+    }),
+    query: z.object({
+      limit: z.coerce.number().min(100).max(5000).default(2000),
+    }),
+  },
+  getMetrics: {
+    method: "GET",
+    path: "/clusters/:clusterId/metrics",
     headers: z.object({
       authorization: z.string(),
     }),
@@ -247,12 +298,16 @@ export const contract = c.router({
         start: z.date(),
         stop: z.date(),
         success: z.object({
-          count: z.number(),
-          avgExecutionTime: z.number().nullable(),
+          count: z.array(z.object({ timestamp: z.date(), value: z.number() })),
+          avgExecutionTime: z.array(
+            z.object({ timestamp: z.date(), value: z.number() }),
+          ),
         }),
         failure: z.object({
-          count: z.number(),
-          avgExecutionTime: z.number().nullable(),
+          count: z.array(z.object({ timestamp: z.date(), value: z.number() })),
+          avgExecutionTime: z.array(
+            z.object({ timestamp: z.date(), value: z.number() }),
+          ),
         }),
       }),
       401: z.undefined(),
@@ -260,12 +315,12 @@ export const contract = c.router({
     },
     pathParams: z.object({
       clusterId: z.string(),
-      serviceName: z.string(),
-      functionName: z.string(),
     }),
     query: z.object({
-      start: z.date().optional(),
-      stop: z.date().optional(),
+      start: z.coerce.date().optional(),
+      stop: z.coerce.date().optional(),
+      functionName: z.string().optional(),
+      serviceName: z.string().optional(),
     }),
   },
   ingestClientEvents: {
@@ -290,4 +345,31 @@ export const contract = c.router({
       ),
     }),
   },
-});
+  getActivity: {
+    method: "GET",
+    path: "/clusters/:clusterId/activity",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.array(
+        z.object({
+          jobId: z.string(),
+          type: z.string(),
+          meta: z.string().optional(),
+          machineId: z.string().nullable(),
+          timestamp: z.string(),
+          service: z.string().nullable(),
+        }),
+      ),
+      401: z.undefined(),
+      404: z.undefined(),
+    },
+    query: z.object({
+      jobId: z.string(),
+      interval: z.literal("-7d"),
+    }),
+  },
+} as const;
+
+export const contract = c.router(definition);

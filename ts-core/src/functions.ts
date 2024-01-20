@@ -14,10 +14,11 @@ type AddParameters<
 
 type DifferentialConfig = {
   $idempotencyKey?: string;
+  $cacheKey?: string;
 };
 
 export const extractDifferentialConfig = (
-  args: any[]
+  args: any[],
 ): {
   differentialConfig: DifferentialConfig;
   originalArgs: any[];
@@ -79,8 +80,53 @@ export const extractDifferentialConfig = (
  * ```
  */
 export const idempotent = <T extends AsyncFunction>(
-  fn: T
+  fn: T,
 ): AddParameters<T, [Pick<DifferentialConfig, "$idempotencyKey">]> => {
+  idempotentFunctions.push(fn);
+  return fn as any;
+};
+
+/**
+ * This is a utility function that makes a function in a service definition cached.
+ *
+ * @param fn The function to make cached
+ * @param ttl The time to live of the cache in milliseconds
+ * @returns The same function with the same parameters, but with an additional parameter at the end of the function call that is the cache key
+ *
+ * @example
+ * ```ts
+ * // src/services/product.ts
+ *
+ * const getProduct = async (productId: string) => {
+ *   const product = await getProductFromDatabase(productId);
+ *   return product;
+ * }
+ *
+ * export const productService = d.service({
+ *   name: "product",
+ *   functions: {
+ *     getProduct: cached(getProduct, 10000), // cache results for 10 seconds
+ *   },
+ * });
+ *
+ * // src/client.ts
+ *
+ * const productClient = d.client<typeof productService>("product");
+ *
+ * const productId = "123";
+ *
+ * const product = await productClient.getProduct(productId, { $cacheKey: productId });
+ *
+ * // if you call the function again with the same cache key, previous result will be returned
+ *
+ * const product2 = await productClient.getProduct(productId, { $cacheKey: productId });
+ *
+ * assert.deepEqual(product === product2);
+ */
+export const cached = <T extends AsyncFunction>(
+  fn: T,
+  ttl: number,
+): AddParameters<T, [Pick<DifferentialConfig, "$cacheKey">]> => {
   idempotentFunctions.push(fn);
   return fn as any;
 };
