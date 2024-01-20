@@ -71,7 +71,7 @@ export function ClusterLiveTables({ clusterId }: { clusterId: string }) {
     // initial fetch
     fetchData();
 
-    const interval = setInterval(fetchData, 5000); // Refresh every 5 seconds
+    const interval = setInterval(fetchData, 2000); // Refresh every 2 seconds
 
     return () => {
       clearInterval(interval); // Clear the interval when the component unmounts

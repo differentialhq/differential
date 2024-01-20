@@ -1,9 +1,12 @@
-import { formatRelative } from "date-fns";
-import { DataTable } from "../../../components/ui/DataTable";
-
 export function LiveGreenCircle() {
   return (
     <div className="w-4 h-4 rounded-full bg-green-500 animate-pulse"></div>
+  );
+}
+
+export function SmallLiveGreenCircle() {
+  return (
+    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
   );
 }
 
