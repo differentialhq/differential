@@ -7,9 +7,7 @@ branding:
 links:
   - text: Home
     link: https://www.differential.dev
-  - text: Dashboard
-    link: https://admin.differential.dev/dashboard
-  - text: Blog
-    link: https://blog.differential.dev
+  - text: Differential Cloud
+    link: https://forms.fillout.com/t/9M1VhL8Wxyus
 footer:
   copyright: "&copy; Copyright {{ year }}. All rights reserved."
