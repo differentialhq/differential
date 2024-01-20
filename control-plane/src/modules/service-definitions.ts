@@ -86,6 +86,12 @@ export async function getServiceDefinitions(owner: { clusterId: string }) {
   return retrieved;
 }
 
-export const parseServiceDefinition = (input: unknown): ServiceDefinition[] => {
+export const parseServiceDefinition = (
+  input: unknown[],
+): ServiceDefinition[] => {
+  if (!input || input.filter((i) => i).length === 0) {
+    return [];
+  }
+
   return input ? serviceDefinitionsSchema.parse(input) : [];
 };
