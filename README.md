@@ -20,14 +20,14 @@ You have a well-architected monolith. You've determined that it's time to break 
 4. Copy paste boilerplate code for each service and/or write libraries to abstract away the boilerplate
 5. Set up obervability / health checks / etc for each service
 6. Write/move the business logic for each service
-7. Write the service intefaces for each service (e.g. protobufs, OpenAPI, ts-rest/zod)
+7. Write the service interfaces for each service (e.g. protobufs, OpenAPI, ts-rest/zod)
 8. Document the interplay of services for other developers
 
 This is a lot of work, and it's not even the fun part of building a product. If business requirements change and you need to change the boundaries of your services, you have to do it all over again.
 
 ### This leads many engineering teams to:
 
-1. Delay breaking up their monoliths when it would be beneficial to do so, or..
+1. Delay breaking up their monoliths when it would be beneficial to do so, or...
 2. Break it up early and suffer the consequences of a poorly architected services architecture.
 
 ## The Solution
@@ -49,6 +49,15 @@ Differential is an **application code aware service mesh, and a distributed orch
 | Write the service interfaces for each service (e.g. protobufs, OpenAPI, ts-rest/zod).                 | ✅ Differential infers your service interface from your function types. Your services become end-to-end typesafe. There's no need for another interchange format.              |
 | Document the interplay of services for other developers.                                              | ✅ Differential's dev console gives you a full view of your service registry, which functions are registered, and the live status for each.                                    |
 
+# Documentation
+
+All documentation is hosted at [docs.differential.dev](https://docs.differential.dev). Here are some quick links to get you started:
+
+- [Quick Start](https://docs.differential.dev/getting-started/quick-start/)
+- [Thinking in Differential](https://docs.differential.dev/getting-started/thinking/)
+- [How it works under the hood](https://docs.differential.dev/advanced/architecture/)
+- Self-hosting (Coming soon)
+
 # Features
 
 - [x] [Open-Source Control Plane and Function Orchestration](https://github.com/differentialhq/differential/tree/main/control-plane)
@@ -66,15 +75,6 @@ Differential is an **application code aware service mesh, and a distributed orch
 - [ ] Managed API gateways for external access to your functions
 
 ...and more! Join our [Discord](https://discord.gg/WtZkXv74) to stay up to date.
-
-# Documentation
-
-All documentation is hosted at [docs.differential.dev](https://docs.differential.dev). Here are some quick links to get you started:
-
-- [Quick Start](https://docs.differential.dev/getting-started/quick-start/)
-- [Thinking in Differential](https://docs.differential.dev/getting-started/thinking/)
-- [How it works under the hood](https://docs.differential.dev/advanced/architecture/)
-- Self-hosting (Coming soon)
 
 # Differential Cloud
 
