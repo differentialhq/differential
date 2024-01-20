@@ -81,6 +81,7 @@ All documentation is hosted at [docs.differential.dev](https://docs.differential
 Differential Cloud is a managed version of Differential. It is currently in beta. You can sign up for the waitlist [here](https://forms.fillout.com/t/9M1VhL8Wxyus).
 
 ![](assets/differential-cloud.gif)
+![](assets/differential-cloud-2.png)
 
 # About this repo
 
