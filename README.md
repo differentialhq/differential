@@ -95,4 +95,4 @@ This is a mono-repo for almost all of the Differential codebase. It contains the
 
 ## Auxiliary
 
-- [Docs](./docs/) The docs are the main source of information for Differential. They are hosted at [docs.differential.dev](https://docs.differential.dev).
+- [Docs](https://docs.differential.dev) The docs are the main source of information for Differential. They are hosted at [/docs](./docs/).
