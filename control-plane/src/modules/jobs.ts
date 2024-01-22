@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { ulid } from "ulid";
 import * as cron from "./cron";
 import * as data from "./data";
@@ -66,7 +66,10 @@ const createJobStrategies = {
             ?.find((def) => def.name === service)
             ?.functions?.find((fn) => fn.name === targetFn)?.cacheTTL,
       )
-      .catch(() => undefined); // on error, just don't cache
+      .then((ttl) => ttl ?? 0)
+      .catch(() => 0); // on error, just don't cache
+
+    console.log({ cacheTTL });
 
     // has a job been completed within the TTL?
     // if so, return the jobId
@@ -84,10 +87,11 @@ const createJobStrategies = {
           eq(data.jobs.target_fn, targetFn),
           eq(data.jobs.status, "success"),
           eq(data.jobs.result_type, "resolution"),
-          sql`resulted_at > now() - interval '${cacheTTL} ms'`,
+          // sql`resulted_at > now() - interval '${cacheTTL} ms'`,
+          gte(data.jobs.resulted_at, new Date(Date.now() - cacheTTL)),
         ),
       )
-      .orderBy(data.jobs.resulted_at, sql`DESC`)
+      .orderBy(desc(data.jobs.resulted_at))
       .limit(1);
 
     if (job) {
@@ -201,6 +205,8 @@ export const createJob = async ({
   idempotencyKey?: string;
   cacheKey?: string;
 }) => {
+  console.log({ idempotencyKey, cacheKey });
+
   // TODO: refactor this
   if (idempotencyKey) {
     const { id } = await createJobStrategies.idempotence({
