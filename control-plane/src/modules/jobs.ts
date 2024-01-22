@@ -69,8 +69,6 @@ const createJobStrategies = {
       .then((ttl) => ttl ?? 0)
       .catch(() => 0); // on error, just don't cache
 
-    console.log({ cacheTTL });
-
     // has a job been completed within the TTL?
     // if so, return the jobId
 
@@ -205,8 +203,6 @@ export const createJob = async ({
   idempotencyKey?: string;
   cacheKey?: string;
 }) => {
-  console.log({ idempotencyKey, cacheKey });
-
   // TODO: refactor this
   if (idempotencyKey) {
     const { id } = await createJobStrategies.idempotence({
