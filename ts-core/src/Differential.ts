@@ -726,6 +726,7 @@ export class Differential {
         targetFn: fn as string,
         targetArgs: pack(originalArgs),
         idempotencyKey: differentialConfig.$idempotencyKey,
+        cacheKey: differentialConfig.$cacheKey,
       },
       headers: {
         authorization: this.authHeader,

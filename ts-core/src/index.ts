@@ -18,4 +18,4 @@
 
 export { Differential } from "./Differential";
 
-export { idempotent } from "./functions";
+export { cached, idempotent } from "./functions";

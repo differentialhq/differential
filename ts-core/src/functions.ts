@@ -23,14 +23,24 @@ export const extractDifferentialConfig = (
   differentialConfig: DifferentialConfig;
   originalArgs: any[];
 } => {
-  // just one now because we only support idempotency
-  // this has the be a inverse for loop if we have more
+  // just one now because we only support either idempotency key or cache key
   const lastArg = args[args.length - 1];
 
   if (
     typeof lastArg === "object" &&
     lastArg !== null &&
     "$idempotencyKey" in lastArg
+  ) {
+    return {
+      differentialConfig: lastArg,
+      originalArgs: args.slice(0, args.length - 1),
+    };
+  }
+
+  if (
+    typeof lastArg === "object" &&
+    lastArg !== null &&
+    "$cacheKey" in lastArg
   ) {
     return {
       differentialConfig: lastArg,
