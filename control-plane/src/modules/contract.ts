@@ -60,6 +60,7 @@ export const definition = {
       pool: z.string().optional(),
       service: z.string().default("unknown"),
       idempotencyKey: z.string().optional(),
+      cacheKey: z.string().optional(),
     }),
   },
   getJobStatus: {
