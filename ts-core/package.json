@@ -3,44 +3,40 @@
   "version": "3.10.1",
   "description": "Javascript SDK for differential.dev",
   "main": "bin/index.js",
-  "bin": {
-    "differential": "bin/cli/index.js"
-  },
+  "bin": "bin/cli/index.js",
   "scripts": {
     "test": "jest ./src --runInBand --forceExit --detectOpenHandles",
-    "build": "tsc && chmod 755 ./bin/cli/index.js",
+    "build": "tsc",
     "clean": "rm -rf ./bin",
     "docs": "typedoc --plugin typedoc-plugin-markdown --out docs --excludePrivate --hideBreadcrumbs --allReflectionsHaveOwnDocument"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-lambda": "^3.496.0",
-    "@aws-sdk/client-s3": "^3.496.0",
-    "@aws-sdk/s3-request-presigner": "^3.496.0",
     "@ts-rest/core": "^3.28.0",
-    "@types/detective": "^5.1.5",
-    "axios": "^1.6.5",
     "debug": "^4.3.4",
-    "detective": "^5.2.1",
     "msgpackr": "^1.9.7",
     "node-os-utils": "^1.3.7",
-    "ulid": "^2.3.0",
-    "zip-a-folder": "^3.1.6",
+    "typescript": "^5.2.2",
     "zod": "^3.22.2"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.496.0",
+    "@aws-sdk/s3-request-presigner": "^3.496.0",
     "@babel/preset-env": "^7.22.10",
     "@babel/preset-typescript": "^7.22.11",
     "@types/debug": "^4.1.8",
+    "@types/detective": "^5.1.5",
     "@types/jest": "^29.5.4",
     "@types/node-os-utils": "^1.3.4",
     "@types/yargs": "^17.0.32",
     "dotenv": "^16.3.1",
+    "detective": "^5.2.1",
     "jest": "^29.6.4",
     "typedoc": "^0.25.4",
     "typedoc-plugin-markdown": "^3.17.1",
-    "typescript": "^5.2.2",
-    "yargs": "^17.7.2"
+    "ulid": "^2.3.0",
+    "yargs": "^17.7.2",
+    "zip-a-folder": "^3.1.6"
   }
 }

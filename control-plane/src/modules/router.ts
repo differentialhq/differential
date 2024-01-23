@@ -1,6 +1,7 @@
 import { initServer } from "@ts-rest/fastify";
 import fs from "fs";
 import path from "path";
+import { ulid } from "ulid";
 import util from "util";
 import * as admin from "./admin";
 import * as auth from "./auth";
@@ -11,6 +12,7 @@ import * as management from "./management";
 import * as eventAggregation from "./observability/event-aggregation";
 import * as events from "./observability/events";
 import * as routingHelpers from "./routing-helpers";
+import { UPLOAD_BUCKET, getPresignedURL } from "./s3";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -341,6 +343,41 @@ export const router = s.router(contract, {
     return {
       status: 200,
       body: result,
+    };
+  },
+  getDeploymentUploadDetails: async (request) => {
+    if (!UPLOAD_BUCKET) {
+      return {
+        status: 501,
+      };
+    }
+
+    const owner = await auth.jobOwnerHash(request.headers.authorization);
+    const { clusterId, serviceName } = request.params;
+
+    if (!owner || owner.clusterId !== clusterId || !owner.cloudEnabled) {
+      return {
+        status: 401,
+      };
+    }
+
+    const key = ulid();
+    return {
+      status: 200,
+      body: {
+        packageUploadUrl: await getPresignedURL(
+          UPLOAD_BUCKET,
+          clusterId,
+          serviceName,
+          `${key}-package`,
+        ),
+        definitionUploadUrl: await getPresignedURL(
+          UPLOAD_BUCKET,
+          clusterId,
+          serviceName,
+          `${key}-definition`,
+        ),
+      },
     };
   },
 });

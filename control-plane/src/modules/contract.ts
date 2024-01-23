@@ -378,6 +378,21 @@ export const definition = {
       jobId: z.string(),
     }),
   },
+  getDeploymentUploadDetails: {
+    method: "GET",
+    path: "/deployment/:clusterId/service/:serviceName/details",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      501: z.undefined(),
+      403: z.undefined(),
+      200: z.object({
+        packageUploadUrl: z.string(),
+        definitionUploadUrl: z.string(),
+      }),
+    },
+  },
 } as const;
 
 export const contract = c.router(definition);

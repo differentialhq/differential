@@ -8,7 +8,7 @@ import * as path from "path";
 import * as fs from "fs";
 import * as detective from "detective";
 import * as childProcess from "child_process";
-import { zip } from "zip-a-folder"; // You can use 'archiver' or any other library for zipping
+import { zip } from "zip-a-folder";
 
 const log = debug("differential:cli:package");
 
@@ -19,11 +19,25 @@ type PackageJson = {
   scripts?: { [key: string]: string };
 };
 
-export const buildPackage = async (entrypoint: string, outDir: string) => {
-  compile(entrypoint, outDir);
-  buildPackageJson(entrypoint, outDir);
-  installDependencies(outDir);
-  return await zipDirectory(outDir);
+export const buildPackage = async (
+  entrypoint: string,
+  outDir: string,
+): Promise<{
+  packagePath: string;
+  definitionPath: string;
+}> => {
+  const packageOut = path.join(outDir, "package");
+  const definitionOut = path.join(outDir, "definition");
+
+  compile(entrypoint, packageOut);
+  buildPackageJson(entrypoint, packageOut);
+  installDependencies(packageOut);
+  extractServiceTypes(entrypoint, packageOut, definitionOut);
+
+  return {
+    packagePath: await zipDirectory(packageOut),
+    definitionPath: await zipDirectory(definitionOut),
+  };
 };
 
 const compile = (entrypoint: string, outDir: string) => {
@@ -32,6 +46,8 @@ const compile = (entrypoint: string, outDir: string) => {
 
   tsconfig.compilerOptions.outDir = outDir;
   tsconfig.compilerOptions.rootDir = process.cwd();
+  tsconfig.compilerOptions.declaration = true;
+  tsconfig.compilerOptions.declarationDir = path.join(outDir, "types");
 
   log("Compiling package", tsconfig.compilerOptions);
   const program = createProgram([entrypoint], tsconfig.compilerOptions);
@@ -63,6 +79,21 @@ const compile = (entrypoint: string, outDir: string) => {
   if (emitResult.emitSkipped) {
     throw new Error("Failed to compile package.");
   }
+};
+
+const extractServiceTypes = (
+  entrypoint: string,
+  packageDir: string,
+  outDir: string,
+) => {
+  const typesPath = path.join(
+    packageDir,
+    "types",
+    `${entrypoint.replace(".ts", ".d.ts")}`,
+  );
+  fs.mkdirSync(outDir, { recursive: true });
+  fs.copyFileSync(typesPath, path.join(outDir, "service.d.ts"));
+  fs.rmdirSync(path.join(packageDir, "types"), { recursive: true });
 };
 
 const listPackageDependencies = (
@@ -155,7 +186,7 @@ const buildPackageJson = (
 const installDependencies = (outputDir: string): void => {
   childProcess.execSync(`npm install --production`, {
     cwd: outputDir,
-    stdio: "inherit",
+    stdio: "ignore",
   });
 };
 

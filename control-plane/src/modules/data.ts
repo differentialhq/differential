@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
+  boolean,
   integer,
   json,
   pgTable,
@@ -107,6 +108,7 @@ export const clusters = pgTable("clusters", {
     .notNull(),
   wake_up_config: json("wake_up_config"),
   owner_id: varchar("owner_id"),
+  cloud_enabled: boolean("cloud_enabled").default(false),
 });
 
 export const services = pgTable(

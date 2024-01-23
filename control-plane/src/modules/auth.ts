@@ -8,6 +8,7 @@ export const jobOwnerHash = async (authHeader: string) => {
     .select({
       organizationId: data.clusters.organization_id,
       clusterId: data.clusters.id,
+      cloudEnabled: data.clusters.cloud_enabled,
     })
     .from(data.clusters)
     .where(eq(data.clusters.api_secret, secret));
@@ -19,6 +20,7 @@ export const jobOwnerHash = async (authHeader: string) => {
   return {
     organizationId: result[0].organizationId,
     clusterId: result[0].clusterId,
+    cloudEnabled: result[0].cloudEnabled,
   };
 };
 

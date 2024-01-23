@@ -1,48 +1,64 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { initClient, tsRestFetchApi } from "@ts-rest/core";
 import debug from "debug";
-import { createReadStream } from "fs";
+import { readFileSync } from "fs";
+import { contract } from "../contract";
+import { DifferentialError } from "../errors";
 
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import axios from "axios";
+const log = debug("differential:cli:upload");
 
-const log = debug("differential:cli:aws");
+const client = initClient(contract, {
+  baseUrl: process.env.DIFFERENTIAL_API_URL || "https://api.differential.dev",
+  baseHeaders: {
+    authorization: `Bearer ${process.env.DIFFERENTIAL_API_TOKEN}`,
+  },
+  api: tsRestFetchApi,
+});
 
-export const getPresignedURL = async (
-  cluster: string,
-  service: string,
-  key: string,
-): Promise<string> => {
-  const AWS_REGION = "ap-southeast-2";
-  const BUCKET_NAME = "john-test-lambda-upload";
-  log("Generating presigned URL", { cluster, service, key });
-  const s3Client = new S3Client({ region: AWS_REGION });
+export const uploadPackage = async (
+  packagePath: string,
+  definitionPath: string,
+  clusterId: string,
+  serviceName: string,
+): Promise<void> => {
+  log("Uploading package", { packagePath });
 
-  const command = new PutObjectCommand({
-    Bucket: BUCKET_NAME,
-    Key: `${cluster}/${service}/${key}`,
-    ContentType: "application/zip",
+  const result = await client.getDeploymentUploadDetails({
+    params: {
+      clusterId,
+      serviceName,
+    },
   });
 
-  return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
-};
-export const uploadPackage = async (
-  url: string,
-  packagePath: string,
-): Promise<void> => {
-  log("Uploading package", { url, packagePath });
-  const response = await axios.put(
-    url,
-    {
-      data: createReadStream(packagePath),
-    },
-    {
+  if (result.status !== 200) {
+    throw new DifferentialError(
+      "Failed to upload package. Please check provided options and cluster configuration.",
+    );
+  }
+
+  const { packageUploadUrl, definitionUploadUrl } = result.body;
+
+  const results = await Promise.all([
+    fetch(packageUploadUrl, {
+      method: "PUT",
+      body: readFileSync(packagePath),
       headers: {
         "Content-Type": "application/zip",
       },
-    },
-  );
+    }),
+    fetch(definitionUploadUrl, {
+      method: "PUT",
+      body: readFileSync(definitionPath),
+      headers: {
+        "Content-Type": "application/zip",
+      },
+    }),
+  ]);
 
-  if (response.status !== 200) {
-    throw new Error(`Failed to upload file. Status code: ${response.status}`);
-  }
+  results.forEach((response) => {
+    if (response.status !== 200) {
+      throw new DifferentialError(
+        "Failed to upload package. Please check provided options and cluster configuration.",
+      );
+    }
+  });
 };

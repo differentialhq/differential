@@ -377,6 +377,21 @@ export const definition = {
       interval: z.literal("-7d"),
     }),
   },
+  getDeploymentUploadDetails: {
+    method: "GET",
+    path: "/deployment/:clusterId/service/:serviceName/details",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      401: z.undefined(),
+      403: z.undefined(),
+      200: z.object({
+        packageUploadUrl: z.string(),
+        definitionUploadUrl: z.string(),
+      }),
+    },
+  },
 } as const;
 
 export const contract = c.router(definition);
