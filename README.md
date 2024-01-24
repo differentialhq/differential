@@ -67,7 +67,7 @@ All documentation is hosted at [docs.differential.dev](https://docs.differential
 - [x] [Run functions idempotently](https://docs.differential.dev/advanced/advanced-usage/#idempotency)
 - [x] [Observability and tracing at the function level](https://forms.fillout.com/t/9M1VhL8Wxyus)
 - [x] [Service registry](https://forms.fillout.com/t/9M1VhL8Wxyus)
-- [ ] Cache function results globally
+- [x] [Cache function results globally](https://docs.differential.dev/advanced/advanced-usage/#global-cache)
 - [ ] Per-function rate limiting
 - [ ] One-line deployment to AWS Lambda
 - [ ] AI-generated developer documentation
