@@ -6,18 +6,17 @@ expanded: true
 
 # Differential
 
-> Build, Connect and Evolve production services **10x faster** with delightful DX!
-
 !!!
-Differential is in the technical preview stage, and is open-source. We are working hard to make our cloud offering generally available. Sign up for the waitlist [here](https://forms.gle/EJNWEWUCSmwUB2yD8).
+Differential is in the technical preview stage, and is open-source. We are working hard to make our cloud offering generally available. Sign up for the waitlist [here](https://forms.fillout.com/t/9M1VhL8Wxyus).
 !!!
 
-Differential is a Service Orchestration Framework that enables developers to turn a set of functions into a typesafe service, without spending additional effort on managing service contracts, network communication, searialization/deserialization service authentication or infrastructure configuration. The latter concerns are completely abstracted away from the developer, and are handled by Differential.
+Differential is an **application code aware service mesh, and a distributed orchestrator**. It is designed to:
 
-It is designed to:
-- Lower the barrier to entry for a service-oriented architecture
-- Make it significantly cheaper to run a service-oriented architecture
-- Provide a delightful developer experience for building and evolving services
+1. Make it easy to break up your monolith into services
+2. Make it easy to change the boundaries of your services as your business requirements change
+3. Make it easy to hit "Abort" and go back to a monolith if you need to
 
+## In practice
 
-
+- [Thinking in Differential](https://docs.differential.dev/getting-started/thinking/) - See how Differential makes your life easier.
+- [Quick Start](https://docs.differential.dev/getting-started/quick-start/) - Get up and running with Differential in under 2 minutes.
