@@ -77,6 +77,7 @@ export const jobs = pgTable(
       .defaultNow()
       .notNull(),
     resulted_at: timestamp("resulted_at", { withTimezone: true }),
+    last_retrieved_at: timestamp("last_retrieved_at", { withTimezone: true }),
     function_execution_time_ms: integer("function_execution_time_ms"),
     timing_out_at: timestamp("timed_out_at", { withTimezone: true }).default(
       sql`now() + interval '300 seconds'`,

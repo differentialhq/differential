@@ -1,14 +1,29 @@
 import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { unpack } from "msgpackr";
 import { ulid } from "ulid";
 import * as cron from "./cron";
 import * as data from "./data";
 import { writeEvent, writeJobActivity } from "./events";
+import { predictionsClient } from "./predictions-client";
 import {
   ServiceDefinition,
   getServiceDefinitions,
   storeServiceDefinitionBG,
 } from "./service-definitions";
 import { backgrounded } from "./util";
+
+type JobParams = {
+  service: string;
+  targetFn: string;
+  targetArgs: string;
+  owner: { clusterId: string };
+  pool?: string;
+  retryPolicy?: {
+    maximumAttempts: number;
+    timeoutSeconds: number;
+    predictive?: boolean;
+  };
+};
 
 const createJobStrategies = {
   idempotence: async ({
@@ -18,14 +33,7 @@ const createJobStrategies = {
     owner,
     pool,
     idempotencyKey,
-  }: {
-    service: string;
-    targetFn: string;
-    targetArgs: string;
-    owner: { clusterId: string };
-    pool?: string;
-    idempotencyKey: string;
-  }) => {
+  }: JobParams & { idempotencyKey: string }) => {
     const jobId = idempotencyKey;
 
     await data.db
@@ -51,14 +59,7 @@ const createJobStrategies = {
     owner,
     pool,
     cacheKey,
-  }: {
-    service: string;
-    targetFn: string;
-    targetArgs: string;
-    owner: { clusterId: string };
-    pool?: string;
-    cacheKey: string;
-  }) => {
+  }: JobParams & { cacheKey: string }) => {
     const cacheTTL = await getServiceDefinitions(owner)
       .then(
         (defs) =>
@@ -85,7 +86,6 @@ const createJobStrategies = {
           eq(data.jobs.target_fn, targetFn),
           eq(data.jobs.status, "success"),
           eq(data.jobs.result_type, "resolution"),
-          // sql`resulted_at > now() - interval '${cacheTTL} ms'`,
           gte(data.jobs.resulted_at, new Date(Date.now() - cacheTTL)),
         ),
       )
@@ -119,13 +119,7 @@ const createJobStrategies = {
     targetArgs,
     owner,
     pool,
-  }: {
-    service: string;
-    targetFn: string;
-    targetArgs: string;
-    owner: { clusterId: string };
-    pool?: string;
-  }) => {
+  }: JobParams) => {
     const jobId = ulid();
 
     await data.db.insert(data.jobs).values({
@@ -148,20 +142,8 @@ const onAfterJobCreated = async ({
   targetFn,
   targetArgs,
   owner,
-  pool,
-  idempotencyKey,
-  cacheKey,
   jobId,
-}: {
-  service: string;
-  targetFn: string;
-  targetArgs: string;
-  owner: { clusterId: string };
-  pool?: string;
-  idempotencyKey?: string;
-  cacheKey?: string;
-  jobId: string;
-}) => {
+}: JobParams & { jobId: string }) => {
   writeEvent({
     type: "jobCreated",
     tags: {
@@ -220,7 +202,6 @@ export const createJob = async ({
       targetArgs,
       owner,
       pool,
-      idempotencyKey,
       jobId: id,
     });
 
@@ -241,7 +222,6 @@ export const createJob = async ({
       targetArgs,
       owner,
       pool,
-      cacheKey,
       jobId: id,
     });
 
@@ -293,7 +273,13 @@ export const nextJobs = async ({
   });
 
   const results = await data.db.execute(
-    sql`UPDATE jobs SET status = 'running', remaining = remaining - 1 WHERE id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining > 0)) AND owner_hash = ${owner.clusterId} AND service = ${service} LIMIT ${limit}) RETURNING *`,
+    sql`UPDATE jobs SET status = 'running', remaining = remaining - 1, last_retrieved_at=${new Date().toISOString()} 
+    WHERE 
+      id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining > 0)) 
+      AND owner_hash = ${owner.clusterId} 
+      AND service = ${service} 
+    LIMIT ${limit}) 
+    RETURNING *`,
   );
 
   storeMachineInfoBG(machineId, ip, owner);
@@ -405,6 +391,14 @@ export async function persistJobResult({
   owner: { organizationId: string | null; clusterId: string };
   machineId: string;
 }) {
+  if (resultType === "rejection" && process.env.PREDICTIONS_ENABLED) {
+    const retryable =
+      (await predictionsClient.retryability({
+        name: unpack(Buffer.from(result, "base64")).name,
+        message: unpack(Buffer.from(result, "base64")).message,
+      })) === "true";
+  }
+
   const updateResult = await data.db
     .update(data.jobs)
     .set({
