@@ -33,6 +33,12 @@ export const definition = {
               })
               .optional(),
             cacheTTL: z.number().optional(),
+            retryConfig: z
+              .object({
+                maxAttempts: z.number(),
+                timeoutIntervalSeconds: z.number(),
+              })
+              .optional(),
           }),
         )
         .optional(),

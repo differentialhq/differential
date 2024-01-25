@@ -33,6 +33,12 @@ export const definition = {
               })
               .optional(),
             cacheTTL: z.number().optional(),
+            retryConfig: z
+              .object({
+                maxAttempts: z.number(),
+                timeoutIntervalSeconds: z.number(),
+              })
+              .optional(),
           }),
         )
         .optional(),
@@ -60,6 +66,7 @@ export const definition = {
       pool: z.string().optional(),
       service: z.string().default("unknown"),
       idempotencyKey: z.string().optional(),
+      cacheKey: z.string().optional(),
     }),
   },
   getJobStatus: {
