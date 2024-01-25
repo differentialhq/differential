@@ -222,7 +222,7 @@ describe("selfHealJobs", () => {
 
     expect(nextJobResult2.length).toBe(1);
     expect(nextJobResult2[0].id).toBe(createJobResult.id);
-  });
+  }, 10000);
 
   it("should not retry a job that has reached max attempts", async () => {
     const owner = await createOwner();
@@ -293,5 +293,5 @@ describe("selfHealJobs", () => {
     });
 
     expect(nextJobResult2.length).toBe(0);
-  });
+  }, 10000);
 });

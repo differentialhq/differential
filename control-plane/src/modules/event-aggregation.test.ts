@@ -190,16 +190,23 @@ describe("getFunctionMetrics", () => {
       },
     });
 
-    // wait 2s for the events to be written
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
     await influx.writeClient?.flush(true);
 
-    const retrieved = await metrics.getJobActivityByJobId({
-      clusterId,
-      jobId,
-      interval: "7d",
-    });
+    // wait until the events are written
+    let retrieved;
+
+    do {
+      retrieved = await metrics.getJobActivityByJobId({
+        clusterId,
+        jobId,
+        interval: "7d",
+      });
+
+      if (retrieved.length !== 2) {
+        console.log(`Waiting for events to be written...`, retrieved);
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    } while (retrieved.length !== 2);
 
     expect(retrieved).toEqual([
       {
