@@ -1,11 +1,11 @@
 import { cached } from "../../functions";
 import { d } from "./d";
 
-export const getProduct = async (id: string) => {
+export const getProduct = async (id: string, random: string) => {
   return {
     id,
     name: `Product ${id}`,
-    retrievedAt: Date.now(),
+    random,
   };
 };
 
