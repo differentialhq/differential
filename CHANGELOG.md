@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.9.0](https://github.com/differentialhq/differential/compare/v3.8.0...v3.9.0) (2024-01-25)
+
+### Bug Fixes
+
+- Expose `cached` in the SDK and fix control-plane to respect the decorator ([#86](https://github.com/differentialhq/differential/issues/86)) ([07897cb](https://github.com/differentialhq/differential/commit/07897cb1acbc995a1eff8510ccd9855bc2ec85ab))
+- Fix caching test timeouts ([#93](https://github.com/differentialhq/differential/issues/93)) ([1e39e9a](https://github.com/differentialhq/differential/commit/1e39e9a37ac05249917d027e900f2033d0db20c1))
+- Fix control plane to respect the `cacheKey` ([#87](https://github.com/differentialhq/differential/issues/87)) ([babb20f](https://github.com/differentialhq/differential/commit/babb20f120933aabdf75674be8271f80fdef83ef))
+- Minor styling updates ([#85](https://github.com/differentialhq/differential/issues/85)) ([9de6842](https://github.com/differentialhq/differential/commit/9de6842222a686ea0758cac7f79ca078c9eacad1))
+- Parse service defintions correctly on the console ([041b02a](https://github.com/differentialhq/differential/commit/041b02a57152f0a64d3a19ea67107b4058278d7f))
+
+### Features
+
+- Add caching ([#81](https://github.com/differentialhq/differential/issues/81)) ([c654700](https://github.com/differentialhq/differential/commit/c6547005cb1ac59fef764f0a89e1b1c7fc390dd0))
+- Implementing retries for job stalling ([#90](https://github.com/differentialhq/differential/issues/90)) ([c201765](https://github.com/differentialhq/differential/commit/c201765482e5e2d2394bd53406a5628fa37382ef))
+
 # [3.8.0](https://github.com/differentialhq/differential/compare/v3.7.1...v3.8.0) (2024-01-18)
 
 ### Bug Fixes
