@@ -3,11 +3,6 @@ import { productService } from "./product";
 
 describe("Caching", () => {
   beforeAll(async () => {
-    // wait 7s for service definition cache to expire
-    // this is not great and we have to create api secrets
-    // for each e2e test run to avoid this
-    await new Promise((resolve) => setTimeout(resolve, 7000));
-
     await productService.start();
   }, 10000);
 
