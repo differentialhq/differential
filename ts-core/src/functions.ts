@@ -1,9 +1,17 @@
 import { AsyncFunction } from "./types";
 
 const idempotentFunctions: AsyncFunction[] = [];
+const retryableFunctions: Array<{
+  fn: AsyncFunction;
+  maxAttempts: number;
+  timeoutIntervalSeconds: number;
+}> = [];
 
 export const isFunctionIdempotent = (fn: AsyncFunction) =>
   idempotentFunctions.includes(fn);
+
+export const retryConfigForFunction = (fn: AsyncFunction) =>
+  retryableFunctions.find((f) => f.fn === fn);
 
 type AddParameters<
   TFunction extends (...args: any) => any,
@@ -137,6 +145,20 @@ export const cached = <T extends AsyncFunction>(
   fn: T,
   ttl: number,
 ): AddParameters<T, [Pick<DifferentialConfig, "$cacheKey">]> => {
-  idempotentFunctions.push(fn);
   return fn as any;
+};
+
+export const retryable = <T extends AsyncFunction>(
+  fn: T,
+  retryConfig: {
+    maxAttempts: number;
+    timeoutIntervalSeconds: number;
+  },
+): T => {
+  retryableFunctions.push({
+    fn,
+    maxAttempts: retryConfig.maxAttempts,
+    timeoutIntervalSeconds: retryConfig.timeoutIntervalSeconds,
+  });
+  return fn;
 };
