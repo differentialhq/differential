@@ -53,7 +53,7 @@ export const writeJobActivity = (params: {
   clusterId: string;
   jobId: string;
   type: string;
-  meta: object;
+  meta?: object;
   machineId?: string;
 }) => {
   writeEvent({
@@ -66,7 +66,7 @@ export const writeJobActivity = (params: {
       machineId: params.machineId || null,
     },
     stringFields: {
-      meta: JSON.stringify(params.meta),
+      meta: params.meta ? JSON.stringify(params.meta) : null,
     },
   });
 };

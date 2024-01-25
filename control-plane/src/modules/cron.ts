@@ -3,8 +3,8 @@
 const intervals: NodeJS.Timeout[] = [];
 
 export const registerCron = async (
-  fn: () => Promise<void>,
-  { interval }: { interval: number }
+  fn: () => Promise<unknown>,
+  { interval }: { interval: number },
 ) => {
   const intervalId = setInterval(fn, interval);
   intervals.push(intervalId);

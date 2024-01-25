@@ -62,14 +62,14 @@ export const jobs = pgTable(
     idempotency_key: varchar("idempotency_key", { length: 1024 }).notNull(),
     cache_key: varchar("cache_key", { length: 1024 }),
     status: text("status", {
-      enum: ["pending", "running", "success", "failure"],
+      enum: ["pending", "running", "success", "failure"], // job failure is actually a stalled state. TODO: rename it
     }).notNull(),
     result: text("result"),
     result_type: text("result_type", {
       enum: ["resolution", "rejection"],
     }),
     machine_type: text("machine_type"),
-    remaining: integer("remaining").default(1),
+    remaining_attempts: integer("remaining_attempts").default(1),
     created_at: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -77,11 +77,9 @@ export const jobs = pgTable(
       .defaultNow()
       .notNull(),
     resulted_at: timestamp("resulted_at", { withTimezone: true }),
+    last_retrieved_at: timestamp("last_retrieved_at", { withTimezone: true }),
     function_execution_time_ms: integer("function_execution_time_ms"),
-    timing_out_at: timestamp("timed_out_at", { withTimezone: true }).default(
-      sql`now() + interval '300 seconds'`,
-    ),
-    timeout_interval_seconds: integer("timeout_interval").default(300),
+    timeout_interval_seconds: integer("timeout_interval_seconds"),
     service: varchar("service", { length: 1024 }).notNull(),
   },
   (table) => ({

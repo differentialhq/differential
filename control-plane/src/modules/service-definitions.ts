@@ -9,17 +9,17 @@ const cache = new NodeCache({
   maxKeys: 10000,
 });
 
+export type ServiceDefinitionFunction = {
+  name: string;
+  idempotent?: boolean;
+  cacheTTL?: number;
+  timeoutIntervalSeconds?: number;
+  maxAttempts?: number;
+};
+
 export type ServiceDefinition = {
   name: string;
-  functions?: Array<{
-    name: string;
-    idempotent?: boolean;
-    rate?: {
-      per: "minute" | "hour";
-      limit: number;
-    };
-    cacheTTL?: number;
-  }>;
+  functions?: Array<ServiceDefinitionFunction>;
 };
 
 export const serviceDefinitionsSchema = z.array(
@@ -37,6 +37,8 @@ export const serviceDefinitionsSchema = z.array(
             })
             .optional(),
           cacheTTL: z.number().optional(),
+          timeoutIntervalSeconds: z.number().optional(),
+          maxAttempts: z.number().optional(),
         }),
       )
       .optional(),
@@ -75,7 +77,12 @@ export async function getServiceDefinitions(owner: { clusterId: string }) {
       definition: data.services.definition,
     })
     .from(data.services)
-    .where(and(eq(data.services.cluster_id, owner.clusterId)));
+    .where(and(eq(data.services.cluster_id, owner.clusterId)))
+    .limit(1);
+
+  if (serviceDefinitions.length === 0) {
+    return [];
+  }
 
   const retrieved = serviceDefinitionsSchema.parse([
     serviceDefinitions[0]?.definition,
@@ -94,4 +101,16 @@ export const parseServiceDefinition = (
   }
 
   return input ? serviceDefinitionsSchema.parse(input) : [];
+};
+
+export const functionDefinition = async (
+  owner: { clusterId: string },
+  service: string,
+  targetFn: string,
+): Promise<ServiceDefinitionFunction | undefined> => {
+  const defs = await getServiceDefinitions(owner);
+
+  return defs
+    ?.find((def) => def.name === service)
+    ?.functions?.find((fn) => fn.name === targetFn);
 };

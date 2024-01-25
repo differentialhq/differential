@@ -162,6 +162,20 @@
       "when": 1705918208506,
       "tag": "0023_lazy_dakota_north",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1706149700135,
+      "tag": "0024_thin_black_bolt",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1706149921378,
+      "tag": "0025_hot_shinobi_shaw",
+      "breakpoints": true
     }
   ]
 }
