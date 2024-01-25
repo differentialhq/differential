@@ -16,11 +16,8 @@ type JobParams = {
   targetArgs: string;
   owner: { clusterId: string };
   pool?: string;
-  retryPolicy?: {
-    maximumAttempts: number;
-    timeoutSeconds: number;
-    predictive?: boolean;
-  };
+  timeoutIntervalSeconds?: number;
+  maxAttempts?: number;
 };
 
 const createJobStrategies = {
@@ -31,6 +28,8 @@ const createJobStrategies = {
     owner,
     pool,
     idempotencyKey,
+    timeoutIntervalSeconds,
+    maxAttempts,
   }: JobParams & { idempotencyKey: string }) => {
     const jobId = idempotencyKey;
 
@@ -45,6 +44,8 @@ const createJobStrategies = {
         owner_hash: owner.clusterId,
         machine_type: pool,
         service,
+        remaining_attempts: maxAttempts ?? 1,
+        timeout_interval_seconds: timeoutIntervalSeconds,
       })
       .onConflictDoNothing();
 
@@ -57,6 +58,8 @@ const createJobStrategies = {
     owner,
     pool,
     cacheKey,
+    timeoutIntervalSeconds,
+    maxAttempts,
   }: JobParams & { cacheKey: string }) => {
     const cacheTTL = await getServiceDefinitionProperty(
       owner,
@@ -106,6 +109,8 @@ const createJobStrategies = {
       machine_type: pool,
       service,
       cache_key: cacheKey,
+      remaining_attempts: maxAttempts ?? 1,
+      timeout_interval_seconds: timeoutIntervalSeconds,
     });
 
     return { id: jobId };
@@ -116,6 +121,8 @@ const createJobStrategies = {
     targetArgs,
     owner,
     pool,
+    timeoutIntervalSeconds,
+    maxAttempts,
   }: JobParams) => {
     const jobId = ulid();
 
@@ -128,6 +135,8 @@ const createJobStrategies = {
       owner_hash: owner.clusterId,
       machine_type: pool,
       service,
+      remaining_attempts: maxAttempts ?? 1,
+      timeout_interval_seconds: timeoutIntervalSeconds,
     });
 
     return { id: jobId };
@@ -165,15 +174,7 @@ const onAfterJobCreated = async ({
   });
 };
 
-export const createJob = async ({
-  service,
-  targetFn,
-  targetArgs,
-  owner,
-  pool,
-  idempotencyKey,
-  cacheKey,
-}: {
+export const createJob = async (params: {
   service: string;
   targetFn: string;
   targetArgs: string;
@@ -181,63 +182,43 @@ export const createJob = async ({
   pool?: string;
   idempotencyKey?: string;
   cacheKey?: string;
+  maxAttempts?: number;
+  timeoutIntervalSeconds?: number;
 }) => {
-  // TODO: refactor this
-  if (idempotencyKey) {
+  if (params.idempotencyKey) {
+    const idempotencyParams = {
+      ...params,
+      idempotencyKey: params.idempotencyKey,
+    };
+
     const { id } = await createJobStrategies.idempotence({
-      service,
-      targetFn,
-      targetArgs,
-      owner,
-      pool,
-      idempotencyKey,
+      ...idempotencyParams,
+      idempotencyKey: params.idempotencyKey,
     });
 
     onAfterJobCreated({
-      service,
-      targetFn,
-      targetArgs,
-      owner,
-      pool,
+      ...idempotencyParams,
       jobId: id,
     });
 
     return { id };
-  } else if (cacheKey) {
+  } else if (params.cacheKey) {
     const { id } = await createJobStrategies.cached({
-      service,
-      targetFn,
-      targetArgs,
-      owner,
-      pool,
-      cacheKey,
+      ...params,
+      cacheKey: params.cacheKey,
     });
 
     onAfterJobCreated({
-      service,
-      targetFn,
-      targetArgs,
-      owner,
-      pool,
+      ...params,
       jobId: id,
     });
 
     return { id };
   } else {
-    const { id } = await createJobStrategies.default({
-      service,
-      targetFn,
-      targetArgs,
-      owner,
-      pool,
-    });
+    const { id } = await createJobStrategies.default(params);
 
     onAfterJobCreated({
-      service,
-      targetFn,
-      targetArgs,
-      owner,
-      pool,
+      ...params,
       jobId: id,
     });
 

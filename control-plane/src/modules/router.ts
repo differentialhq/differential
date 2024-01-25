@@ -94,8 +94,16 @@ export const router = s.router(contract, {
       };
     }
 
-    const { targetFn, targetArgs, pool, service, idempotencyKey, cacheKey } =
-      request.body;
+    const {
+      targetFn,
+      targetArgs,
+      pool,
+      service,
+      idempotencyKey,
+      cacheKey,
+      maxAttempts,
+      timeoutIntervalSeconds,
+    } = request.body;
 
     const { id } = await jobs.createJob({
       service,
@@ -105,6 +113,8 @@ export const router = s.router(contract, {
       pool,
       idempotencyKey,
       cacheKey,
+      maxAttempts,
+      timeoutIntervalSeconds,
     });
 
     return {

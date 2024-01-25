@@ -61,6 +61,8 @@ export const definition = {
       service: z.string().default("unknown"),
       idempotencyKey: z.string().optional(),
       cacheKey: z.string().optional(),
+      maxAttempts: z.number().optional(),
+      timeoutIntervalSeconds: z.number().optional(),
     }),
   },
   getJobStatus: {
