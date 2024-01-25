@@ -9,17 +9,19 @@ const cache = new NodeCache({
   maxKeys: 10000,
 });
 
+export type ServiceDefinitionFunction = {
+  name: string;
+  idempotent?: boolean;
+  rate?: {
+    per: "minute" | "hour";
+    limit: number;
+  };
+  cacheTTL?: number;
+};
+
 export type ServiceDefinition = {
   name: string;
-  functions?: Array<{
-    name: string;
-    idempotent?: boolean;
-    rate?: {
-      per: "minute" | "hour";
-      limit: number;
-    };
-    cacheTTL?: number;
-  }>;
+  functions?: Array<ServiceDefinitionFunction>;
 };
 
 export const serviceDefinitionsSchema = z.array(
@@ -94,4 +96,19 @@ export const parseServiceDefinition = (
   }
 
   return input ? serviceDefinitionsSchema.parse(input) : [];
+};
+
+export const getServiceDefinitionProperty = async <
+  T extends keyof ServiceDefinitionFunction,
+>(
+  owner: { clusterId: string },
+  service: string,
+  targetFn: string,
+  property: T,
+): Promise<ServiceDefinitionFunction[T] | undefined> => {
+  const defs = await getServiceDefinitions(owner);
+
+  return defs
+    ?.find((def) => def.name === service)
+    ?.functions?.find((fn) => fn.name === targetFn)?.[property];
 };

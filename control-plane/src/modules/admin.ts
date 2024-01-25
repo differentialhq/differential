@@ -19,8 +19,8 @@ export const getClusters = async ({
     .where(
       and(
         eq(data.machines.cluster_id, organizationId),
-        lte(data.machines.last_ping_at, new Date(Date.now() - 60 * 60 * 1000))
-      )
+        lte(data.machines.last_ping_at, new Date(Date.now() - 60 * 60 * 1000)),
+      ),
     )
     .groupBy(({ clusterId }) => clusterId);
 
@@ -36,7 +36,7 @@ export const getClusters = async ({
 
   return clusters.map((cluster) => {
     const machine = machines.find(
-      (machine) => machine.clusterId === cluster.id
+      (machine) => machine.clusterId === cluster.id,
     );
 
     return {
@@ -121,8 +121,8 @@ export const getClusterDetails = async ({
     .where(
       and(
         eq(data.machines.cluster_id, clusterId),
-        gt(data.machines.last_ping_at, sql<Date>`now() - interval '1 day'`)
-      )
+        gt(data.machines.last_ping_at, sql<Date>`now() - interval '1 day'`),
+      ),
     );
 
   const jobs = await data.db
@@ -132,7 +132,7 @@ export const getClusterDetails = async ({
       createdAt: data.jobs.created_at,
       targetFn: data.jobs.target_fn,
       resultType: data.jobs.result_type,
-      remaining: data.jobs.remaining,
+      remaining: data.jobs.remaining_attempts,
     })
     .from(data.jobs)
     .where(eq(data.jobs.owner_hash, clusterId))

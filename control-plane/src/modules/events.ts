@@ -53,9 +53,13 @@ export const writeJobActivity = (params: {
   clusterId: string;
   jobId: string;
   type: string;
-  meta: object;
+  meta?: object;
   machineId?: string;
 }) => {
+  const withStringFields = params.meta
+    ? { meta: JSON.stringify(params.meta) }
+    : {};
+
   writeEvent({
     type: "jobActivity",
     tags: {
@@ -65,8 +69,6 @@ export const writeJobActivity = (params: {
       service: params.service,
       machineId: params.machineId || null,
     },
-    stringFields: {
-      meta: JSON.stringify(params.meta),
-    },
+    ...withStringFields,
   });
 };

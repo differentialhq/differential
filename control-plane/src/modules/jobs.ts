@@ -1,13 +1,11 @@
-import { and, desc, eq, gte, sql } from "drizzle-orm";
-import { unpack } from "msgpackr";
+import { and, desc, eq, gt, gte, isNotNull, lt, sql } from "drizzle-orm";
 import { ulid } from "ulid";
 import * as cron from "./cron";
 import * as data from "./data";
 import { writeEvent, writeJobActivity } from "./events";
-import { predictionsClient } from "./predictions-client";
 import {
   ServiceDefinition,
-  getServiceDefinitions,
+  getServiceDefinitionProperty,
   storeServiceDefinitionBG,
 } from "./service-definitions";
 import { backgrounded } from "./util";
@@ -60,13 +58,12 @@ const createJobStrategies = {
     pool,
     cacheKey,
   }: JobParams & { cacheKey: string }) => {
-    const cacheTTL = await getServiceDefinitions(owner)
-      .then(
-        (defs) =>
-          defs
-            ?.find((def) => def.name === service)
-            ?.functions?.find((fn) => fn.name === targetFn)?.cacheTTL,
-      )
+    const cacheTTL = await getServiceDefinitionProperty(
+      owner,
+      service,
+      targetFn,
+      "cacheTTL",
+    )
       .then((ttl) => ttl ?? 0)
       .catch(() => 0); // on error, just don't cache
 
@@ -391,14 +388,6 @@ export async function persistJobResult({
   owner: { organizationId: string | null; clusterId: string };
   machineId: string;
 }) {
-  if (resultType === "rejection" && process.env.PREDICTIONS_ENABLED) {
-    const retryable =
-      (await predictionsClient.retryability({
-        name: unpack(Buffer.from(result, "base64")).name,
-        message: unpack(Buffer.from(result, "base64")).message,
-      })) === "true";
-  }
-
   const updateResult = await data.db
     .update(data.jobs)
     .set({
@@ -444,16 +433,69 @@ export async function persistJobResult({
 }
 
 export async function selfHealJobs() {
-  // TODO: writeJobActivity
-  await data.db.execute(
-    sql`UPDATE jobs SET status = 'failure' WHERE status = 'running' AND remaining = 0 AND timed_out_at < now()`,
-  );
+  // TODO: impose a global timeout on jobs that don't have a timeout set
 
-  // TODO: writeJobActivity
-  // make jobs that have failed but still have remaining attempts into pending jobs
-  await data.db.execute(
-    sql`UPDATE jobs SET status = 'pending' WHERE status = 'failure' AND remaining > 0`,
-  );
+  // Jobs are failed if they are running and have timed out
+  const stalled = await data.db
+    .update(data.jobs)
+    .set({
+      status: "failure",
+    })
+    .where(
+      and(
+        eq(data.jobs.status, "running"),
+        lt(
+          data.jobs.last_retrieved_at,
+          sql`now() - interval '1 second' * timeout_interval_seconds`,
+        ),
+        isNotNull(data.jobs.timeout_interval_seconds), // only timeout jobs that have a timeout set
+      ),
+    )
+    .returning({
+      id: data.jobs.id,
+      service: data.jobs.service,
+      targetFn: data.jobs.target_fn,
+      ownerHash: data.jobs.owner_hash,
+      remainingAttempts: data.jobs.remaining_attempts,
+    });
+
+  // If jobs have failed, but they have remaining attempts, make them pending again
+  const failed = await data.db
+    .update(data.jobs)
+    .set({
+      status: "pending",
+    })
+    .where(
+      and(eq(data.jobs.status, "failure"), gt(data.jobs.remaining_attempts, 0)),
+    )
+    .returning({
+      id: data.jobs.id,
+      service: data.jobs.service,
+      targetFn: data.jobs.target_fn,
+      ownerHash: data.jobs.owner_hash,
+      remainingAttempts: data.jobs.remaining_attempts,
+    });
+
+  stalled.forEach((row) => {
+    writeJobActivity({
+      service: row.service,
+      clusterId: row.ownerHash,
+      jobId: row.id,
+      type: "JOB_TIMED_OUT",
+      meta: {
+        attemptsRemaining: row.remainingAttempts,
+      },
+    });
+  });
+
+  failed.forEach((row) => {
+    writeJobActivity({
+      service: row.service,
+      clusterId: row.ownerHash,
+      jobId: row.id,
+      type: "JOB_FAILED",
+    });
+  });
 }
 
 export const start = () =>

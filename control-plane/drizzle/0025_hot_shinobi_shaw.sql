@@ -1,0 +1,1 @@
+ALTER TABLE "jobs" RENAME COLUMN "timeout_interval" TO "timeout_interval_seconds";
