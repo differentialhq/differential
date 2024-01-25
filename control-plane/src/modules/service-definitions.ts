@@ -77,7 +77,12 @@ export async function getServiceDefinitions(owner: { clusterId: string }) {
       definition: data.services.definition,
     })
     .from(data.services)
-    .where(and(eq(data.services.cluster_id, owner.clusterId)));
+    .where(and(eq(data.services.cluster_id, owner.clusterId)))
+    .limit(1);
+
+  if (serviceDefinitions.length === 0) {
+    return [];
+  }
 
   const retrieved = serviceDefinitionsSchema.parse([
     serviceDefinitions[0]?.definition,
@@ -98,17 +103,14 @@ export const parseServiceDefinition = (
   return input ? serviceDefinitionsSchema.parse(input) : [];
 };
 
-export const getServiceDefinitionProperty = async <
-  T extends keyof ServiceDefinitionFunction,
->(
+export const functionDefinition = async (
   owner: { clusterId: string },
   service: string,
   targetFn: string,
-  property: T,
-): Promise<ServiceDefinitionFunction[T] | undefined> => {
+): Promise<ServiceDefinitionFunction | undefined> => {
   const defs = await getServiceDefinitions(owner);
 
   return defs
     ?.find((def) => def.name === service)
-    ?.functions?.find((fn) => fn.name === targetFn)?.[property];
+    ?.functions?.find((fn) => fn.name === targetFn);
 };

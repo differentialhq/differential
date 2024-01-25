@@ -5,7 +5,7 @@ import * as data from "./data";
 import { writeEvent, writeJobActivity } from "./events";
 import {
   ServiceDefinition,
-  getServiceDefinitionProperty,
+  functionDefinition,
   storeServiceDefinitionBG,
 } from "./service-definitions";
 import { backgrounded } from "./util";
@@ -61,13 +61,8 @@ const createJobStrategies = {
     timeoutIntervalSeconds,
     maxAttempts,
   }: JobParams & { cacheKey: string }) => {
-    const cacheTTL = await getServiceDefinitionProperty(
-      owner,
-      service,
-      targetFn,
-      "cacheTTL",
-    )
-      .then((ttl) => ttl ?? 0)
+    const cacheTTL = await functionDefinition(owner, service, targetFn)
+      .then((d) => d?.cacheTTL ?? 0)
       .catch(() => 0); // on error, just don't cache
 
     // has a job been completed within the TTL?
@@ -182,12 +177,22 @@ export const createJob = async (params: {
   pool?: string;
   idempotencyKey?: string;
   cacheKey?: string;
-  maxAttempts?: number;
-  timeoutIntervalSeconds?: number;
 }) => {
+  const serviceDefinition = await functionDefinition(
+    params.owner,
+    params.service,
+    params.targetFn,
+  );
+
+  const retryParams = {
+    timeoutIntervalSeconds: serviceDefinition?.timeoutIntervalSeconds,
+    maxAttempts: serviceDefinition?.maxAttempts,
+  };
+
   if (params.idempotencyKey) {
     const idempotencyParams = {
       ...params,
+      ...retryParams,
       idempotencyKey: params.idempotencyKey,
     };
 
@@ -205,6 +210,7 @@ export const createJob = async (params: {
   } else if (params.cacheKey) {
     const { id } = await createJobStrategies.cached({
       ...params,
+      ...retryParams,
       cacheKey: params.cacheKey,
     });
 
@@ -215,10 +221,14 @@ export const createJob = async (params: {
 
     return { id };
   } else {
-    const { id } = await createJobStrategies.default(params);
+    const { id } = await createJobStrategies.default({
+      ...params,
+      ...retryParams,
+    });
 
     onAfterJobCreated({
       ...params,
+      ...retryParams,
       jobId: id,
     });
 
@@ -251,9 +261,9 @@ export const nextJobs = async ({
   });
 
   const results = await data.db.execute(
-    sql`UPDATE jobs SET status = 'running', remaining = remaining - 1, last_retrieved_at=${new Date().toISOString()} 
+    sql`UPDATE jobs SET status = 'running', remaining_attempts = remaining_attempts - 1, last_retrieved_at=${new Date().toISOString()} 
     WHERE 
-      id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining > 0)) 
+      id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining_attempts > 0)) 
       AND owner_hash = ${owner.clusterId} 
       AND service = ${service} 
     LIMIT ${limit}) 
@@ -415,6 +425,7 @@ export async function persistJobResult({
 
 export async function selfHealJobs() {
   // TODO: impose a global timeout on jobs that don't have a timeout set
+  // TODO: these queries need to be chunked. If there are 100k jobs, we don't want to update them all at once
 
   // Jobs are failed if they are running and have timed out
   const stalled = await data.db
@@ -441,7 +452,7 @@ export async function selfHealJobs() {
     });
 
   // If jobs have failed, but they have remaining attempts, make them pending again
-  const failed = await data.db
+  const recovered = await data.db
     .update(data.jobs)
     .set({
       status: "pending",
@@ -469,7 +480,7 @@ export async function selfHealJobs() {
     });
   });
 
-  failed.forEach((row) => {
+  recovered.forEach((row) => {
     writeJobActivity({
       service: row.service,
       clusterId: row.ownerHash,
@@ -477,6 +488,11 @@ export async function selfHealJobs() {
       type: "JOB_FAILED",
     });
   });
+
+  return {
+    stalled: stalled.map((row) => row.id),
+    recovered: recovered.map((row) => row.id),
+  };
 }
 
 export const start = () =>

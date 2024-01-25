@@ -1,6 +1,9 @@
-import { createJob, nextJobs } from "./jobs";
 import * as data from "./data";
-import { getServiceDefinitions } from "./service-definitions";
+import { createJob, nextJobs, selfHealJobs } from "./jobs";
+import {
+  functionDefinition,
+  getServiceDefinitions,
+} from "./service-definitions";
 
 const mockTargetFn = "testTargetFn";
 const mockTargetArgs = "testTargetArgs";
@@ -145,5 +148,150 @@ describe("nextJobs", () => {
     const stored = await getServiceDefinitions(owner);
 
     expect(stored).toStrictEqual([definition]);
+  });
+});
+
+describe("selfHealJobs", () => {
+  it("should mark a job for retries, once it has timed out", async () => {
+    const owner = await createOwner();
+    const targetFn = "testTargetFn";
+    const targetArgs = "testTargetArgs";
+
+    const fnDefinition = {
+      maxAttempts: 2,
+      name: "testTargetFn",
+      timeoutIntervalSeconds: 1,
+    };
+
+    // feed a service definition with retry config
+    await nextJobs({
+      owner,
+      limit: 10,
+      machineId: "testMachineId",
+      ip: "1.1.1.1",
+      service: "testService",
+      definition: {
+        name: "testService",
+        functions: [fnDefinition],
+      },
+    });
+
+    // wait for the background job to write the service definition
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    const saved = await functionDefinition(owner, "testService", targetFn);
+
+    expect(saved).toStrictEqual(fnDefinition);
+
+    const createJobResult = await createJob({
+      targetFn: mockTargetFn,
+      targetArgs: mockTargetArgs,
+      owner,
+      service: "testService",
+    });
+
+    // get the job, so that it moves to running state
+    const nextJobResult = await nextJobs({
+      owner,
+      limit: 10,
+      machineId: "testMachineId",
+      ip: "1.1.1.1",
+      service: "testService",
+    });
+
+    expect(nextJobResult.length).toBe(1);
+    expect(nextJobResult[0].id).toBe(createJobResult.id);
+
+    // wait for the job to timeout
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // run the self heal job
+    const healedJobs = await selfHealJobs();
+
+    expect(healedJobs.stalled).toContain(createJobResult.id);
+    expect(healedJobs.recovered).toContain(createJobResult.id);
+
+    // query the next job, it should be good to go
+    const nextJobResult2 = await nextJobs({
+      owner,
+      limit: 10,
+      machineId: "testMachineId",
+      ip: "1.1.1.1",
+      service: "testService",
+    });
+
+    expect(nextJobResult2.length).toBe(1);
+    expect(nextJobResult2[0].id).toBe(createJobResult.id);
+  });
+
+  it("should not retry a job that has reached max attempts", async () => {
+    const owner = await createOwner();
+    const targetFn = "testTargetFn";
+    const targetArgs = "testTargetArgs";
+
+    const fnDefinition = {
+      maxAttempts: 1,
+      name: "testTargetFn",
+      timeoutIntervalSeconds: 1,
+    };
+
+    // feed a service definition with retry config
+    await nextJobs({
+      owner,
+      limit: 10,
+      machineId: "testMachineId",
+      ip: "1.1.1.1",
+      service: "testService",
+      definition: {
+        name: "testService",
+        functions: [fnDefinition],
+      },
+    });
+
+    // wait for the background job to write the service definition
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    const saved = await functionDefinition(owner, "testService", targetFn);
+
+    expect(saved).toStrictEqual(fnDefinition);
+
+    const createJobResult = await createJob({
+      targetFn: mockTargetFn,
+      targetArgs: mockTargetArgs,
+      owner,
+      service: "testService",
+    });
+
+    // get the job, so that it moves to running state
+    const nextJobResult = await nextJobs({
+      owner,
+      limit: 10,
+      machineId: "testMachineId",
+      ip: "1.1.1.1",
+      service: "testService",
+    });
+
+    expect(nextJobResult.length).toBe(1);
+    expect(nextJobResult[0].id).toBe(createJobResult.id);
+
+    // wait for the job to timeout
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // run the self heal job
+    const healedJobs = await selfHealJobs();
+
+    expect(healedJobs.stalled).toContain(createJobResult.id);
+    expect(healedJobs.recovered).not.toContain(createJobResult.id);
+
+    // query the next job, it should not appear
+    const nextJobResult2 = await nextJobs({
+      owner,
+      limit: 10,
+      machineId: "testMachineId",
+      ip: "1.1.1.1",
+      service: "testService",
+    });
+
+    expect(nextJobResult2.length).toBe(0);
   });
 });
