@@ -23,8 +23,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Set DIFFERENTIAL_API_SECRET
-        run: echo "DIFFERENTIAL_API_SECRET=$(curl https://api.differential.dev/demo/token)" >> $GITHUB_ENV
+      - name: Set DIFFERENTIAL_API_SECRETs for tests
+        run: sh ts-core/src/tests/obtain-demo-tokens.sh
 
       - name: Run tests
         run: npx lerna run test

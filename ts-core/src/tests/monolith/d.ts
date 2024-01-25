@@ -2,11 +2,13 @@ require("dotenv").config();
 
 import { Differential } from "../../Differential";
 
-if (!process.env.DIFFERENTIAL_API_SECRET) {
-  throw new Error("Missing env DIFFERENTIAL_API_SECRET");
+const secret = process.env.DIFFERENTIAL_API_SECRET;
+
+if (!secret) {
+  throw new Error("Missing env demoToken");
 }
 
-export const d = new Differential(process.env.DIFFERENTIAL_API_SECRET, {
+export const d = new Differential(secret, {
   endpoint: process.env.DIFFERENTIAL_API_ENDPOINT_OVERRIDE,
   jobPollWaitTime: 5000,
 });
