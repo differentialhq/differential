@@ -15,11 +15,11 @@ describe("Caching", () => {
 
     const productId = Math.random().toString();
 
-    const result1 = await client.getProductLongCache(productId, {
+    const result1 = await client.getProductLongCache(productId, "foo", {
       $cacheKey: productId,
     });
 
-    const result2 = await client.getProductLongCache(productId, {
+    const result2 = await client.getProductLongCache(productId, "bar", {
       $cacheKey: productId,
     });
 
@@ -31,13 +31,13 @@ describe("Caching", () => {
 
     const productId = Math.random().toString();
 
-    const result1 = await client.getProductShortCache(productId, {
+    const result1 = await client.getProductShortCache(productId, "foo", {
       $cacheKey: productId,
     });
 
     await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for cache to expire
 
-    const result2 = await client.getProductShortCache(productId, {
+    const result2 = await client.getProductShortCache(productId, "bar", {
       $cacheKey: productId,
     });
 
