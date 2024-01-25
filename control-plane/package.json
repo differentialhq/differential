@@ -17,7 +17,6 @@
   "dependencies": {
     "@babel/preset-env": "^7.22.10",
     "@babel/preset-typescript": "^7.22.11",
-    "@differentialhq/core": "^3.8.0",
     "@fastify/cors": "^8.5.0",
     "@influxdata/influxdb-client": "^1.33.2",
     "@sentry/node": "^7.93.0",
@@ -36,7 +35,6 @@
     "msgpackr": "^1.10.1",
     "node-cache": "^5.1.2",
     "nodemon": "^3.0.1",
-    "openai": "^4.25.0",
     "pg": "^8.11.2",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6",
