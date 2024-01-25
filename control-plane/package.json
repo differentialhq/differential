@@ -9,8 +9,7 @@
     "migrations": "npx drizzle-kit generate:pg --schema src/modules/data.ts",
     "build": "tsc",
     "start": "node dist/utilities/migrate.js && node dist/index.js",
-    "deploy": "git add . && git commit -m 'update' && git push origin main && fly deploy",
-    "sync:types": "cp ../../predictor/types/predictions-service.d.ts src/types/predictions-service.d.ts"
+    "deploy": "git add . && git commit -m 'update' && git push origin main && fly deploy"
   },
   "author": "",
   "license": "ISC",
