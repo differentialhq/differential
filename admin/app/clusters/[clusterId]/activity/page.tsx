@@ -29,18 +29,6 @@ type ActivityStreamDataSuccess = ServerInferResponses<
   200
 >["body"];
 
-const safeParse = (json?: string) => {
-  if (!json) {
-    return {};
-  }
-
-  try {
-    return JSON.parse(json);
-  } catch {
-    return {};
-  }
-};
-
 const resultTypeIcon: { [key: string]: JSX.Element } = {
   resolution: <DeadGreenCircle />,
   rejection: <DeadRedCircle />,
@@ -77,7 +65,6 @@ export default function Page({ params }: { params: { clusterId: string } }) {
         },
         query: {
           jobId: jobId,
-          interval: "-7d",
         },
       });
 
@@ -102,14 +89,7 @@ export default function Page({ params }: { params: { clusterId: string } }) {
     };
   }, [isLoaded, isSignedIn, getToken, jobId, params.clusterId]);
 
-  const parsed = data?.map((activity) => ({
-    ...activity,
-    meta: safeParse(activity.meta),
-  }));
-
-  const sorted = parsed?.toSorted((a, b) =>
-    a.timestamp > b.timestamp ? 1 : -1,
-  );
+  const sorted = data?.toSorted((a, b) => (a.timestamp > b.timestamp ? 1 : -1));
 
   const reversed = sorted?.toReversed();
 
@@ -119,20 +99,25 @@ export default function Page({ params }: { params: { clusterId: string } }) {
     (activity) => activity.machineId,
   )?.machineId;
 
-  const targetFn = reversed?.find((activity) => activity.meta.targetFn)?.meta
-    ?.targetFn;
+  const getAttribute = (activities: typeof reversed, key: string) => {
+    const lastActivityWithValue = activities?.find(
+      (activity) => (activity.meta as any)[key],
+    );
 
-  const targetArgs = reversed?.find((activity) => activity.meta.targetArgs)
-    ?.meta?.targetArgs;
+    return lastActivityWithValue
+      ? (lastActivityWithValue.meta as any)[key]
+      : undefined;
+  };
 
-  const result = reversed?.find((activity) => activity.meta.result)?.meta
-    ?.result;
+  const targetFn = getAttribute(reversed, "targetFn");
 
-  const resultType = reversed?.find((activity) => activity.meta.resultType)
-    ?.meta?.resultType;
+  const targetArgs = getAttribute(reversed, "targetArgs");
 
-  const status = reversed?.find((activity) => activity.meta.status)?.meta
-    ?.status;
+  const result = getAttribute(reversed, "result");
+
+  const resultType = getAttribute(reversed, "resultType");
+
+  const status = getAttribute(reversed, "status");
 
   const meta = [
     {
@@ -225,7 +210,7 @@ export default function Page({ params }: { params: { clusterId: string } }) {
         <p className="text-gray-400 mt-2">Activity log for the job.</p>
         <div className="mt-6">
           {sorted?.map((activity) => (
-            <div key={activity.timestamp}>
+            <div key={activity.timestamp.toISOString()}>
               <Activity activity={activity} />
             </div>
           ))}

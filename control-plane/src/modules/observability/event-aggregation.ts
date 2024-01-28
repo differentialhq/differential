@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, gt, sql } from "drizzle-orm";
 import * as data from "../data";
 import { EventTypes } from "./events";
 
@@ -29,57 +29,82 @@ export const getJobActivityByJobId = async (params: {
 export const getFunctionMetrics = async (query: {
   clusterId: string;
   service: string;
-  targetFn: string;
 }): Promise<{
-  success: {
+  summary: Array<{
+    targetFn: string;
+    resultType: string;
     count: number;
-    avgExecutionTime: number | null;
-    minExecutionTime: number | null;
-    maxExecutionTime: number | null;
-  };
-  failure: {
-    count: number;
-    avgExecutionTime: number | null;
-    minExecutionTime: number | null;
-    maxExecutionTime: number | null;
-  };
+    avgExecutionTime: number;
+    minExecutionTime: number;
+    maxExecutionTime: number;
+  }>;
+  timeseries: Array<{
+    timeBin: string;
+    serviceName: string;
+    avgExecutionTime: number;
+    totalJobResulted: number;
+    totalJobStalled: number;
+    rejectionCount: number;
+  }>;
 }> => {
-  const result = await data.db
+  const summary = await data.db
     .select({
       avgExecutionTime: sql<string>`round(avg((meta->>'functionExecutionTime')::numeric), 2)`,
       maxExecutionTime: sql<string>`max((meta->>'functionExecutionTime')::numeric)`,
       minExecutionTime: sql<string>`min((meta->>'functionExecutionTime')::numeric)`,
-      resultType: sql<string>`meta->>'resultType'`,
       count: sql<string>`count(distinct job_id)`,
+      resultType: sql<string>`meta->>'resultType'`,
+      targetFn: sql<string>`meta->>'targetFn'`,
     })
     .from(data.events)
     .where(
       and(
         eq(data.events.cluster_id, query.clusterId),
         eq(data.events.service, query.service),
+        gt(data.events.created_at, sql`now() - interval '7 days'`),
         eq(data.events.type, "jobResulted" as EventTypes),
-        sql`meta->>'targetFn' = ${query.targetFn}`,
       ),
     )
-    .groupBy(sql`meta->>'resultType'`);
+    .groupBy(sql`meta->>'targetFn'`, sql`meta->>'resultType'`);
 
-  console.log({ result });
-
-  const success = result.find((x) => x.resultType === "resolution");
-  const failure = result.find((x) => x.resultType === "rejection");
+  const timeseries = await data.db
+    .select({
+      timeBin: sql<string>`date_bin(INTERVAL '1 minute', created_at, TIMESTAMPTZ '2024-01-01')`,
+      serviceName: sql<string>`service`,
+      avgExecutionTime: sql<string>`avg((meta ->> 'functionExecutionTime')::numeric)`,
+      totalJobResulted: sql<string>`count(case when "type" = 'jobResulted' then 1 end)`,
+      totalJobStalled: sql<string>`count(case when "type" = 'jobStalled' then 1 end)`,
+      rejectionCount: sql<string>`count(case when meta ->> 'resultType' = 'rejection' then 1 end)`,
+    })
+    .from(data.events)
+    .where(
+      and(
+        eq(data.events.cluster_id, query.clusterId),
+        eq(data.events.service, query.service),
+        gt(data.events.created_at, sql`now() - interval '7 days'`),
+      ),
+    )
+    .groupBy(
+      sql`date_bin(INTERVAL '1 minute', created_at, TIMESTAMPTZ '2024-01-01')`,
+      sql`service`,
+    );
 
   return {
-    success: {
-      count: success ? Number(success.count) : 0,
-      avgExecutionTime: success ? Number(success.avgExecutionTime) : null,
-      minExecutionTime: success ? Number(success.minExecutionTime) : null,
-      maxExecutionTime: success ? Number(success.maxExecutionTime) : null,
-    },
-    failure: {
-      count: failure ? Number(failure.count) : 0,
-      avgExecutionTime: failure ? Number(failure.avgExecutionTime) : null,
-      minExecutionTime: failure ? Number(failure.minExecutionTime) : null,
-      maxExecutionTime: failure ? Number(failure.maxExecutionTime) : null,
-    },
+    summary: summary.map((r) => ({
+      targetFn: r.targetFn,
+      resultType: r.resultType,
+      count: parseInt(r.count),
+      avgExecutionTime: parseFloat(r.avgExecutionTime),
+      minExecutionTime: parseFloat(r.minExecutionTime),
+      maxExecutionTime: parseFloat(r.maxExecutionTime),
+    })),
+    timeseries: timeseries.map((r) => ({
+      timeBin: r.timeBin,
+      serviceName: r.serviceName,
+      avgExecutionTime: parseFloat(r.avgExecutionTime),
+      totalJobResulted: parseInt(r.totalJobResulted),
+      totalJobStalled: parseInt(r.totalJobStalled),
+      rejectionCount: parseInt(r.rejectionCount),
+    })),
   };
 };

@@ -301,22 +301,16 @@ export const definition = {
       authorization: z.string(),
     }),
     responses: {
-      200: z.object({
-        start: z.date(),
-        stop: z.date(),
-        success: z.object({
-          count: z.array(z.object({ timestamp: z.date(), value: z.number() })),
-          avgExecutionTime: z.array(
-            z.object({ timestamp: z.date(), value: z.number() }),
-          ),
+      200: z.array(
+        z.object({
+          targetFn: z.string(),
+          resultType: z.string(),
+          count: z.number(),
+          avgExecutionTime: z.number().nullable(),
+          minExecutionTime: z.number().nullable(),
+          maxExecutionTime: z.number().nullable(),
         }),
-        failure: z.object({
-          count: z.array(z.object({ timestamp: z.date(), value: z.number() })),
-          avgExecutionTime: z.array(
-            z.object({ timestamp: z.date(), value: z.number() }),
-          ),
-        }),
-      }),
+      ),
       401: z.undefined(),
       404: z.undefined(),
     },
@@ -324,10 +318,7 @@ export const definition = {
       clusterId: z.string(),
     }),
     query: z.object({
-      start: z.coerce.date().optional(),
-      stop: z.coerce.date().optional(),
-      functionName: z.string().optional(),
-      serviceName: z.string().optional(),
+      serviceName: z.string(),
     }),
   },
   ingestClientEvents: {
@@ -361,11 +352,10 @@ export const definition = {
     responses: {
       200: z.array(
         z.object({
-          jobId: z.string(),
           type: z.string(),
-          meta: z.string().optional(),
+          meta: z.unknown(),
           machineId: z.string().nullable(),
-          timestamp: z.string(),
+          timestamp: z.date(),
           service: z.string().nullable(),
         }),
       ),
@@ -374,7 +364,6 @@ export const definition = {
     },
     query: z.object({
       jobId: z.string(),
-      interval: z.literal("-7d"),
     }),
   },
 } as const;

@@ -5,22 +5,20 @@ import { useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {
-  AreaChart,
   Area,
+  AreaChart,
+  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
-  ResponsiveContainer,
 } from "recharts";
 
 export function ServiceMetrics({
   clusterId,
   serviceName,
-  functionName,
 }: {
   clusterId: string;
   serviceName: string;
-  functionName?: string;
 }) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
 
@@ -50,9 +48,6 @@ export function ServiceMetrics({
           clusterId: clusterId,
         },
         query: {
-          start: new Date(Date.now() - 1000 * 60 * 60),
-          stop: new Date(Date.now()),
-          functionName: functionName,
           serviceName: serviceName,
         },
       });

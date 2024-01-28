@@ -301,20 +301,16 @@ export const definition = {
       authorization: z.string(),
     }),
     responses: {
-      200: z.object({
-        success: z.object({
+      200: z.array(
+        z.object({
+          targetFn: z.string(),
+          resultType: z.string(),
           count: z.number(),
           avgExecutionTime: z.number().nullable(),
           minExecutionTime: z.number().nullable(),
           maxExecutionTime: z.number().nullable(),
         }),
-        failure: z.object({
-          count: z.number(),
-          avgExecutionTime: z.number().nullable(),
-          minExecutionTime: z.number().nullable(),
-          maxExecutionTime: z.number().nullable(),
-        }),
-      }),
+      ),
       401: z.undefined(),
       404: z.undefined(),
     },
@@ -322,7 +318,6 @@ export const definition = {
       clusterId: z.string(),
     }),
     query: z.object({
-      functionName: z.string(),
       serviceName: z.string(),
     }),
   },

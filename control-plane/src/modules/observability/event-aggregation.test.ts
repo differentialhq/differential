@@ -97,16 +97,9 @@ describe("event-aggregation", () => {
 
     await events.buffer?.flush();
 
-    const fn1Metrics = await eventAggregation.getFunctionMetrics({
+    const metrics = await eventAggregation.getFunctionMetrics({
       clusterId,
       service,
-      targetFn: "fn1",
-    });
-
-    const fn2Metrics = await eventAggregation.getFunctionMetrics({
-      clusterId,
-      service,
-      targetFn: "fn2",
     });
 
     for (const jobId of jobIds) {
@@ -136,34 +129,50 @@ describe("event-aggregation", () => {
       );
     }
 
-    expect(fn1Metrics).toStrictEqual({
-      failure: {
-        count: 1,
+    expect(metrics.summary).toStrictEqual([
+      {
         avgExecutionTime: 200,
-        minExecutionTime: 200,
-        maxExecutionTime: 200,
-      },
-      success: {
-        count: 2,
-        avgExecutionTime: 50,
-        minExecutionTime: 0,
-        maxExecutionTime: 100,
-      },
-    });
-
-    expect(fn2Metrics).toStrictEqual({
-      failure: {
-        count: 2,
-        avgExecutionTime: 450,
-        minExecutionTime: 400,
-        maxExecutionTime: 500,
-      },
-      success: {
         count: 1,
-        avgExecutionTime: 300,
-        minExecutionTime: 300,
-        maxExecutionTime: 300,
+        maxExecutionTime: 200,
+        minExecutionTime: 200,
+        resultType: "rejection",
+        targetFn: "fn1",
       },
-    });
+      {
+        avgExecutionTime: 50,
+        count: 2,
+        maxExecutionTime: 100,
+        minExecutionTime: 0,
+        resultType: "resolution",
+        targetFn: "fn1",
+      },
+      {
+        avgExecutionTime: 450,
+        count: 2,
+        maxExecutionTime: 500,
+        minExecutionTime: 400,
+        resultType: "rejection",
+        targetFn: "fn2",
+      },
+      {
+        avgExecutionTime: 300,
+        count: 1,
+        maxExecutionTime: 300,
+        minExecutionTime: 300,
+        resultType: "resolution",
+        targetFn: "fn2",
+      },
+    ]);
+
+    expect(metrics.timeseries).toEqual([
+      {
+        avgExecutionTime: 250,
+        rejectionCount: 3,
+        serviceName: service,
+        timeBin: expect.stringContaining(new Date().toISOString().slice(0, 4)),
+        totalJobResulted: 6,
+        totalJobStalled: 0,
+      },
+    ]);
   }, 10000);
 });

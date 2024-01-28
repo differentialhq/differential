@@ -283,12 +283,11 @@ export const router = s.router(contract, {
     // TODO: Validate serviceName and functionName
     // We don't currently store and service/function names in the database to validate against.
     const { clusterId } = request.params;
-    const { functionName, serviceName } = request.query;
+    const { serviceName } = request.query;
 
     const result = await eventAggregation.getFunctionMetrics({
       clusterId,
       service: serviceName,
-      targetFn: functionName,
     });
 
     return {

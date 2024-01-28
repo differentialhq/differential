@@ -239,16 +239,16 @@ export const nextJobs = async ({
   ip: string;
   definition?: ServiceDefinition;
 }) => {
-  events.write({
-    type: "machinePing",
-    clusterId: owner.clusterId,
-    machineId,
-    service,
-    meta: {
-      ip,
-      limit,
-    },
-  });
+  // events.write({
+  //   type: "machinePing",
+  //   clusterId: owner.clusterId,
+  //   machineId,
+  //   service,
+  //   meta: {
+  //     ip,
+  //     limit,
+  //   },
+  // });
 
   const results = await data.db.execute(
     sql`UPDATE jobs SET status = 'running', remaining_attempts = remaining_attempts - 1, last_retrieved_at=${new Date().toISOString()} 
