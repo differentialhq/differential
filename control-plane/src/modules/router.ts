@@ -6,9 +6,9 @@ import * as admin from "./admin";
 import * as auth from "./auth";
 import { contract } from "./contract";
 import * as data from "./data";
-import * as metrics from "./event-aggregation";
 import * as jobs from "./jobs";
 import * as management from "./management";
+import * as eventAggregation from "./observability/event-aggregation";
 import * as events from "./observability/events";
 import * as routingHelpers from "./routing-helpers";
 
@@ -285,25 +285,15 @@ export const router = s.router(contract, {
     const { clusterId } = request.params;
     const { functionName, serviceName } = request.query;
 
-    // Default to last 24 hours
-    const start = request.query.start ?? new Date(Date.now() - 86400000);
-    const stop = request.query.stop ?? new Date();
-
-    const result = await metrics.getFunctionMetrics({
+    const result = await eventAggregation.getFunctionMetrics({
       clusterId,
-      serviceName,
-      functionName,
-      start,
-      stop,
+      service: serviceName,
+      targetFn: functionName,
     });
 
     return {
       status: 200,
-      body: {
-        start: start,
-        stop: stop,
-        ...result,
-      },
+      body: result,
     };
   },
   ingestClientEvents: async (request) => {
@@ -344,10 +334,9 @@ export const router = s.router(contract, {
 
     const { jobId } = request.query;
 
-    const result = await metrics.getJobActivityByJobId({
+    const result = await eventAggregation.getJobActivityByJobId({
       clusterId,
       jobId,
-      interval: request.query.interval,
     });
 
     return {

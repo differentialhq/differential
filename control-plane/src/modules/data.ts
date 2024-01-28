@@ -124,9 +124,11 @@ export const services = pgTable(
 );
 
 export const events = pgTable("events", {
-  id: varchar("id", { length: 1024 }).primaryKey(),
-  cluster_id: varchar("cluster_id").references(() => clusters.id),
-  type: varchar("type", { length: 1024 }),
+  id: varchar("id", { length: 1024 }).primaryKey().notNull(),
+  cluster_id: varchar("cluster_id")
+    .references(() => clusters.id)
+    .notNull(),
+  type: varchar("type", { length: 1024 }).notNull(),
   job_id: varchar("job_id", { length: 1024 }).references(() => jobs.id),
   machine_id: varchar("machine_id", { length: 1024 }).references(
     () => machines.id,

@@ -10,7 +10,6 @@ export const getJobActivityByJobId = async (params: {
     .select({
       type: data.events.type,
       service: data.events.service,
-      jobId: data.events.job_id,
       machineId: data.events.machine_id,
       timestamp: data.events.created_at,
       meta: data.events.meta,
