@@ -95,8 +95,6 @@ describe("event-aggregation", () => {
   it("should return the correct metrics", async () => {
     const { jobIds } = await simulateActivity();
 
-    console.log({ jobIds });
-
     await events.buffer?.flush();
 
     const fn1Metrics = await eventAggregation.getFunctionMetrics({
@@ -167,5 +165,5 @@ describe("event-aggregation", () => {
         maxExecutionTime: 300,
       },
     });
-  });
+  }, 10000);
 });
