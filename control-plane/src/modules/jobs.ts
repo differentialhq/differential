@@ -2,7 +2,7 @@ import { and, desc, eq, gt, gte, isNotNull, lt, sql } from "drizzle-orm";
 import { ulid } from "ulid";
 import * as cron from "./cron";
 import * as data from "./data";
-import { writeEvent, writeJobActivity } from "./events";
+import * as events from "./observability/events";
 import {
   ServiceDefinition,
   functionDefinition,
@@ -145,25 +145,13 @@ const onAfterJobCreated = async ({
   owner,
   jobId,
 }: JobParams & { jobId: string }) => {
-  writeEvent({
+  events.write({
     type: "jobCreated",
-    tags: {
-      clusterId: owner.clusterId,
-      service: service,
-      function: targetFn,
-    },
-    stringFields: {
-      jobId: jobId,
-    },
-  });
-
-  writeJobActivity({
-    service,
     clusterId: owner.clusterId,
     jobId,
-    type: "RECEIVED_BY_CONTROL_PLANE",
     meta: {
       targetFn,
+      service,
       targetArgs,
     },
   });
@@ -251,12 +239,14 @@ export const nextJobs = async ({
   ip: string;
   definition?: ServiceDefinition;
 }) => {
-  writeEvent({
+  events.write({
     type: "machinePing",
-    tags: {
-      clusterId: owner.clusterId,
-      machineId,
+    clusterId: owner.clusterId,
+    machineId,
+    service,
+    meta: {
       ip,
+      limit,
     },
   });
 
@@ -291,16 +281,16 @@ export const nextJobs = async ({
   }));
 
   jobs.forEach((job) => {
-    writeJobActivity({
+    events.write({
       service,
       clusterId: owner.clusterId,
       jobId: job.id,
-      type: "RECEIVED_BY_MACHINE",
+      type: "jobReceived",
+      machineId,
       meta: {
         targetFn: job.targetFn,
         targetArgs: job.targetArgs,
       },
-      machineId,
     });
   });
 
@@ -327,13 +317,14 @@ export const getJobStatus = async ({
     );
 
   if (job) {
-    writeJobActivity({
+    events.write({
       service: job.service,
       clusterId: owner.clusterId,
       jobId,
-      type: "JOB_STATUS_REQUESTED",
+      type: "jobStatusRequest",
       meta: {
         status: job.status,
+        resultType: job.resultType ?? undefined,
       },
     });
   }
@@ -376,7 +367,7 @@ export async function persistJobResult({
   resultType: "resolution" | "rejection";
   functionExecutionTime: number | undefined;
   jobId: string;
-  owner: { organizationId: string | null; clusterId: string };
+  owner: { clusterId: string };
   machineId: string;
 }) {
   const updateResult = await data.db
@@ -391,34 +382,19 @@ export async function persistJobResult({
     .where(
       and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
     )
-    .returning({ service: data.jobs.service, function: data.jobs.target_fn });
+    .returning({ service: data.jobs.service, targetFn: data.jobs.target_fn });
 
-  writeEvent({
+  events.write({
     type: "jobResulted",
-    tags: {
-      clusterId: owner.clusterId,
-      service: updateResult[0]?.service,
-      function: updateResult[0]?.function,
-      resultType,
-    },
-    intFields: {
-      ...(functionExecutionTime !== undefined ? { functionExecutionTime } : {}),
-    },
-    stringFields: {
-      jobId,
-    },
-  });
-
-  writeJobActivity({
     service: updateResult[0]?.service,
     clusterId: owner.clusterId,
     jobId,
-    type: "RESULT_SENT_TO_CONTROL_PLANE",
     machineId,
     meta: {
-      targetFn: updateResult[0]?.function,
-      resultType,
+      targetFn: updateResult[0]?.targetFn,
       result,
+      resultType,
+      functionExecutionTime,
     },
   });
 }
@@ -469,23 +445,23 @@ export async function selfHealJobs() {
     });
 
   stalled.forEach((row) => {
-    writeJobActivity({
+    events.write({
       service: row.service,
       clusterId: row.ownerHash,
       jobId: row.id,
-      type: "JOB_TIMED_OUT",
+      type: "jobStalled",
       meta: {
-        attemptsRemaining: row.remainingAttempts,
+        attemptsRemaining: row.remainingAttempts ?? undefined,
       },
     });
   });
 
   recovered.forEach((row) => {
-    writeJobActivity({
+    events.write({
       service: row.service,
       clusterId: row.ownerHash,
       jobId: row.id,
-      type: "JOB_FAILED",
+      type: "jobRecovered",
     });
   });
 

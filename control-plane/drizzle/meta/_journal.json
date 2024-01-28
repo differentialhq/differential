@@ -176,6 +176,13 @@
       "when": 1706149921378,
       "tag": "0025_hot_shinobi_shaw",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "5",
+      "when": 1706389804364,
+      "tag": "0026_freezing_clint_barton",
+      "breakpoints": true
     }
   ]
 }

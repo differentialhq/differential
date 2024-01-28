@@ -7,9 +7,9 @@ import * as auth from "./auth";
 import { contract } from "./contract";
 import * as data from "./data";
 import * as metrics from "./event-aggregation";
-import { writeEvent } from "./events";
 import * as jobs from "./jobs";
 import * as management from "./management";
+import * as events from "./observability/events";
 import * as routingHelpers from "./routing-helpers";
 
 const readFile = util.promisify(fs.readFile);
@@ -320,9 +320,16 @@ export const router = s.router(contract, {
         event.tags = {};
       }
 
-      event.tags.machineId = request.headers["x-machine-id"];
-      event.tags.clusterId = owner.clusterId;
-      writeEvent(event);
+      events.write({
+        machineId: request.headers["x-machine-id"],
+        clusterId: owner.clusterId,
+        type: event.type,
+        service: event.tags.service,
+        meta: {
+          ...event.intFields,
+          ...event.tags,
+        },
+      });
     });
 
     return {
