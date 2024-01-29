@@ -10,9 +10,9 @@ export type Result<T = unknown> = {
   functionExecutionTime?: number;
 };
 
-const executeFn = async (
+export const executeFn = async (
   fn: AsyncFunction,
-  args: Parameters<AsyncFunction>
+  args: Parameters<AsyncFunction>,
 ): Promise<Result> => {
   const start = Date.now();
   try {
@@ -40,7 +40,7 @@ const executeFn = async (
     } else {
       return {
         content: new Error(
-          "Differential encountered an unexpected error type. Make sure you are throwing an Error object."
+          "Differential encountered an unexpected error type. Make sure you are throwing an Error object.",
         ),
         type: "rejection",
         functionExecutionTime,
@@ -61,7 +61,7 @@ export class TaskQueue {
   addTask(
     fn: AsyncFunction,
     args: Parameters<AsyncFunction>,
-    resolve: (value: Result) => void
+    resolve: (value: Result) => void,
   ) {
     this.tasks.push({
       fn,
@@ -79,7 +79,7 @@ export class TaskQueue {
     this.tasks = [];
 
     Promise.all(
-      tasks.map((task) => executeFn(task.fn, task.args).then(task.resolve))
+      tasks.map((task) => executeFn(task.fn, task.args).then(task.resolve)),
     ).then(() => {
       this.isRunning = false;
     });

@@ -138,3 +138,20 @@ describe("TaskQueue", () => {
     await taskQueue.quit();
   });
 });
+
+describe("executeFn", () => {
+  it("should resolve the result of the function", async () => {
+    const fn = () => Promise.resolve("result");
+    const result = await fn();
+    expect(result).toBe("result");
+  });
+
+  it("should resolve the result of the function", async () => {
+    const fn = () => Promise.reject("error");
+    try {
+      await fn();
+    } catch (err) {
+      expect(err).toBe("error");
+    }
+  });
+});

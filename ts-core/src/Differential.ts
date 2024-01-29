@@ -9,12 +9,11 @@ import {
   retryConfigForFunction,
 } from "./functions";
 import { pack, unpack } from "./serialize";
+import { deserializeError, serializeError } from "./serialize-error";
 import { Result, TaskQueue } from "./task-queue";
 import { AsyncFunction } from "./types";
 
 const log = debug("differential:client");
-
-const { serializeError, deserializeError } = require("./errors");
 
 type ServiceClient<T extends RegisteredService<any>> = {
   [K in keyof T["definition"]["functions"]]: T["definition"]["functions"][K];
@@ -277,11 +276,7 @@ class PollingAgent {
 
           if (!registered) {
             const error = new DifferentialError(
-              `Function was not registered. name='${
-                job.targetFn
-              }' registeredFunctions='${Object.keys(functionRegistry).join(
-                ",",
-              )}'`,
+              `Function was not registered. name='${job.targetFn}'`,
             );
 
             await onComplete({
