@@ -27,11 +27,11 @@ export function ServiceMetrics({
       timestamp: Date;
       success: number;
       failure: number;
+      stalled: number;
     }>;
     executionTime: Array<{
       timestamp: Date;
-      success: number;
-      failure: number;
+      avg: number;
     }>;
   }>({
     count: [],
@@ -57,31 +57,21 @@ export function ServiceMetrics({
       }
 
       if (metricsResult.status === 200) {
-        // Merge the success and failure counts into a single map for rendering
-        const countMap = new Map();
-        metricsResult.body.success.count.forEach(
-          (item: { value: number; timestamp: Date }) =>
-            attributePoint(countMap, item, "success"),
-        );
-        metricsResult.body.failure.count.forEach(
-          (item: { value: number; timestamp: Date }) =>
-            attributePoint(countMap, item, "failure"),
-        );
-
-        const executionTime = new Map();
-        metricsResult.body.success.avgExecutionTime.forEach(
-          (item: { value: number; timestamp: Date }) =>
-            attributePoint(executionTime, item, "success"),
-        );
-
-        metricsResult.body.failure.avgExecutionTime.forEach(
-          (item: { value: number; timestamp: Date }) =>
-            attributePoint(executionTime, item, "failure"),
-        );
-
         setData({
-          count: Array.from(countMap.values()),
-          executionTime: Array.from(executionTime.values()),
+          count: metricsResult.body.timeseries
+            .sort((a, b) => a.timeBin.localeCompare(b.timeBin))
+            .map((item) => ({
+              timestamp: new Date(item.timeBin),
+              success: item.totalJobResulted,
+              failure: item.rejectionCount,
+              stalled: item.totalJobStalled,
+            })),
+          executionTime: metricsResult.body.timeseries
+            .sort((a, b) => a.timeBin.localeCompare(b.timeBin))
+            .map((item) => ({
+              timestamp: new Date(item.timeBin),
+              avg: item.avgExecutionTime,
+            })),
         });
       } else {
         toast.error("Failed to fetch service metrics.");
@@ -98,6 +88,8 @@ export function ServiceMetrics({
     };
   }, [clusterId, serviceName, isLoaded, isSignedIn, getToken]);
 
+  console.log(data);
+
   return data.count.length > 0 ? (
     <div>
       <div className="flex mt-12 space-x-12 mb-12">
@@ -105,7 +97,7 @@ export function ServiceMetrics({
           <div className="mt-6 text-center">
             <h4 className="text-l mb-4">Service Calls</h4>
             <p className="text-gray-400">
-              Number of times {serviceName} has been called in the last hour.
+              Number of times {serviceName} has been called.
             </p>
           </div>
           <ResponsiveContainer width="100%" height={300}>
@@ -153,8 +145,8 @@ export function ServiceMetrics({
               <Area
                 type="monotone"
                 dataKey="failure"
-                stroke="#82ca9d"
-                fill="#82ca9d"
+                stroke="#b30000"
+                fill="#b30000"
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -189,15 +181,9 @@ export function ServiceMetrics({
               <XAxis dataKey="timestamp" tickFormatter={tickFormatter} />
               <Area
                 type="monotone"
-                dataKey="success"
+                dataKey="avg"
                 stroke="#8884d8"
                 fill="#8884d8"
-              />
-              <Area
-                type="monotone"
-                dataKey="failure"
-                stroke="#82ca9d"
-                fill="#82ca9d"
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -213,23 +199,4 @@ const tickFormatter = (time: number) => {
   const hours = date.getHours().toString().padStart(2, "0");
   const minutes = date.getMinutes().toString().padStart(2, "0");
   return `${hours}:${minutes}`;
-};
-
-const attributePoint = (
-  pointMap: Map<Date, { success: number; failure: number; timestamp: Date }>,
-  item: { value: number; timestamp: Date },
-  type: "success" | "failure",
-) => {
-  console.log(pointMap);
-  const existing = pointMap.get(item.timestamp);
-  if (existing) {
-    existing[type] = item.value;
-  } else {
-    pointMap.set(item.timestamp, {
-      timestamp: item.timestamp,
-      success: 0,
-      failure: 0,
-    });
-    attributePoint(pointMap, item, type);
-  }
 };

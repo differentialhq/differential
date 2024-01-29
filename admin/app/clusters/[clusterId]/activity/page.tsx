@@ -209,9 +209,9 @@ export default function Page({ params }: { params: { clusterId: string } }) {
         <h2 className="text-xl">Activity Log</h2>
         <p className="text-gray-400 mt-2">Activity log for the job.</p>
         <div className="mt-6">
-          {sorted?.map((activity) => (
-            <div key={activity.timestamp.toISOString()}>
-              <Activity activity={activity} />
+          {sorted?.map((activity, i) => (
+            <div key={new Date(activity.timestamp).toISOString()}>
+              <Activity activity={activity} previousActivity={sorted[i - 1]} />
             </div>
           ))}
         </div>

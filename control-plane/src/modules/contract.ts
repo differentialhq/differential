@@ -301,16 +301,28 @@ export const definition = {
       authorization: z.string(),
     }),
     responses: {
-      200: z.array(
-        z.object({
-          targetFn: z.string(),
-          resultType: z.string(),
-          count: z.number(),
-          avgExecutionTime: z.number().nullable(),
-          minExecutionTime: z.number().nullable(),
-          maxExecutionTime: z.number().nullable(),
-        }),
-      ),
+      200: z.object({
+        summary: z.array(
+          z.object({
+            targetFn: z.string(),
+            resultType: z.string(),
+            count: z.number(),
+            avgExecutionTime: z.number(),
+            minExecutionTime: z.number(),
+            maxExecutionTime: z.number(),
+          }),
+        ),
+        timeseries: z.array(
+          z.object({
+            timeBin: z.string(),
+            serviceName: z.string(),
+            avgExecutionTime: z.number(),
+            totalJobResulted: z.number(),
+            totalJobStalled: z.number(),
+            rejectionCount: z.number(),
+          }),
+        ),
+      }),
       401: z.undefined(),
       404: z.undefined(),
     },

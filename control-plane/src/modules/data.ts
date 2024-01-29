@@ -134,7 +134,10 @@ export const events = pgTable("events", {
     () => machines.id,
   ),
   service: varchar("service", { length: 1024 }),
-  created_at: timestamp("created_at", { withTimezone: true }).notNull(),
+  created_at: timestamp("created_at", {
+    withTimezone: true,
+    precision: 6,
+  }).notNull(),
   meta: json("meta"),
 });
 

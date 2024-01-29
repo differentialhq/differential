@@ -64,7 +64,7 @@ class EventWriterBuffer {
     await this.writeEvents(events);
   }
 
-  private async writeEvents(events: Event[], attempt = 0) {
+  private async writeEvents(events: InsertableEvent[], attempt = 0) {
     try {
       const result = await data.db.insert(data.events).values(
         events.map((e) => ({
@@ -73,7 +73,7 @@ class EventWriterBuffer {
           type: e.type,
           job_id: e.jobId,
           machine_id: e.machineId,
-          created_at: new Date(),
+          created_at: e.createdAt,
           meta: e.meta,
           service: e.service,
         })),

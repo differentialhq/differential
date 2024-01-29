@@ -12,45 +12,58 @@ type Activity = ServerInferResponses<
   meta?: any;
 };
 
-const typeToText: { [key: string]: string } = {
-  RECEIVED_BY_CONTROL_PLANE:
-    "Received by control plane. Waiting for execution.",
-  JOB_STATUS_REQUESTED: `Execution status was returned to the caller.`,
-  RECEIVED_BY_MACHINE: `Function was received by the machine for execution. Execution was queued in the local task queue.`,
-  RESULT_SENT_TO_CONTROL_PLANE: `Function execution succeeded. Result was sent to the control plane.`,
+const typeToText: { [key: string]: (activity: Activity) => string } = {
+  jobCreated: () => "Received by control plane. Waiting for execution.",
+  jobStatusRequest: () => `Caller asked for the status of the job.`,
+  jobReceived: () =>
+    `Function was received by the machine for execution. Execution was queued in the local task queue.`,
+  jobResulted: () =>
+    `Function execution succeeded. Result was sent to the control plane.`,
 };
 
-export function Activity({ activity }: { activity: Activity }) {
+export function Activity({
+  activity,
+  previousActivity,
+}: {
+  activity: Activity;
+  previousActivity?: Activity;
+}) {
   const [expanded, setExpanded] = useState(false);
 
   const meta = activity.meta;
 
+  const text = typeToText[activity.type](activity);
+
+  if (!text) {
+    console.warn(`Unknown activity type: ${activity.type}`);
+  }
+
   return (
     <div className="flex flex-col mb-4">
-      <div className="p-4 border border-slate-700 border-t-slate-500 rounded-md">
-        <p className="font-mono text-xs mb-2">{activity.timestamp}</p>
+      <div className="flex p-1 border border-slate-700 border-t-slate-500 rounded-md items-center space-x-4">
+        <p className="font-mono text-sm ml-2 mr-2 text-slate-500">
+          {new Date(activity.timestamp).toISOString()}
+        </p>
         <div className="flex space-x-4 items-center">
-          <p>{typeToText[activity.type]}</p>
-          <Button
-            variant="secondary"
-            size="icon"
-            onClick={() => setExpanded(!expanded)}
-          >
-            <ChevronDown className="w-4 h-4" />
-          </Button>
+          <p>{text ?? activity.type}</p>
         </div>
-        <div>
+        <div className="flex-grow">
           <div className="flex-row space-x-2 my-2">
-            {activity.service ? (
-              <Badge variant="secondary">service:{activity.service}</Badge>
-            ) : null}
             {activity.machineId ? (
               <Badge variant="secondary">machine:{activity.machineId}</Badge>
             ) : null}
             {meta?.status ? (
               <Badge
                 variant="secondary"
-                className={meta?.status === "success" ? `bg-green-700` : ``}
+                className={
+                  meta?.status === "success"
+                    ? `bg-green-700`
+                    : meta?.status === "running"
+                      ? `bg-yellow-700`
+                      : meta?.status === "pending"
+                        ? `bg-slate-700`
+                        : `bg-red-700`
+                }
               >
                 status:{meta?.status}
               </Badge>
@@ -70,6 +83,15 @@ export function Activity({ activity }: { activity: Activity }) {
             ) : null}
           </div>
         </div>
+        <Button
+          variant="secondary"
+          size="icon"
+          onClick={() => setExpanded(!expanded)}
+        >
+          <ChevronDown className="w-4 h-4" />
+        </Button>
+      </div>
+      <div>
         {expanded ? (
           <div className="p-4 bg-slate-700 mt-4 rounded-md">
             <pre>{JSON.stringify({ ...activity, meta }, null, 2)}</pre>
