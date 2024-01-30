@@ -7,6 +7,22 @@ We love your input! We want to make contributing to this project as easy and tra
 - Submitting a fix
 - Proposing new features
 
+## Setting up the development environment
+
+We use [tilt.dev](https://tilt.dev) to manage our development environment.
+
+1. [Install](https://docs.tilt.dev/install.html) tilt on your machine.
+2. Run `tilt up` in the root of the project.
+
+## Running the admin console locally
+
+The admin console is a Next.js app using Clerk.dev for authentication. To run it locally, you'll need to add a `.env.local` file to the `admin` directory with some test credentials from Clerk.dev. You can sign up for a free account at [clerk.dev](https://clerk.dev).
+
+```
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_REPLACE_ME
+CLERK_SECRET_KEY=sk_test_REPLACE_ME
+```
+
 ## We Develop with Github
 
 We use github to host code, to track issues and feature requests, as well as accept pull requests.

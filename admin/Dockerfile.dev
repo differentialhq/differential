@@ -1,0 +1,16 @@
+FROM node:20
+
+WORKDIR /app
+
+# copy package.json and package-lock.json
+COPY --link package.json package-lock.json ./
+
+# install dependencies
+RUN npm install
+
+# copy source code
+COPY --link . .
+
+RUN npm install
+
+ENTRYPOINT [ "npm", "run", "dev" ]

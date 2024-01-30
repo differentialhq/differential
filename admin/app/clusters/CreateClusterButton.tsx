@@ -2,7 +2,6 @@
 
 import { client } from "@/client/client";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
 import { toast } from "react-hot-toast";
 
 export const CreateClusterButton = ({ token }: { token: string }) => {
@@ -28,7 +27,7 @@ export const CreateClusterButton = ({ token }: { token: string }) => {
             loading: "Creating a cluster...",
             success: "Successfully created a cluster!",
             error: "Failed to create a cluster.",
-          }
+          },
         );
 
         // wait for 2 seconds for toast to show

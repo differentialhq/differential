@@ -1,12 +1,12 @@
 import "./utilities/env";
 import "./utilities/profiling";
 
+import cors from "@fastify/cors";
 import { initServer } from "@ts-rest/fastify";
 import fastify from "fastify";
 import process from "process";
-import * as router from "./modules/router";
 import * as jobs from "./modules/jobs";
-import cors from "@fastify/cors";
+import * as router from "./modules/router";
 
 const app = fastify({
   logger: process.env.ENABLE_FASTIFY_LOGGER === "true",

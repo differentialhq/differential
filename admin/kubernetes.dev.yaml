@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin
+  labels:
+    app: admin
+spec:
+  selector:
+    matchLabels:
+      app: admin
+  template:
+    metadata:
+      labels:
+        app: admin
+    spec:
+      containers:
+        - name: admin
+          image: admin-image
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DIFFERENTIAL_API_URL
+              value: http://host.docker.internal:4000
+            - name: NEXT_PUBLIC_DIFFERENTIAL_API_URL
+              value: http://localhost:4000
