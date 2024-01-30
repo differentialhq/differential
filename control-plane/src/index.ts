@@ -6,6 +6,7 @@ import { initServer } from "@ts-rest/fastify";
 import fastify from "fastify";
 import process from "process";
 import * as jobs from "./modules/jobs";
+import * as events from "./modules/observability/events";
 import * as router from "./modules/router";
 
 const app = fastify({
@@ -28,6 +29,7 @@ app.setErrorHandler((error, request, reply) => {
 
 const start = async () => {
   await jobs.start();
+  await events.initialize();
 
   try {
     await app.listen({ port: 4000, host: "0.0.0.0" });
