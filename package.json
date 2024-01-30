@@ -5,7 +5,8 @@
     "ts-core",
     "control-plane",
     "docs",
-    "admin"
+    "admin",
+    "cli"
   ],
   "devDependencies": {
     "conventional-changelog-cli": "^4.1.0",

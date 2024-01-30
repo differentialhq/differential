@@ -302,20 +302,26 @@ export const definition = {
     }),
     responses: {
       200: z.object({
-        start: z.date(),
-        stop: z.date(),
-        success: z.object({
-          count: z.array(z.object({ timestamp: z.date(), value: z.number() })),
-          avgExecutionTime: z.array(
-            z.object({ timestamp: z.date(), value: z.number() }),
-          ),
-        }),
-        failure: z.object({
-          count: z.array(z.object({ timestamp: z.date(), value: z.number() })),
-          avgExecutionTime: z.array(
-            z.object({ timestamp: z.date(), value: z.number() }),
-          ),
-        }),
+        summary: z.array(
+          z.object({
+            targetFn: z.string(),
+            resultType: z.string(),
+            count: z.number(),
+            avgExecutionTime: z.number(),
+            minExecutionTime: z.number(),
+            maxExecutionTime: z.number(),
+          }),
+        ),
+        timeseries: z.array(
+          z.object({
+            timeBin: z.string(),
+            serviceName: z.string(),
+            avgExecutionTime: z.number(),
+            totalJobResulted: z.number(),
+            totalJobStalled: z.number(),
+            rejectionCount: z.number(),
+          }),
+        ),
       }),
       401: z.undefined(),
       404: z.undefined(),
@@ -324,10 +330,7 @@ export const definition = {
       clusterId: z.string(),
     }),
     query: z.object({
-      start: z.coerce.date().optional(),
-      stop: z.coerce.date().optional(),
-      functionName: z.string().optional(),
-      serviceName: z.string().optional(),
+      serviceName: z.string(),
     }),
   },
   ingestClientEvents: {
@@ -361,11 +364,10 @@ export const definition = {
     responses: {
       200: z.array(
         z.object({
-          jobId: z.string(),
           type: z.string(),
-          meta: z.string().optional(),
+          meta: z.unknown(),
           machineId: z.string().nullable(),
-          timestamp: z.string(),
+          timestamp: z.date(),
           service: z.string().nullable(),
         }),
       ),
@@ -374,8 +376,22 @@ export const definition = {
     },
     query: z.object({
       jobId: z.string(),
-      interval: z.literal("-7d"),
     }),
+  },
+  getDeploymentUploadDetails: {
+    method: "GET",
+    path: "/deployment/:clusterId/service/:serviceName/details",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      501: z.undefined(),
+      403: z.undefined(),
+      200: z.object({
+        packageUploadUrl: z.string(),
+        definitionUploadUrl: z.string(),
+      }),
+    },
   },
 } as const;
 

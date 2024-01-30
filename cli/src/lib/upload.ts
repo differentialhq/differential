@@ -1,8 +1,7 @@
 import { initClient, tsRestFetchApi } from "@ts-rest/core";
 import debug from "debug";
 import { readFileSync } from "fs";
-import { contract } from "../contract";
-import { DifferentialError } from "../errors";
+import { contract } from "../client/contract";
 
 const log = debug("differential:cli:upload");
 
@@ -30,7 +29,7 @@ export const uploadPackage = async (
   });
 
   if (result.status !== 200) {
-    throw new DifferentialError(
+    throw new Error(
       "Failed to upload package. Please check provided options and cluster configuration.",
     );
   }
@@ -56,7 +55,7 @@ export const uploadPackage = async (
 
   results.forEach((response) => {
     if (response.status !== 200) {
-      throw new DifferentialError(
+      throw new Error(
         "Failed to upload package. Please check provided options and cluster configuration.",
       );
     }

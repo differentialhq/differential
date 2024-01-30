@@ -3,11 +3,10 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-import { Deploy } from "./deploy";
+import { Deploy } from "./commands/deploy";
 
 yargs(hideBin(process.argv))
   .scriptName("differential")
   .strict()
   .hide("version")
-  .hide("help")
   .command(Deploy).argv;

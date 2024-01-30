@@ -1,0 +1,33 @@
+{
+  "name": "@differentialhq/cli",
+  "version": "0.0.1",
+  "description": "CLI for differential.dev",
+  "bin": {
+    "differential": "bin/index.js"
+  },
+  "scripts": {
+    "test": "jest ./src --runInBand --forceExit --detectOpenHandles",
+    "start": "node ./bin/index.js",
+    "build": "tsc",
+    "clean": "rm -rf ./bin"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ts-rest/core": "^3.28.0",
+    "debug": "^4.3.4",
+    "typescript": "^5.2.2",
+    "ulid": "^2.3.0",
+    "yargs": "^17.7.2",
+    "zip-a-folder": "^3.1.6",
+    "zod": "^3.22.2"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.8",
+    "@types/detective": "^5.1.5",
+    "@types/jest": "^29.5.4",
+    "@types/yargs": "^17.0.32",
+    "detective": "^5.2.1",
+    "jest": "^29.6.4"
+  }
+}

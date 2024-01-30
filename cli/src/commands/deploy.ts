@@ -4,8 +4,8 @@ import * as fs from "fs";
 import * as os from "os";
 
 import { CommandModule, argv } from "yargs";
-import { buildPackage } from "./package";
-import { uploadPackage } from "./upload";
+import { buildPackage } from "../lib/package";
+import { uploadPackage } from "../lib/upload";
 
 const log = debug("differential:cli:deploy");
 
