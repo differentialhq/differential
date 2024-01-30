@@ -1,12 +1,5 @@
 import { eq } from "drizzle-orm";
 import * as data from "./data";
-import jwt from "jsonwebtoken";
-import { invariant } from "../utilities/invariant";
-
-const jwtSecret = invariant(
-  process.env.JWT_SECRET,
-  "JWT_SECRET must be set in .env file"
-);
 
 export const jobOwnerHash = async (authHeader: string) => {
   const secret = authHeader.split(" ")[1];
@@ -30,14 +23,7 @@ export const jobOwnerHash = async (authHeader: string) => {
 };
 
 export const machineAuthSuccess = async (
-  authHeader: string
+  authHeader: string,
 ): Promise<boolean> => {
-  const jwtToken = authHeader.split(" ")[1];
-
-  try {
-    const decoded = jwt.verify(jwtToken, jwtSecret);
-    return true;
-  } catch (err) {
-    return false;
-  }
+  throw new Error("Deprecated");
 };
