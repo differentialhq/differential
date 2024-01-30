@@ -1,26 +1,12 @@
-import * as data from "./data";
 import { createJob, nextJobs, selfHealJobs } from "./jobs";
 import {
   functionDefinition,
   getServiceDefinitions,
 } from "./service-definitions";
+import { createOwner } from "./test/util";
 
 const mockTargetFn = "testTargetFn";
 const mockTargetArgs = "testTargetArgs";
-
-const createOwner = async () => {
-  const clusterId = Math.random().toString();
-
-  await data.db
-    .insert(data.clusters)
-    .values({
-      id: clusterId,
-      api_secret: "test",
-    })
-    .execute();
-
-  return { clusterId };
-};
 
 describe("createJob", () => {
   it("should create a job", async () => {

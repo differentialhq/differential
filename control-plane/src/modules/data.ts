@@ -55,7 +55,7 @@ export const jobs = pgTable(
   {
     // this column is poorly named, it's actually the job id
     // TODO: (good-first-issue) rename this column to execution_id
-    id: varchar("id", { length: 1024 }).notNull(),
+    id: varchar("id", { length: 1024 }).notNull().unique(),
     owner_hash: text("owner_hash").notNull(),
     target_fn: varchar("target_fn", { length: 1024 }).notNull(),
     target_args: text("target_args").notNull(),
@@ -122,6 +122,24 @@ export const services = pgTable(
     pk: primaryKey(table.cluster_id, table.service),
   }),
 );
+
+export const events = pgTable("events", {
+  id: varchar("id", { length: 1024 }).primaryKey().notNull(),
+  cluster_id: varchar("cluster_id")
+    .references(() => clusters.id)
+    .notNull(),
+  type: varchar("type", { length: 1024 }).notNull(),
+  job_id: varchar("job_id", { length: 1024 }).references(() => jobs.id),
+  machine_id: varchar("machine_id", { length: 1024 }).references(
+    () => machines.id,
+  ),
+  service: varchar("service", { length: 1024 }),
+  created_at: timestamp("created_at", {
+    withTimezone: true,
+    precision: 6,
+  }).notNull(),
+  meta: json("meta"),
+});
 
 export const db = drizzle(pool);
 

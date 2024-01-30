@@ -6,10 +6,10 @@ import * as admin from "./admin";
 import * as auth from "./auth";
 import { contract } from "./contract";
 import * as data from "./data";
-import * as metrics from "./event-aggregation";
-import { writeEvent } from "./events";
 import * as jobs from "./jobs";
 import * as management from "./management";
+import * as eventAggregation from "./observability/event-aggregation";
+import * as events from "./observability/events";
 import * as routingHelpers from "./routing-helpers";
 
 const readFile = util.promisify(fs.readFile);
@@ -283,27 +283,16 @@ export const router = s.router(contract, {
     // TODO: Validate serviceName and functionName
     // We don't currently store and service/function names in the database to validate against.
     const { clusterId } = request.params;
-    const { functionName, serviceName } = request.query;
+    const { serviceName } = request.query;
 
-    // Default to last 24 hours
-    const start = request.query.start ?? new Date(Date.now() - 86400000);
-    const stop = request.query.stop ?? new Date();
-
-    const result = await metrics.getFunctionMetrics({
+    const result = await eventAggregation.getFunctionMetrics({
       clusterId,
-      serviceName,
-      functionName,
-      start,
-      stop,
+      service: serviceName,
     });
 
     return {
       status: 200,
-      body: {
-        start: start,
-        stop: stop,
-        ...result,
-      },
+      body: result,
     };
   },
   ingestClientEvents: async (request) => {
@@ -320,9 +309,16 @@ export const router = s.router(contract, {
         event.tags = {};
       }
 
-      event.tags.machineId = request.headers["x-machine-id"];
-      event.tags.clusterId = owner.clusterId;
-      writeEvent(event);
+      events.write({
+        machineId: request.headers["x-machine-id"],
+        clusterId: owner.clusterId,
+        type: event.type,
+        service: event.tags.service,
+        meta: {
+          ...event.intFields,
+          ...event.tags,
+        },
+      });
     });
 
     return {
@@ -337,10 +333,9 @@ export const router = s.router(contract, {
 
     const { jobId } = request.query;
 
-    const result = await metrics.getJobActivityByJobId({
+    const result = await eventAggregation.getJobActivityByJobId({
       clusterId,
       jobId,
-      interval: request.query.interval,
     });
 
     return {
