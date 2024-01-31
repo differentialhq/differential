@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { ulid } from "ulid";
 import * as data from "../data";
 
@@ -66,17 +67,20 @@ class EventWriterBuffer {
 
   private async writeEvents(events: InsertableEvent[], attempt = 0) {
     try {
-      const result = await data.db.insert(data.events).values(
-        events.map((e) => ({
-          id: ulid(),
-          cluster_id: e.clusterId,
-          type: e.type,
-          job_id: e.jobId,
-          machine_id: e.machineId,
-          created_at: e.createdAt,
-          meta: e.meta,
-          service: e.service,
-        })),
+      if (events.length === 0) {
+        return;
+      }
+
+      const values = events.map(
+        (e) =>
+          sql`(${ulid()}, ${e.clusterId}, ${e.type}, ${e.jobId ?? null}, ${e.machineId ?? null}, ${e.createdAt}, ${e.meta ?? null}, ${e.service ?? null})`,
+      );
+
+      const result = await data.db.execute(
+        sql`
+          INSERT INTO events (id, cluster_id, type, job_id, machine_id, created_at, meta, service)
+          VALUES ${sql.join(values, sql`,`)};
+        `,
       );
 
       console.log("Wrote events", {
