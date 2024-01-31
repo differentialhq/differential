@@ -378,16 +378,18 @@ export const definition = {
       jobId: z.string(),
     }),
   },
-  getDeploymentUploadDetails: {
-    method: "GET",
-    path: "/deployment/:clusterId/service/:serviceName/details",
+  createDeployment: {
+    method: "POST",
+    path: "/clusters/:clusterId/service/:serviceName/deployments",
     headers: z.object({
       authorization: z.string(),
     }),
+    body: z.object({}),
     responses: {
       501: z.undefined(),
       403: z.undefined(),
       200: z.object({
+        id: z.string(),
         packageUploadUrl: z.string(),
         definitionUploadUrl: z.string(),
       }),

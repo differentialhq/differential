@@ -143,6 +143,31 @@ export const events = pgTable("events", {
   meta: json("meta"),
 });
 
+export const deployments = pgTable("deployments", {
+  id: varchar("id", { length: 1024 }).primaryKey().notNull(),
+  cluster_id: varchar("cluster_id")
+    .references(() => clusters.id)
+    .notNull(),
+  service: varchar("service", { length: 1024 }).notNull(),
+  created_at: timestamp("created_at", {
+    withTimezone: true,
+    precision: 6,
+  })
+    .defaultNow()
+    .notNull(),
+  package_upload_path: varchar("package_upload_path", {
+    length: 1024,
+  }).notNull(),
+  definition_upload_path: varchar("definition_upload_url", {
+    length: 1024,
+  }).notNull(),
+  status: text("status", {
+    enum: ["uploading", "active", "inactive"],
+  })
+    .default("uploading")
+    .notNull(),
+});
+
 export const db = drizzle(pool);
 
 export const isAlive = async () => {

@@ -345,7 +345,7 @@ export const router = s.router(contract, {
       body: result,
     };
   },
-  getDeploymentUploadDetails: async (request) => {
+  createDeployment: async (request) => {
     if (!UPLOAD_BUCKET) {
       return {
         status: 501,
@@ -361,22 +361,40 @@ export const router = s.router(contract, {
       };
     }
 
-    const key = ulid();
+    const id = ulid();
+
+    const packageUploadUrl = await getPresignedURL(
+      UPLOAD_BUCKET,
+      clusterId,
+      serviceName,
+      `${id}-package`,
+    );
+    const definitionUploadUrl = await getPresignedURL(
+      UPLOAD_BUCKET,
+      clusterId,
+      serviceName,
+      `${id}-definition`,
+    );
+
+    await data.db
+      .insert(data.deployments)
+      .values([
+        {
+          id: id,
+          cluster_id: clusterId,
+          service: serviceName,
+          package_upload_path: packageUploadUrl,
+          definition_upload_path: definitionUploadUrl,
+        },
+      ])
+      .execute();
+
     return {
       status: 200,
       body: {
-        packageUploadUrl: await getPresignedURL(
-          UPLOAD_BUCKET,
-          clusterId,
-          serviceName,
-          `${key}-package`,
-        ),
-        definitionUploadUrl: await getPresignedURL(
-          UPLOAD_BUCKET,
-          clusterId,
-          serviceName,
-          `${key}-definition`,
-        ),
+        id,
+        packageUploadUrl,
+        definitionUploadUrl,
       },
     };
   },

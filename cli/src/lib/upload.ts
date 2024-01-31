@@ -21,7 +21,7 @@ export const uploadPackage = async (
 ): Promise<void> => {
   log("Uploading package", { packagePath });
 
-  const result = await client.getDeploymentUploadDetails({
+  const result = await client.createDeployment({
     params: {
       clusterId,
       serviceName,
@@ -34,7 +34,8 @@ export const uploadPackage = async (
     );
   }
 
-  const { packageUploadUrl, definitionUploadUrl } = result.body;
+  const { packageUploadUrl, definitionUploadUrl, id } = result.body;
+  log("Created deployment", { id });
 
   const results = await Promise.all([
     fetch(packageUploadUrl, {
@@ -60,4 +61,6 @@ export const uploadPackage = async (
       );
     }
   });
+
+  log("Uploaded deployment assets", { id });
 };
