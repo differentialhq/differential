@@ -133,6 +133,7 @@ type ServiceRegistryFunction = {
 const functionRegistry: { [key: string]: ServiceRegistryFunction } = {};
 
 class PollingAgent {
+  private errorCount = 0;
   private taskQueue = new TaskQueue();
   private abortController = new AbortController();
   private pollingAborted = false;
@@ -163,17 +164,18 @@ class PollingAgent {
     );
   }
 
-  private pollForNextJob = async (): Promise<
-    | {
-        jobCount: number;
-      }
-    | undefined
-  > => {
+  private async pollForNextJob(): Promise<{
+    jobCount: number;
+    ok: boolean;
+  }> {
     log("Polling for next job", { service: this.service });
 
     if (this.pollState.concurrency <= this.pollState.current) {
       log("Max concurrency reached");
-      return;
+      return {
+        jobCount: 0,
+        ok: true,
+      };
     }
 
     // TODO: cache this
@@ -218,6 +220,11 @@ class PollingAgent {
 
     if (pollResult.status === 400) {
       log("Error polling for next job", JSON.stringify(pollResult.body));
+
+      return {
+        jobCount: 0,
+        ok: false,
+      };
     } else if (pollResult.status === 200) {
       log("Received jobs", pollResult.body.length);
 
@@ -301,24 +308,44 @@ class PollingAgent {
 
       return {
         jobCount: jobs.length,
+        ok: true,
       };
     } else if (pollResult.status === 401) {
       throw new DifferentialError(DifferentialError.UNAUTHORISED);
     } else {
       log("Error polling for next job", { pollResult });
-    }
-  };
 
-  private async startPolling(): Promise<void> {
+      return {
+        jobCount: 0,
+        ok: false,
+      };
+    }
+  }
+
+  private async poll(): Promise<void> {
     if (this.abortController.signal.aborted) {
       this.pollingAborted = true;
       log("Polling aborted");
       return;
     }
 
-    await this.pollForNextJob();
+    const [{ ok }] = await Promise.all([
+      await this.pollForNextJob(),
+      await new Promise((resolve) => setTimeout(resolve, 2000)), // this acts as a throttle
+    ]);
 
-    return this.startPolling();
+    if (ok) {
+      this.errorCount = 0;
+    } else {
+      this.errorCount += 1;
+    }
+
+    if (this.errorCount > 10) {
+      log("Too many errors, stopping polling agent", { service: this.service });
+      this.quit();
+    }
+
+    return this.poll();
   }
 
   start() {
@@ -326,7 +353,7 @@ class PollingAgent {
 
     this.active = true;
 
-    this.startPolling();
+    this.poll();
   }
 
   async quit(): Promise<void> {
