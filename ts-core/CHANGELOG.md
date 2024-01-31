@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.10.0](https://github.com/differentialhq/differential/compare/v3.9.0...v3.10.0) (2024-01-31)
+
+### Bug Fixes
+
+- A more readable e2e caching test ([#94](https://github.com/differentialhq/differential/issues/94)) ([ceef93f](https://github.com/differentialhq/differential/commit/ceef93f1050e63b573087881bf51f8b088124577))
+- Fix serializing unregistered function errors ([#96](https://github.com/differentialhq/differential/issues/96)) ([f844184](https://github.com/differentialhq/differential/commit/f844184d4fe71e25ddb7f23b90caac0063720b54))
+
+### Features
+
+- Adding the retryable function decorator ([#91](https://github.com/differentialhq/differential/issues/91)) ([5992e1c](https://github.com/differentialhq/differential/commit/5992e1cb2bcb45785db792418b9e1ffdc0871edf))
+
 # [3.9.0](https://github.com/differentialhq/differential/compare/v3.8.0...v3.9.0) (2024-01-25)
 
 ### Bug Fixes
