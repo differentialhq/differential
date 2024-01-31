@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.10.1](https://github.com/differentialhq/differential/compare/v3.10.0...v3.10.1) (2024-01-31)
+
+### Bug Fixes
+
+- Throttle polling to recover from server failures ([#98](https://github.com/differentialhq/differential/issues/98)) ([865de2a](https://github.com/differentialhq/differential/commit/865de2a6135ab35b58266cb312dea31e45642436))
+
 # [3.10.0](https://github.com/differentialhq/differential/compare/v3.9.0...v3.10.0) (2024-01-31)
 
 ### Bug Fixes
