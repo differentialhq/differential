@@ -38,6 +38,8 @@ const getKey: GetPublicKeyOrSecret = (header, callback) => {
   });
 };
 
+export const CONTROL_PLANE_ADMINISTRATOR = "control-plane-administrator";
+
 export const verifyManagementToken = async ({
   managementToken,
 }: {
@@ -52,7 +54,7 @@ export const verifyManagementToken = async ({
 
     if (secretsMatch) {
       return {
-        userId: "control-plane-administrator",
+        userId: CONTROL_PLANE_ADMINISTRATOR,
       };
     } else {
       throw new AuthenticationError("Invalid token");

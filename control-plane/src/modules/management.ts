@@ -63,6 +63,10 @@ export const hasAccessToCluster = async ({
 }): Promise<boolean> => {
   const verified = await jwt.verifyManagementToken({ managementToken });
 
+  if (verified.userId === jwt.CONTROL_PLANE_ADMINISTRATOR) {
+    return true;
+  }
+
   const clusters = await data.db
     .select({
       id: data.clusters.id,
