@@ -1,1 +1,1 @@
-ALTER TABLE "clusters" ADD COLUMN "cloud_enabled" boolean DEFAULT false;
+ALTER TABLE "clusters" ADD COLUMN IF NOT EXISTS "cloud_enabled" boolean DEFAULT false;
