@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
+  boolean,
   integer,
   json,
   pgTable,
@@ -107,6 +108,7 @@ export const clusters = pgTable("clusters", {
     .notNull(),
   wake_up_config: json("wake_up_config"),
   owner_id: varchar("owner_id"),
+  cloud_enabled: boolean("cloud_enabled").default(false),
 });
 
 export const services = pgTable(
@@ -139,6 +141,31 @@ export const events = pgTable("events", {
     precision: 6,
   }).notNull(),
   meta: json("meta"),
+});
+
+export const deployments = pgTable("deployments", {
+  id: varchar("id", { length: 1024 }).primaryKey().notNull(),
+  cluster_id: varchar("cluster_id")
+    .references(() => clusters.id)
+    .notNull(),
+  service: varchar("service", { length: 1024 }).notNull(),
+  created_at: timestamp("created_at", {
+    withTimezone: true,
+    precision: 6,
+  })
+    .defaultNow()
+    .notNull(),
+  package_upload_path: varchar("package_upload_path", {
+    length: 1024,
+  }).notNull(),
+  definition_upload_path: varchar("definition_upload_url", {
+    length: 1024,
+  }).notNull(),
+  status: text("status", {
+    enum: ["uploading", "active", "inactive"],
+  })
+    .default("uploading")
+    .notNull(),
 });
 
 export const db = drizzle(pool);

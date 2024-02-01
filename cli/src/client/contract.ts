@@ -384,7 +384,7 @@ export const definition = {
     headers: z.object({
       authorization: z.string(),
     }),
-    body: z.undefined(),
+    body: z.object({}),
     responses: {
       501: z.undefined(),
       403: z.undefined(),
