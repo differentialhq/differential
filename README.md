@@ -6,54 +6,84 @@
 
 # Differential
 
-Differential allows you to break up your monolithic Typescript service into highly malleable and composable services, without the boilerplate.
+Differential is an open-source "Durable RPC" framework for TypeScript. It uses a **centralised control-plane** and SDK that give superpowers to your remote function calls.
+
+- Delightful DX: Write your remote calls as if they were local, with full type safety.
+- Reliable: The control plane transparently handles network faults, machine restarts, retries across all your functions.
+- Batteries Included: Comes with end-to-end encryption, observability, service registry, caching, and more.
 
 ![Alt text](assets/image-3.png)
 
-## The Problem
+## Differential in 60 seconds
 
-You have a well-architected monolith. You've determined that it's time to break it up into 2 or more services. But the overhead of going for a service-oriented/microservices architecture is traditionally very high. You have to:
+### 1. Write a service that connects to the Differential control-plane
 
-1. Figure out which functionality to break out into a service
-2. Split up the code
-3. Decide on a service communication protocol (HTTP, gRPC, tRPC, etc)
-4. Copy paste boilerplate code for each service and/or write libraries to abstract away the boilerplate
-5. Set up obervability / health checks / etc for each service
-6. Write/move the business logic for each service
-7. Write the service interfaces for each service (e.g. protobufs, OpenAPI, ts-rest/zod)
-8. Document the interplay of services for other developers
+```ts
+import { Differential, cached, idempotent } from "@differentialhq/core";
 
-This is a lot of work, and it's not even the fun part of building a product. If business requirements change and you need to change the boundaries of your services, you have to do it all over again.
+// You can get a token from
+// - curl https://api.differential.dev/demo/token
+// - self-hosting the control-plane: https://docs.differential.dev/advanced/self-hosting/
+// - or by signing up for Differential Cloud: https://forms.fillout.com/t/9M1VhL8Wxyus
+const d = new Differential("MY_API_SECRET");
 
-### This leads many engineering teams to:
+// Write your business logic as if it were local
 
-1. Delay breaking up their monoliths when it would be beneficial to do so, or...
-2. Break it up early and suffer the consequences of a poorly architected services architecture.
+function sum(a: number, b: number) {
+  return a + b;
+}
 
-## The Solution
+function square(x: number) {
+  return x * x;
+}
 
-Differential is an **application code aware service mesh, and a distributed orchestrator**. It is designed to:
+function get(url: string) {
+  // ...even functions with side effects
+  return fetch(url).then((res) => res.json());
+}
 
-1. Make it easy to break up your monolith into services
-2. Make it easy to change the boundaries of your services as your business requirements change
-3. Make it easy to hit "Abort" and go back to a monolith if you need to
+// Register your functions with the control-plane
+const myService = d.service("my-service", {
+  sum: sum,
+  square: cached(square, { ttl: 60 }),
+  get: idempotent(get),
+});
 
-| Problem                                                                                               | Solution                                                                                                                                                                       |
-| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Figure out which functionality to break out into a service.                                           | 👍 This is the highest-value problem worth solving. Differential helps you focus on this problem.                                                                              |
-| Split up the codebase                                                                                 | ✅ With Differential, you don't have to split up your codebase.                                                                                                                |
-| Decide on a service communication protocol (HTTP, gRPC, tRPC, etc.).                                  | ✅ Differential abstracts this away from you, unless you want to look under the hood. It uses HTTP.                                                                            |
-| Copy/Paste boilerplate code for each service and/or write libraries to abstract away the boilerplate. | ✅ Differential provides you with the tools to keep your code co-located, but deployable as independent services at runtime.                                                   |
-| Set up observability / health checks / monitoring for each service.                                   | ✅ Differential comes with a dev console which gives you full observability down to the function level. You can see errors, detailed logs and execution times with zero-setup. |
-| Write/move business logic for each service.                                                           | ✅ Differential services are simply javascript objects that define which functions (a.k.a business logic) belong to which service.                                             |
-| Write the service interfaces for each service (e.g. protobufs, OpenAPI, ts-rest/zod).                 | ✅ Differential infers your service interface from your function types. Your services become end-to-end typesafe. There's no need for another interchange format.              |
-| Document the interplay of services for other developers.                                              | ✅ Differential's dev console gives you a full view of your service registry, which functions are registered, and the live status for each.                                    |
+// Start the service, and it will connect to the
+// control-plane and listen for function calls from other places
+myService.start();
+```
 
-# Documentation
+### 2. Consume the service with full type safety from anywhere
+
+```ts
+import { Differential } from "@differentialhq/core";
+
+// Import the types of the Differential service
+import type { myService } from "./my-service";
+
+// Initialize the Differential SDK with the same API secret
+const d = new Differential("MY_API_SECRET");
+
+// Create a client for the service.
+const client = d.service<typeof myService>("my-service");
+
+// call the remote functions as if they were local, with full type safety
+
+client.sum(1, 2).then(console.log); // 3
+
+client.square(3).then(console.log); // 9
+client.square(3).then(console.log); // 9 -> Cached! Doesn't call till 60 seconds.
+
+client.get("https://api.differential.dev/live").then(console.log); // { status: "ok" }
+client.get("https://api.differential.dev/live").then(console.log); // { status: "ok" } -> Idempotent! Doesn't make a network request.
+```
+
+## Documentation
 
 All documentation is hosted at [docs.differential.dev](https://docs.differential.dev). Here are some quick links to get you started:
 
-- [Quick Start](https://docs.differential.dev/getting-started/quick-start/)
+- [Build your first end-to-end Differential service in 2 minutes](https://docs.differential.dev/getting-started/quick-start/)
 - [Thinking in Differential](https://docs.differential.dev/getting-started/thinking/)
 - [How it works under the hood](https://docs.differential.dev/advanced/architecture/)
 - [Self-hosting](https://docs.differential.dev/advanced/self-hosting/)

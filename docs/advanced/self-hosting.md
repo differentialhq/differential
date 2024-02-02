@@ -32,7 +32,7 @@ fly deploy --vm-cpu-kind "shared" --vm-cpus "1" --vm-memory "512"
 # MANAGEMENT_SECRET must start with "sk_management_" and contain at least 32 characters
 MANAGEMENT_SECRET="sk_management_$(openssl rand -base64 32)"
 echo "$MANAGEMENT_SECRET" > management-secret.txt
-fly secrets set MANAGEMENT_SECRET="sk_management_$(openssl rand -base64 32)"
+fly secrets set MANAGEMENT_SECRET="$MANAGEMENT_SECRET"
 ```
 
 ### Creating the postgres instance
