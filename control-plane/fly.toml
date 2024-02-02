@@ -1,8 +1,3 @@
-# fly.toml app configuration file generated for differential-core on 2023-08-23T22:01:07+10:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
 app = "differential-core"
 primary_region = "lax"
 

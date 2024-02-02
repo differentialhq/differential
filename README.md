@@ -56,7 +56,7 @@ All documentation is hosted at [docs.differential.dev](https://docs.differential
 - [Quick Start](https://docs.differential.dev/getting-started/quick-start/)
 - [Thinking in Differential](https://docs.differential.dev/getting-started/thinking/)
 - [How it works under the hood](https://docs.differential.dev/advanced/architecture/)
-- Self-hosting (Coming soon)
+- [Self-hosting](https://docs.differential.dev/advanced/self-hosting/)
 
 # Features
 
@@ -68,6 +68,7 @@ All documentation is hosted at [docs.differential.dev](https://docs.differential
 - [x] [Observability and tracing at the function level](https://forms.fillout.com/t/9M1VhL8Wxyus)
 - [x] [Service registry](https://forms.fillout.com/t/9M1VhL8Wxyus)
 - [x] [Cache function results globally](https://docs.differential.dev/advanced/advanced-usage/#global-cache)
+- [x] [Self-hosting on your own infrastructure](https://docs.differential.dev/advanced/self-hosting/)
 - [ ] Per-function rate limiting
 - [ ] One-line deployment to AWS Lambda
 - [ ] AI-generated developer documentation
