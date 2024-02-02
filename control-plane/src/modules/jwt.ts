@@ -32,7 +32,15 @@ const client = process.env.JWKS_URL
   : null;
 
 const getKey: GetPublicKeyOrSecret = (header, callback) => {
-  return client?.getSigningKey(header.kid, function (err, key) {
+  if (!client) {
+    return callback(
+      new Error(
+        "JWKS client not initialized. Probably missing JWKS_URL in env.",
+      ),
+    );
+  }
+
+  return client.getSigningKey(header.kid, function (err, key) {
     var signingKey = key?.getPublicKey();
     callback(err, signingKey);
   });
