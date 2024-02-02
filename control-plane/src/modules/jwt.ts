@@ -8,20 +8,45 @@ export class AuthenticationError extends Error {
   }
 }
 
-if (!process.env.JWKS_URL) {
-  throw new Error("JWKS_URL must be set");
+if (!process.env.JWKS_URL && !process.env.MANAGEMENT_SECRET) {
+  throw new Error("No JWKS_URL or MANAGEMENT_SECRET in env. One is required.");
 }
 
-const client = jwksClient({
-  jwksUri: process.env.JWKS_URL,
-});
+if (process.env.MANAGEMENT_SECRET) {
+  const hasPrefix = process.env.MANAGEMENT_SECRET.startsWith("sk_management_");
+  const hasLength = process.env.MANAGEMENT_SECRET.length > 64;
+
+  if (!hasPrefix) {
+    throw new Error("MANAGEMENT_SECRET must start with sk_management_");
+  }
+
+  if (!hasLength) {
+    throw new Error("MANAGEMENT_SECRET must be longer than 64 characters");
+  }
+}
+
+const client = process.env.JWKS_URL
+  ? jwksClient({
+      jwksUri: process.env.JWKS_URL,
+    })
+  : null;
 
 const getKey: GetPublicKeyOrSecret = (header, callback) => {
+  if (!client) {
+    return callback(
+      new Error(
+        "JWKS client not initialized. Probably missing JWKS_URL in env.",
+      ),
+    );
+  }
+
   return client.getSigningKey(header.kid, function (err, key) {
     var signingKey = key?.getPublicKey();
     callback(err, signingKey);
   });
 };
+
+export const CONTROL_PLANE_ADMINISTRATOR = "control-plane-administrator";
 
 export const verifyManagementToken = async ({
   managementToken,
@@ -30,6 +55,20 @@ export const verifyManagementToken = async ({
 }): Promise<{
   userId: string;
 }> => {
+  const managementSecretAuthEnabled = Boolean(process.env.MANAGEMENT_SECRET);
+
+  if (managementSecretAuthEnabled && managementToken) {
+    const secretsMatch = managementToken === process.env.MANAGEMENT_SECRET;
+
+    if (secretsMatch) {
+      return {
+        userId: CONTROL_PLANE_ADMINISTRATOR,
+      };
+    } else {
+      throw new AuthenticationError("Invalid token");
+    }
+  }
+
   return new Promise((resolve, reject) => {
     jwt.verify(
       managementToken,
@@ -54,7 +93,7 @@ export const verifyManagementToken = async ({
         return resolve({
           userId: decoded.sub,
         });
-      }
+      },
     );
   });
 };

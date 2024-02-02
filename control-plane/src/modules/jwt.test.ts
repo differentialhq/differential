@@ -19,7 +19,33 @@ describe("verifyManagementToken", () => {
     const token = `1234`;
 
     await expect(
-      jwt.verifyManagementToken({ managementToken: token })
+      jwt.verifyManagementToken({ managementToken: token }),
     ).rejects.toThrowError("jwt malformed");
+  });
+
+  it("should accept a correct management secret", async () => {
+    const token =
+      "sk_management_98a7oysidtghfkjbaslnd;fuays87otdiygfukahjsbdlf;a;soihudyfgajvshkbdlnf;asdfh";
+
+    process.env.MANAGEMENT_SECRET = token;
+
+    const result = await jwt.verifyManagementToken({
+      managementToken: token,
+    });
+
+    expect(result).toEqual({
+      userId: "control-plane-administrator",
+    });
+  });
+
+  it("should throw on an incorrect management secret", async () => {
+    const token =
+      "sk_management_98a7oysidtghfkjbaslnd;fuays87otdiygfukahjsbdlf;a;soihudyfgajvshkbdlnf;asdfh";
+
+    process.env.MANAGEMENT_SECRET = token;
+
+    await expect(
+      jwt.verifyManagementToken({ managementToken: "sk_management_1234" }),
+    ).rejects.toThrowError("Invalid token");
   });
 });
