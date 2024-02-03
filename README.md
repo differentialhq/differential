@@ -11,6 +11,7 @@ Differential is an open-source "Durable RPC" framework for TypeScript. It uses a
 - Delightful DX: Write your remote calls as if they were local, with full type safety.
 - Reliable: The control plane transparently handles network faults, machine restarts, retries across all your functions.
 - Batteries Included: Comes with end-to-end encryption, observability, service registry, caching, and more.
+- Open Source and Self-Hostable: Differential is fully open-source and can be self-hosted.
 
 ![Alt text](assets/image-3.png)
 
