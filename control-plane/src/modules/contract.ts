@@ -387,11 +387,49 @@ export const definition = {
     body: z.undefined(),
     responses: {
       501: z.undefined(),
-      403: z.undefined(),
+      401: z.undefined(),
       200: z.object({
         id: z.string(),
         packageUploadUrl: z.string(),
         definitionUploadUrl: z.string(),
+        status: z.string(),
+      }),
+    },
+  },
+  getDeployment: {
+    method: "GET",
+    path: "/clusters/:clusterId/service/:serviceName/deployments/:deploymentId",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.undefined(),
+    responses: {
+      401: z.undefined(),
+      404: z.undefined(),
+      200: z.object({
+        id: z.string(),
+        packageUploadUrl: z.string(),
+        definitionUploadUrl: z.string(),
+        status: z.string(),
+      }),
+    },
+  },
+  releaseDeployment: {
+    method: "POST",
+    path: "/clusters/:clusterId/service/:serviceName/deployments/:deploymentId/release",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.undefined(),
+    responses: {
+      400: z.undefined(),
+      401: z.undefined(),
+      404: z.undefined(),
+      200: z.object({
+        id: z.string(),
+        packageUploadUrl: z.string(),
+        definitionUploadUrl: z.string(),
+        status: z.string(),
       }),
     },
   },

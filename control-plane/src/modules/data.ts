@@ -161,12 +161,21 @@ export const deployments = pgTable("deployments", {
   definition_upload_path: varchar("definition_upload_url", {
     length: 1024,
   }).notNull(),
+  meta: json("meta"),
   status: text("status", {
-    enum: ["uploading", "active", "inactive"],
+    enum: ["uploading", "ready", "active", "inactive"],
   })
     .default("uploading")
     .notNull(),
 });
+
+export const deploymentProvividerConfig = pgTable(
+  "deployment_provider_config",
+  {
+    provider: varchar("provider", { length: 1024 }).primaryKey().notNull(),
+    config: json("config"),
+  },
+);
 
 export const db = drizzle(pool);
 
