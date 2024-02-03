@@ -1,7 +1,6 @@
 import { initServer } from "@ts-rest/fastify";
 import fs from "fs";
 import path from "path";
-import { ulid } from "ulid";
 import util from "util";
 import * as admin from "./admin";
 import * as auth from "./auth";
@@ -12,7 +11,12 @@ import * as management from "./management";
 import * as eventAggregation from "./observability/event-aggregation";
 import * as events from "./observability/events";
 import * as routingHelpers from "./routing-helpers";
-import { UPLOAD_BUCKET, getPresignedURL } from "./s3";
+import {
+  createDeployment,
+  getDeployment,
+  releaseDeployment,
+} from "./deployment/deployment";
+import { UPLOAD_BUCKET } from "./s3";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -346,14 +350,14 @@ export const router = s.router(contract, {
     };
   },
   createDeployment: async (request) => {
-    if (!UPLOAD_BUCKET) {
+    const owner = await auth.jobOwnerHash(request.headers.authorization);
+    const { clusterId, serviceName } = request.params;
+
+    if (UPLOAD_BUCKET === undefined) {
       return {
         status: 501,
       };
     }
-
-    const owner = await auth.jobOwnerHash(request.headers.authorization);
-    const { clusterId, serviceName } = request.params;
 
     if (!owner || owner.clusterId !== clusterId || !owner.cloudEnabled) {
       return {
@@ -361,41 +365,68 @@ export const router = s.router(contract, {
       };
     }
 
-    const id = ulid();
-
-    const packageUploadUrl = await getPresignedURL(
-      UPLOAD_BUCKET,
+    const deployment = await createDeployment({
       clusterId,
       serviceName,
-      `${id}-package`,
-    );
-    const definitionUploadUrl = await getPresignedURL(
-      UPLOAD_BUCKET,
-      clusterId,
-      serviceName,
-      `${id}-definition`,
-    );
-
-    await data.db
-      .insert(data.deployments)
-      .values([
-        {
-          id: id,
-          cluster_id: clusterId,
-          service: serviceName,
-          package_upload_path: packageUploadUrl,
-          definition_upload_path: definitionUploadUrl,
-        },
-      ])
-      .execute();
+    });
 
     return {
       status: 200,
-      body: {
-        id,
-        packageUploadUrl,
-        definitionUploadUrl,
-      },
+      body: deployment,
+    };
+  },
+  getDeployment: async (request) => {
+    const owner = await auth.jobOwnerHash(request.headers.authorization);
+    const { clusterId, serviceName, deploymentId } = request.params;
+
+    if (!owner || owner.clusterId !== clusterId || !owner.cloudEnabled) {
+      return {
+        status: 401,
+      };
+    }
+
+    const deployment = await getDeployment({
+      clusterId,
+      serviceName,
+      id: deploymentId,
+    });
+
+    return {
+      status: 200,
+      body: deployment,
+    };
+  },
+  releaseDeployment: async (request) => {
+    const owner = await auth.jobOwnerHash(request.headers.authorization);
+    const { clusterId, serviceName, deploymentId } = request.params;
+
+    if (!owner || owner.clusterId !== clusterId || !owner.cloudEnabled) {
+      return {
+        status: 401,
+      };
+    }
+
+    const deployment = await getDeployment({
+      clusterId,
+      serviceName,
+      id: deploymentId,
+    });
+
+    if (!deployment) {
+      return {
+        status: 404,
+      };
+    }
+
+    if (deployment.status !== "ready") {
+      return {
+        status: 400,
+      };
+    }
+
+    return {
+      status: 200,
+      body: await releaseDeployment(deployment),
     };
   },
 });
