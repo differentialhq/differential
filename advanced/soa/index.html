@@ -9,33 +9,32 @@
     <meta name="generator" content="Retype 3.5.0">
 
     <!-- Primary Meta Tags -->
-    <title>Typescript SDK</title>
-    <meta name="title" content="Typescript SDK">
-    <meta name="description" content="This is the official Differential SDK for Typescript.">
+    <title>Monolith to Microservices and Back</title>
+    <meta name="title" content="Monolith to Microservices and Back">
+    <meta name="description" content="A key value proposition of Differential is that it makes it easy to break up your monolith into services.">
 
     <!-- Canonical -->
-    <link rel="canonical" href="https://docs.differential.dev/api/">
+    <link rel="canonical" href="https://docs.differential.dev/advanced/soa/">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://docs.differential.dev/api/">
-    <meta property="og:title" content="Typescript SDK">
-    <meta property="og:description" content="This is the official Differential SDK for Typescript.">
+    <meta property="og:url" content="https://docs.differential.dev/advanced/soa/">
+    <meta property="og:title" content="Monolith to Microservices and Back">
+    <meta property="og:description" content="A key value proposition of Differential is that it makes it easy to break up your monolith into services.">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://docs.differential.dev/api/">
-    <meta property="twitter:title" content="Typescript SDK">
-    <meta property="twitter:description" content="This is the official Differential SDK for Typescript.">
+    <meta property="twitter:url" content="https://docs.differential.dev/advanced/soa/">
+    <meta property="twitter:title" content="Monolith to Microservices and Back">
+    <meta property="twitter:description" content="A key value proposition of Differential is that it makes it easy to break up your monolith into services.">
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../resources/css/retype.css?v=3.5.0.760238534012" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.760238534012" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.5.0.760238534012" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.5.0.760238534012" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.5.0.760238534012" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.760238534012" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.760238534012" data-turbo-eval="false" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -55,10 +54,10 @@
                 <!-- Logo -->
                 <div class="flex items-center justify-between h-full py-2 md:w-75">
                     <div class="flex items-center px-2 md:px-6">
-                        <a id="docs-site-logo" href="../" class="flex items-center leading-snug text-xl">
+                        <a id="docs-site-logo" href="../../" class="flex items-center leading-snug text-xl">
                             <span class="w-10 mr-2 grow-0 shrink-0 overflow-hidden">
-                                <img class="max-h-10 dark:hidden md:inline-block" src="../256.png">
-                                <img class="max-h-10 hidden dark:inline-block" src="../256.png">
+                                <img class="max-h-10 dark:hidden md:inline-block" src="../../256.png">
+                                <img class="max-h-10 hidden dark:inline-block" src="../../256.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Differential Docs</span>
                         </a>
@@ -179,158 +178,98 @@
                                 <!-- Rendered if sidebar right is enabled -->
                                 <div id="docs-sidebar-right-toggle"></div>
                                 <!-- Page content  -->
-<p align="center">
-  <img src="https://cdn.differential.dev/logo.png" width="200" style="border-radius: 10px" />
-</p>
-<doc-anchor-target id="typescript-sdk" class="break-words">
+<doc-anchor-target id="monolith-to-microservices-and-back" class="break-words">
     <h1>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#typescript-sdk">#</doc-anchor-trigger>
-        <span>Typescript SDK</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#monolith-to-microservices-and-back">#</doc-anchor-trigger>
+        <span>Monolith to Microservices and Back</span>
     </h1>
 </doc-anchor-target>
-<p>This is the official Differential SDK for Typescript.</p>
-<doc-anchor-target id="installation">
+<p>A key value proposition of Differential is that it makes it easy to break up your monolith into services. This is a big deal, because breaking up a monolith is traditionally a very high overhead process. Differential makes it easy to break up your monolith into services, and to change the boundaries of your services as your business requirements change.</p>
+<p>It also makes it easy to hit &quot;Abort&quot; and go back to a monolith if you need to.</p>
+<doc-anchor-target id="the-problem">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#installation">#</doc-anchor-trigger>
-        <span>Installation</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#the-problem">#</doc-anchor-trigger>
+        <span>The Problem</span>
     </h2>
 </doc-anchor-target>
-<doc-anchor-target id="npm">
+<p>You have a well-architected monolith. You&#x27;ve determined that it&#x27;s time to break it up into 2 or more services. But the overhead of going for a service-oriented/microservices architecture is traditionally very high. You have to:</p>
+<ol>
+<li>Figure out which functionality to break out into a service</li>
+<li>Split up the code</li>
+<li>Decide on a service communication protocol (HTTP, gRPC, tRPC, etc)</li>
+<li>Copy paste boilerplate code for each service and/or write libraries to abstract away the boilerplate</li>
+<li>Set up obervability / health checks / etc for each service</li>
+<li>Write/move the business logic for each service</li>
+<li>Write the service interfaces for each service (e.g. protobufs, OpenAPI, ts-rest/zod)</li>
+<li>Document the interplay of services for other developers</li>
+</ol>
+<p>This is a lot of work, and it&#x27;s not even the fun part of building a product. If business requirements change and you need to change the boundaries of your services, you have to do it all over again.</p>
+<doc-anchor-target id="this-leads-many-engineering-teams-to">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#npm">#</doc-anchor-trigger>
-        <span>npm</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#this-leads-many-engineering-teams-to">#</doc-anchor-trigger>
+        <span>This leads many engineering teams to:</span>
     </h3>
 </doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">npm install @differentialhq/core</code></pre>
-</doc-codeblock></div>
-<doc-anchor-target id="yarn">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#yarn">#</doc-anchor-trigger>
-        <span>yarn</span>
-    </h3>
-</doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">yarn add @differentialhq/core</code></pre>
-</doc-codeblock></div>
-<doc-anchor-target id="pnpm">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#pnpm">#</doc-anchor-trigger>
-        <span>pnpm</span>
-    </h3>
-</doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">pnpm add @differentialhq/core</code></pre>
-</doc-codeblock></div>
-<doc-anchor-target id="quick-start">
+<ol>
+<li>Delay breaking up their monoliths when it would be beneficial to do so, or...</li>
+<li>Break it up early and suffer the consequences of a poorly architected services architecture.</li>
+</ol>
+<doc-anchor-target id="the-solution">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#quick-start">#</doc-anchor-trigger>
-        <span>Quick Start</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#the-solution">#</doc-anchor-trigger>
+        <span>The Solution</span>
     </h2>
 </doc-anchor-target>
-<doc-anchor-target id="1-initializing-differential">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#1-initializing-differential">#</doc-anchor-trigger>
-        <span>1. Initializing Differential</span>
-    </h3>
-</doc-anchor-target>
-<p>Create a file named d.ts which will be used to initialize Differential. This file will export the Differential instance.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-typescript"><code v-pre class="language-typescript">// d.ts
-
-import { Differential } from &quot;@differentialhq/core&quot;;
-
-// Initialize Differential with your API secret. 
-// Get yours at https://console.differential.dev.
-export const d = new Differential(&quot;YOUR_API_SECRET&quot;);</code></pre>
-</doc-codeblock></div>
-<doc-anchor-target id="2-hello-world-service">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#2-hello-world-service">#</doc-anchor-trigger>
-        <span>2. Hello World Service</span>
-    </h3>
-</doc-anchor-target>
-<p>In a separate file, create the &quot;Hello World&quot; service. This file will import the Differential instance from d.ts and define the service.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-typescript"><code v-pre class="language-typescript">// service.ts
-
-import { d } from &quot;./d&quot;;
-
-// Define a simple function that returns &quot;Hello, World!&quot;
-const sayHello = async (to: string) =&gt; {
-  return `Hello, ${to}!`;
-};
-
-// ...and as many other functions as you want, any async function can be a service operation
-const callEndpoint = async () =&gt; {
-  return fetch(&quot;https://api.example.com&quot;);
-};
-
-// Register the function as a service
-export const helloWorldService = d.service({
-  name: &quot;helloWorld&quot;,
-  functions: {
-    sayHello,
-    callEndpoint,
-  },
-});</code></pre>
-</doc-codeblock></div>
-<doc-anchor-target id="3-calling-the-service">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#3-calling-the-service">#</doc-anchor-trigger>
-        <span>3. Calling the Service</span>
-    </h3>
-</doc-anchor-target>
-<p>When calling the service, use the typeof generic to ensure type safety. This can be done in any file where you need to call the service, like a test file or another service file.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-typescript"><code v-pre class="language-typescript">// service-consumer.ts
-
-import { d } from &quot;./d&quot;;
-import type { helloWorldService } from &quot;./service&quot;;
-
-const client = d.client&lt;typeof helloWorldService&gt;(&quot;helloWorld&quot;);
-
-async function test() {
-  const greeting = await client.sayHello(&quot;World&quot;);
-  console.log(greeting); // Outputs: Hello, World!
-}
-
-test();</code></pre>
-</doc-codeblock></div>
-<doc-anchor-target id="4-running-the-service">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#4-running-the-service">#</doc-anchor-trigger>
-        <span>4. Running the Service</span>
-    </h3>
-</doc-anchor-target>
-<p>To run the service, simply run the file with the service definition. This will start the service and make it available to other services.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">tsx service.ts</code></pre>
-</doc-codeblock></div>
-<p>and then you can invoke the service from another file:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">tsx service-consumer.ts</code></pre>
-</doc-codeblock></div>
-<doc-anchor-target id="documentation">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#documentation">#</doc-anchor-trigger>
-        <span>Documentation</span>
-    </h2>
-</doc-anchor-target>
-<ul>
-<li><a href="https://docs.differential.dev/">Differential documentation</a> contains all the information you need to get started with Differential.</li>
-</ul>
-<doc-anchor-target id="examples">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#examples">#</doc-anchor-trigger>
-        <span>Examples</span>
-    </h2>
-</doc-anchor-target>
-<ul>
-<li><a href="./src/tests/monolith/">Monolith</a> contains an example of a monolith application broken into multiple services.</li>
-<li><a href="./src/tests/e2ee/">End to end encryption</a> contains an example of how to use Differential&#x27;s end to end encryption.</li>
-<li><a href="./src/tests/idempotency/">Idempotency</a> contains an example of how to use Differential&#x27;s idempotency.</li>
-</ul>
+<p>Differential is an <strong>application code aware service mesh, and a distributed orchestrator</strong>. It is designed to:</p>
+<ol>
+<li>Make it easy to break up your monolith into services</li>
+<li>Make it easy to change the boundaries of your services as your business requirements change</li>
+<li>Make it easy to hit &quot;Abort&quot; and go back to a monolith if you need to</li>
+</ol>
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Problem</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Figure out which functionality to break out into a service.</td>
+<td><span class="docs-emoji">&#x1F44D;</span> This is the highest-value problem worth solving. Differential helps you focus on this problem.</td>
+</tr>
+<tr>
+<td>Split up the codebase</td>
+<td><span class="docs-emoji">&#x2705;</span> With Differential, you don&#x27;t have to split up your codebase.</td>
+</tr>
+<tr>
+<td>Decide on a service communication protocol (HTTP, gRPC, tRPC, etc.).</td>
+<td><span class="docs-emoji">&#x2705;</span> Differential abstracts this away from you, unless you want to look under the hood. It uses HTTP.</td>
+</tr>
+<tr>
+<td>Copy/Paste boilerplate code for each service and/or write libraries to abstract away the boilerplate.</td>
+<td><span class="docs-emoji">&#x2705;</span> Differential provides you with the tools to keep your code co-located, but deployable as independent services at runtime.</td>
+</tr>
+<tr>
+<td>Set up observability / health checks / monitoring for each service.</td>
+<td><span class="docs-emoji">&#x2705;</span> Differential comes with a dev console which gives you full observability down to the function level. You can see errors, detailed logs and execution times with zero-setup.</td>
+</tr>
+<tr>
+<td>Write/move business logic for each service.</td>
+<td><span class="docs-emoji">&#x2705;</span> Differential services are simply javascript objects that define which functions (a.k.a business logic) belong to which service.</td>
+</tr>
+<tr>
+<td>Write the service interfaces for each service (e.g. protobufs, OpenAPI, ts-rest/zod).</td>
+<td><span class="docs-emoji">&#x2705;</span> Differential infers your service interface from your function types. Your services become end-to-end typesafe. There&#x27;s no need for another interchange format.</td>
+</tr>
+<tr>
+<td>Document the interplay of services for other developers.</td>
+<td><span class="docs-emoji">&#x2705;</span> Differential&#x27;s dev console gives you a full view of your service registry, which functions are registered, and the live status for each.</td>
+</tr>
+</tbody>
+</table>
+</div>
 
                                 
                                 <!-- Required only on API pages -->
@@ -340,20 +279,20 @@ test();</code></pre>
                             
                                 <nav class="flex mt-14">
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../advanced/self-hosting/">
+                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../advanced/limitations/">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                             <span>
                                                 <span class="block text-xs font-normal text-gray-400 dark:text-dark-400">Previous</span>
-                                                <span class="block mt-1">Self-​hosting</span>
+                                                <span class="block mt-1">Limitations</span>
                                             </span>
                                         </a>
                                     </div>
                             
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../api/classes/differential/">
+                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../advanced/self-hosting/">
                                             <span>
                                                 <span class="block text-xs font-normal text-right text-gray-400 dark:text-dark-400">Next</span>
-                                                <span class="block mt-1">Class: Differential</span>
+                                                <span class="block mt-1">Self-​hosting</span>
                                             </span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                         </a>
@@ -397,6 +336,6 @@ test();</code></pre>
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": "Typescript SDK", level: 1, icon: "file", hasPrism: true, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": "Monolith to Microservices and Back", level: 2, icon: "file", hasPrism: false, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
 </body>
 </html>
