@@ -387,7 +387,7 @@ export const definition = {
     body: z.undefined(),
     responses: {
       501: z.undefined(),
-      403: z.undefined(),
+      401: z.undefined(),
       200: z.object({
         id: z.string(),
         packageUploadUrl: z.string(),
@@ -404,8 +404,8 @@ export const definition = {
     }),
     body: z.undefined(),
     responses: {
-      501: z.undefined(),
-      403: z.undefined(),
+      401: z.undefined(),
+      404: z.undefined(),
       200: z.object({
         id: z.string(),
         packageUploadUrl: z.string(),
@@ -422,8 +422,9 @@ export const definition = {
     }),
     body: z.undefined(),
     responses: {
-      501: z.undefined(),
-      403: z.undefined(),
+      400: z.undefined(),
+      401: z.undefined(),
+      404: z.undefined(),
       200: z.object({
         id: z.string(),
         packageUploadUrl: z.string(),

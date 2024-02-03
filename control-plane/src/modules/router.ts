@@ -385,15 +385,13 @@ export const router = s.router(contract, {
       };
     }
 
-    const deployment = await getDeployment({
-      clusterId,
-      serviceName,
-      id: deploymentId,
-    });
-
     return {
       status: 200,
-      body: deployment,
+      body: await getDeployment({
+        clusterId,
+        serviceName,
+        id: deploymentId,
+      }),
     };
   },
   releaseDeployment: async (request) => {
