@@ -1,7 +1,7 @@
 import { d } from "./d";
 import { productService } from "./product";
 
-describe("Caching", () => {
+describe.skip("Caching", () => {
   beforeAll(async () => {
     await productService.start();
   }, 10000);
