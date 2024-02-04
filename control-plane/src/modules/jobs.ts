@@ -1,8 +1,10 @@
 import { and, desc, eq, gt, gte, isNotNull, lt, sql } from "drizzle-orm";
 import { ulid } from "ulid";
+import * as cluster from "./cluster";
 import * as cron from "./cron";
 import * as data from "./data";
 import * as events from "./observability/events";
+import * as predictor from "./predictor/predictor";
 import {
   ServiceDefinition,
   functionDefinition,
@@ -397,6 +399,67 @@ export async function persistJobResult({
       functionExecutionTime,
     },
   });
+
+  const mustRetry =
+    resultType === "rejection" &&
+    (await cluster
+      .operationalCluster(owner.clusterId)
+      .then((c) => c?.predictiveRetriesEnabled));
+
+  if (mustRetry) {
+    const [job] = await data.db
+      .select({
+        remainingAttempts: data.jobs.remaining_attempts,
+      })
+      .from(data.jobs)
+      .where(
+        and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
+      );
+
+    if ((job.remainingAttempts ?? 0) > 0) {
+      const retryable = await predictor.isRetryable(result);
+
+      if (retryable.retryable) {
+        events.write({
+          type: "predictorRetryableResult",
+          service: updateResult[0]?.service,
+          clusterId: owner.clusterId,
+          jobId,
+          machineId,
+          meta: {
+            retryable: true,
+            reason: retryable.reason,
+          },
+        });
+
+        // mark them as pending again with attempts - 1
+        await data.db
+          .update(data.jobs)
+          .set({
+            status: "pending",
+            remaining_attempts: sql`remaining_attempts - 1`,
+          })
+          .where(
+            and(
+              eq(data.jobs.id, jobId),
+              eq(data.jobs.owner_hash, owner.clusterId),
+            ),
+          );
+      } else {
+        events.write({
+          type: "predictorRetryableResult",
+          service: updateResult[0]?.service,
+          clusterId: owner.clusterId,
+          jobId,
+          machineId,
+          meta: {
+            retryable: false,
+            reason: retryable.reason,
+          },
+        });
+      }
+    }
+  }
 }
 
 export async function selfHealJobs() {
