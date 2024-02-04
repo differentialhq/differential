@@ -109,6 +109,9 @@ export const clusters = pgTable("clusters", {
   wake_up_config: json("wake_up_config"),
   owner_id: varchar("owner_id"),
   cloud_enabled: boolean("cloud_enabled").default(false),
+  predictive_retries_enabled: boolean("predictive_retries_enabled").default(
+    false,
+  ),
 });
 
 export const services = pgTable(
