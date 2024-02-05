@@ -8,7 +8,9 @@ describe("event-aggregation", () => {
   const service = Math.random().toString();
 
   const simulateActivity = async () => {
-    await createOwner(clusterId);
+    await createOwner({
+      clusterId,
+    });
 
     const mockJobs = [
       {

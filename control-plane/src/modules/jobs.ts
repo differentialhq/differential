@@ -419,8 +419,6 @@ export async function persistJobResult({
         and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
       );
 
-    console.log("job", job);
-
     if ((job.remainingAttempts ?? 0) > 0) {
       const retryable = await predictor.isRetryable(result);
 
