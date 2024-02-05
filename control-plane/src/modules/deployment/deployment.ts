@@ -3,7 +3,7 @@ import * as data from "../data";
 import { UPLOAD_BUCKET, getPresignedURL } from "../s3";
 import { and, eq, or, sql } from "drizzle-orm";
 import { DeploymentProvider } from "./deployment-provider";
-import { MockProvider } from "./mock-deployment-provider";
+import { LambdaProvider } from "./lambda-provider";
 
 export type Deployment = {
   id: string;
@@ -27,7 +27,7 @@ export const s3AssetDetails = (
   };
 };
 
-const mockProvider = new MockProvider();
+const defaultProvider = new LambdaProvider();
 
 export const createDeployment = async ({
   clusterId,
@@ -112,7 +112,7 @@ export const getDeployment = async ({
 
 export const releaseDeployment = async (
   deployment: Deployment,
-  provider: DeploymentProvider = mockProvider,
+  provider: DeploymentProvider = defaultProvider,
 ): Promise<Deployment> => {
   // Check if the service has been previously "released" (active or inactive) deployment
   let meta = (await previouslyReleased(deployment))

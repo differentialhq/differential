@@ -109,6 +109,7 @@ export const initialize = (flushInterval: number = 3000) => {
 
 export const quit = async () => {
   await buffer?.quit();
+  buffer = null;
 };
 
 export const write = (event: Event) => {
