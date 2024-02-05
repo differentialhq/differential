@@ -41,3 +41,7 @@ const start = async () => {
 };
 
 start();
+
+process.on("beforeExit", async () => {
+  await events.quit();
+});

@@ -51,14 +51,14 @@ class EventWriterBuffer {
     if (this.flushTimeout === null) {
       this.flushTimeout = setTimeout(() => this.flush(), this.flushInterval);
     }
+  }
 
-    process.on("beforeExit", async () => {
-      if (this.flushTimeout !== null) {
-        console.log("Flushing events before exit");
-        clearTimeout(this.flushTimeout);
-        await this.flush();
-      }
-    });
+  async quit() {
+    if (this.flushTimeout !== null) {
+      console.log("Flushing events before exit");
+      clearTimeout(this.flushTimeout);
+      await this.flush();
+    }
   }
 
   async flush() {
@@ -105,6 +105,10 @@ export let buffer: EventWriterBuffer | null = null;
 
 export const initialize = (flushInterval: number = 3000) => {
   buffer = new EventWriterBuffer(flushInterval);
+};
+
+export const quit = async () => {
+  await buffer?.quit();
 };
 
 export const write = (event: Event) => {

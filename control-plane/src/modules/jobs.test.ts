@@ -377,6 +377,7 @@ describe("persistJobResult", () => {
     });
 
     await events.buffer?.flush();
+    await events.quit();
 
     const eventsForJob = await eventAggregation.getJobActivityByJobId({
       jobId: createJobResult.id,
