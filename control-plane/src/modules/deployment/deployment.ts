@@ -116,8 +116,8 @@ export const releaseDeployment = async (
 ): Promise<Deployment> => {
   // Check if the service has been previously "released" (active or inactive) deployment
   let meta = (await previouslyReleased(deployment))
-    ? provider.update(deployment)
-    : provider.create(deployment);
+    ? await provider.update(deployment)
+    : await provider.create(deployment);
 
   // This should happen outside of the request
   // as we should be waiting / checking that the resource has been published before we update the deployment status
