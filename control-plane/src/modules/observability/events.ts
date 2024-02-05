@@ -11,7 +11,8 @@ export type EventTypes =
   | "jobRecovered"
   | "machinePing"
   | "machineResourceProbe"
-  | "functionInvocation";
+  | "functionInvocation"
+  | "predictorRetryableResult";
 
 type Event = {
   clusterId: string;
@@ -30,6 +31,8 @@ type Event = {
     limit?: number;
     status?: string;
     attemptsRemaining?: number;
+    retryable?: boolean;
+    reason?: string;
   };
 };
 
