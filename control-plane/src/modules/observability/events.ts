@@ -115,6 +115,7 @@ export const quit = async () => {
 export const write = (event: Event) => {
   if (buffer === null) {
     console.debug("Event writer not initialized, this is a no-op", event);
+    return;
   }
 
   buffer?.push({
