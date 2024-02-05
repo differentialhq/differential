@@ -109,7 +109,7 @@ export const initialize = (flushInterval: number = 3000) => {
 
 export const write = (event: Event) => {
   if (buffer === null) {
-    console.warn("Event writer not initialized, this is a no-op", event);
+    console.debug("Event writer not initialized, this is a no-op", event);
   }
 
   buffer?.push({

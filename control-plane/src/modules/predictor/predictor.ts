@@ -32,7 +32,7 @@ export const isRetryable = async (resultContent: string) => {
     } else {
       return {
         retryable: false,
-        reason: `predictor returned status ${retryable?.status}`,
+        reason: `Something went wrong while predicting retryability. Status=${retryable?.status}`,
       };
     }
   } else {
