@@ -151,9 +151,11 @@ type PollingAgentOptions = {
   authHeader: string;
   service: PollingAgentService;
   ttl?: number;
+  maxIdleCycles?: number;
 };
 class PollingAgent {
   private errorCount = 0;
+  private idleCycleCount = 0;
   private taskQueue = new TaskQueue();
   private abortController = new AbortController();
   private pollingAborted = false;
@@ -168,11 +170,13 @@ class PollingAgent {
   private authHeader: string;
   private service: PollingAgentService;
   private ttl?: number;
+  private maxIdleCycles?: number;
 
   constructor(options: PollingAgentOptions) {
     this.authHeader = options.authHeader;
     this.service = options.service;
     this.ttl = options.ttl;
+    this.maxIdleCycles = options.maxIdleCycles;
 
     this.client = createClient({
       baseUrl: options.endpoint,
@@ -347,19 +351,27 @@ class PollingAgent {
       return;
     }
 
-    const [{ ok }] = await Promise.all([
+    const [{ ok, jobCount }] = await Promise.all([
       await this.pollForNextJob(),
       await new Promise((resolve) => setTimeout(resolve, 2000)), // this acts as a throttle
     ]);
 
     if (ok) {
       this.errorCount = 0;
+      jobCount > 0 ? (this.idleCycleCount = 0) : this.idleCycleCount++;
     } else {
       this.errorCount += 1;
     }
 
     if (this.errorCount > 10) {
       log("Too many errors, stopping polling agent", { service: this.service });
+      this.quit();
+    }
+
+    if (this.maxIdleCycles && this.idleCycleCount >= this.maxIdleCycles) {
+      log("Max idle cycles reached, stopping polling agent", {
+        service: this.service,
+      });
       this.quit();
     }
 
@@ -452,6 +464,8 @@ export class Differential {
   private controlPlaneClient: ReturnType<typeof createClient>;
 
   private jobPollWaitTime?: number;
+  private maxIdleCycles?: number;
+
   private pollingAgents: PollingAgent[] = [];
 
   private events: Events;
@@ -463,6 +477,7 @@ export class Differential {
    * @param options.endpoint The endpoint for the Differential cluster. Defaults to https://api.differential.dev.
    * @param options.encryptionKeys An array of encryption keys to use for encrypting and decrypting data. These keys are never sent to the control-plane and allows you to encrypt function arguments and return values. If you do not provide any keys, Differential will not encrypt any data. Encryption has a performance impact on your functions. When you want to rotate keys, you can add new keys to the start of the array. Differential will try to decrypt data with each key in the array until it finds a key that works. Differential will encrypt data with the first key in the array. Each key must be 32 bytes long.
    * @param options.jobPollWaitTime The amount of time in milliseconds that the client will maintain a connection to the control-plane when polling for jobs. Defaults to 20000ms. If a job is not received within this time, the client will close the connection and try again.
+   * @param options.maxIdleCycles The maximum number of idle cycles before the client stops polling for jobs. If the client does not receive any jobs for this number of cycles, it will stop polling for jobs.
    * @example
    * ```ts
    * // Basic usage
@@ -483,6 +498,7 @@ export class Differential {
       endpoint?: string;
       encryptionKeys?: Buffer[];
       jobPollWaitTime?: number;
+      maxIdleCycles?: number;
     },
   ) {
     this.authHeader = `Basic ${this.apiSecret}`;
@@ -505,6 +521,8 @@ export class Differential {
     }
 
     this.jobPollWaitTime = options?.jobPollWaitTime;
+
+    this.maxIdleCycles = options?.maxIdleCycles;
 
     log("Initializing control plane client", {
       endpoint: this.endpoint,
@@ -550,6 +568,7 @@ export class Differential {
         name: service.name,
       },
       ttl: this.jobPollWaitTime,
+      maxIdleCycles: this.maxIdleCycles,
     });
 
     this.pollingAgents.push(pollingAgent);
