@@ -1,40 +1,31 @@
-import { initClient, tsRestFetchApi } from "@ts-rest/core";
 import debug from "debug";
 import { readFileSync } from "fs";
-import { contract } from "../client/contract";
+import { client } from "./client";
 
 const log = debug("differential:cli:upload");
-
-const client = initClient(contract, {
-  baseUrl: process.env.DIFFERENTIAL_API_URL || "https://api.differential.dev",
-  baseHeaders: {
-    authorization: `Bearer ${process.env.DIFFERENTIAL_API_TOKEN}`,
-  },
-  api: tsRestFetchApi,
-});
 
 export const uploadPackage = async (
   packagePath: string,
   definitionPath: string,
   clusterId: string,
   serviceName: string,
-): Promise<void> => {
+): Promise<{ id: string }> => {
   log("Uploading package", { packagePath });
 
-  const result = await client.createDeployment({
+  const deployment = await client.createDeployment({
     params: {
       clusterId,
       serviceName,
     },
   });
 
-  if (result.status !== 200) {
+  if (deployment.status !== 200) {
     throw new Error(
       "Failed to upload package. Please check provided options and cluster configuration.",
     );
   }
 
-  const { packageUploadUrl, definitionUploadUrl, id } = result.body;
+  const { packageUploadUrl, definitionUploadUrl, id } = deployment.body;
   log("Created deployment", { id });
 
   const results = await Promise.all([
@@ -63,4 +54,6 @@ export const uploadPackage = async (
   });
 
   log("Uploaded deployment assets", { id });
+
+  return deployment.body;
 };
