@@ -115,7 +115,7 @@ export const releaseDeployment = async (
   provider: DeploymentProvider = mockProvider,
 ): Promise<Deployment> => {
   // Check if the service has been previously "released" (active or inactive) deployment
-  let meta = (await previouslyReleased(deployment))
+  const meta = (await previouslyReleased(deployment))
     ? await provider.update(deployment)
     : await provider.create(deployment);
 
