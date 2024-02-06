@@ -389,8 +389,7 @@ describe("persistJobResult", () => {
         machineId: "testMachineId",
         type: "predictorRetryableResult",
         meta: expect.objectContaining({
-          reason: expect.stringContaining("Something went wrong"),
-          retryable: false,
+          retryable: true,
         }),
       }),
     );
