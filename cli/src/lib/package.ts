@@ -12,6 +12,9 @@ import { zip } from "zip-a-folder";
 
 const log = debug("differential:cli:package");
 
+const NPM_TARGET_ARCH = "x64";
+const NPM_TARGET_PLATFORM = "linux";
+
 type PackageDependencies = { [key: string]: string };
 type PackageJson = {
   name: string;
@@ -179,15 +182,34 @@ const buildPackageJson = (
     "utf-8",
   );
 
+  buildIndex(compiledEntrypoint, outDir);
+
   log("Wrote package.json", { dependencies: packageJson.dependencies });
   return packageJson;
 };
 
+const buildIndex = async (entrypoint: string, outDir: string) => {
+  const indexFilePath = path.join(outDir, "differential.index.js");
+
+  if (fs.existsSync(indexFilePath)) {
+    throw new Error("Differential index file already exists.");
+  }
+
+  fs.writeFileSync(
+    indexFilePath,
+    `exports.handler = () => {require('${entrypoint}')};`,
+    "utf-8",
+  );
+};
+
 const installDependencies = (outputDir: string): void => {
-  childProcess.execSync(`npm install --production`, {
-    cwd: outputDir,
-    stdio: "ignore",
-  });
+  childProcess.execSync(
+    `npm install --production --target_arch=${NPM_TARGET_ARCH} --target_platform=${NPM_TARGET_PLATFORM}`,
+    {
+      cwd: outputDir,
+      stdio: "ignore",
+    },
+  );
 };
 
 const zipDirectory = async (directoryPath: string): Promise<string> => {
