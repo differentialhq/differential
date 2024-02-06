@@ -367,7 +367,7 @@ export async function persistJobResult({
 }: {
   result: string;
   resultType: "resolution" | "rejection";
-  functionExecutionTime: number | undefined;
+  functionExecutionTime?: number;
   jobId: string;
   owner: { clusterId: string };
   machineId: string;
@@ -406,6 +406,9 @@ export async function persistJobResult({
       .operationalCluster(owner.clusterId)
       .then((c) => c?.predictiveRetriesEnabled));
 
+  console.log("mustRetry", mustRetry);
+  console.log("resultType", resultType);
+
   if (mustRetry) {
     const [job] = await data.db
       .select({
@@ -418,6 +421,8 @@ export async function persistJobResult({
 
     if ((job.remainingAttempts ?? 0) > 0) {
       const retryable = await predictor.isRetryable(result);
+
+      console.log("retryable", retryable);
 
       if (retryable.retryable) {
         events.write({

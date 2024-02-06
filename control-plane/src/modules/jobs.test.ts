@@ -1,4 +1,14 @@
-import { createJob, nextJobs, selfHealJobs } from "./jobs";
+import msgpackr from "msgpackr";
+import {
+  createJob,
+  getJobStatus,
+  nextJobs,
+  persistJobResult,
+  selfHealJobs,
+} from "./jobs";
+import * as eventAggregation from "./observability/event-aggregation";
+import * as events from "./observability/events";
+import { serializeError } from "./predictor/serialize-error";
 import {
   functionDefinition,
   getServiceDefinitions,
@@ -213,7 +223,6 @@ describe("selfHealJobs", () => {
   it("should not retry a job that has reached max attempts", async () => {
     const owner = await createOwner();
     const targetFn = "testTargetFn";
-    const targetArgs = "testTargetArgs";
 
     const fnDefinition = {
       maxAttempts: 1,
@@ -279,5 +288,111 @@ describe("selfHealJobs", () => {
     });
 
     expect(nextJobResult2.length).toBe(0);
+  }, 10000);
+});
+
+describe("persistJobResult", () => {
+  it("should persist the result of a job", async () => {
+    const owner = await createOwner();
+    const targetFn = "testTargetFn";
+    const targetArgs = "testTargetArgs";
+
+    const createJobResult = await createJob({
+      targetFn,
+      targetArgs,
+      owner,
+      service: "testService",
+    });
+
+    const result = {
+      id: createJobResult.id,
+      result: "testResult",
+    };
+
+    await persistJobResult({
+      result: "foo",
+      resultType: "resolution",
+      jobId: createJobResult.id,
+      owner,
+      machineId: "testMachineId",
+    });
+
+    const status = await getJobStatus({
+      jobId: createJobResult.id,
+      owner,
+    });
+
+    expect(status).toStrictEqual({
+      result: "foo",
+      resultType: "resolution",
+      service: "testService",
+      status: "success",
+    });
+  });
+
+  it("should attempt to retry when predictive retries are enabled", async () => {
+    await events.initialize();
+
+    const owner = await createOwner({
+      predictiveRetriesEnabled: true,
+    });
+    const targetFn = "testTargetFn";
+    const targetArgs = "testTargetArgs";
+
+    const definition = {
+      name: "testService",
+      functions: [
+        {
+          name: "testTargetFn",
+          idempotent: false,
+          maxAttempts: 2,
+        },
+      ],
+    };
+
+    await nextJobs({
+      owner,
+      limit: 10,
+      machineId: "testMachineId",
+      ip: "1.1.1.1",
+      service: "testService",
+      definition,
+    });
+
+    const createJobResult = await createJob({
+      targetFn,
+      targetArgs,
+      owner,
+      service: "testService",
+    });
+
+    await persistJobResult({
+      result: msgpackr
+        .pack(serializeError(new Error("ECONNRESET")))
+        .toString("base64"),
+      resultType: "rejection",
+      jobId: createJobResult.id,
+      owner,
+      machineId: "testMachineId",
+    });
+
+    await events.buffer?.flush();
+    await events.quit();
+
+    const eventsForJob = await eventAggregation.getJobActivityByJobId({
+      jobId: createJobResult.id,
+      clusterId: owner.clusterId,
+    });
+
+    expect(eventsForJob[0]).toEqual(
+      expect.objectContaining({
+        machineId: "testMachineId",
+        type: "predictorRetryableResult",
+        meta: expect.objectContaining({
+          reason: expect.stringContaining("Something went wrong"),
+          retryable: false,
+        }),
+      }),
+    );
   }, 10000);
 });
