@@ -1,0 +1,1 @@
+ALTER TABLE "deployments" ADD COLUMN "provider" varchar(1024) DEFAULT 'mock' NOT NULL;

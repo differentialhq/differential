@@ -94,10 +94,12 @@ export class LambdaProvider implements DeploymentProvider {
 
     console.log("Triggering lambda", functionName);
 
-    new InvokeCommand({
-      InvocationType: "Event",
-      FunctionName: functionName,
-    });
+    await this.lambdaClient.send(
+      new InvokeCommand({
+        InvocationType: "Event",
+        FunctionName: functionName,
+      }),
+    );
   }
 
   private async config(): Promise<LambdaProviderConfig> {

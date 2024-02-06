@@ -6,6 +6,7 @@ import { DeploymentProvider } from "./deployment-provider";
 //import { LambdaProvider } from "./LambdaProvider";
 import { MockProvider } from "./mock-deployment-provider";
 import NodeCache from "node-cache";
+import { LambdaProvider } from "./lambda-provider";
 
 export type Deployment = {
   id: string;
@@ -14,6 +15,7 @@ export type Deployment = {
   packageUploadUrl: string;
   definitionUploadUrl: string;
   status: string;
+  provider: string;
 };
 
 export const s3AssetDetails = (
@@ -29,7 +31,16 @@ export const s3AssetDetails = (
   };
 };
 
-const defaultProvider = new MockProvider();
+const providers: { [key: string]: DeploymentProvider } = {
+  lambda: new LambdaProvider(),
+  mock: new MockProvider(),
+};
+const getProvider = (provider: string): DeploymentProvider => {
+  if (!providers[provider]) {
+    throw new Error(`Unknown deployment provider: ${provider}`);
+  }
+  return providers[provider];
+};
 
 export const createDeployment = async ({
   clusterId,
@@ -77,6 +88,7 @@ export const createDeployment = async ({
       packageUploadUrl: data.deployments.package_upload_path,
       definitionUploadUrl: data.deployments.definition_upload_path,
       status: data.deployments.status,
+      provider: data.deployments.provider,
     });
 
   return deployment[0];
@@ -99,6 +111,7 @@ export const getDeployment = async ({
       packageUploadUrl: data.deployments.package_upload_path,
       definitionUploadUrl: data.deployments.definition_upload_path,
       status: data.deployments.status,
+      provider: data.deployments.provider,
     })
     .from(data.deployments)
     .where(
@@ -114,8 +127,9 @@ export const getDeployment = async ({
 
 export const releaseDeployment = async (
   deployment: Deployment,
-  provider: DeploymentProvider = defaultProvider,
 ): Promise<Deployment> => {
+  const provider = getProvider(deployment.provider);
+
   // Check if the service has been previously "released" (active or inactive) deployment
   const meta = (await previouslyReleased(deployment))
     ? await provider.update(deployment)
@@ -175,10 +189,9 @@ export const triggerDeployment = async ({
     return false;
   }
 
-  //TODO: This should be determined by the deployment
-  const provider = defaultProvider;
+  const provider = getProvider(deployment.provider);
 
-  // TODO this should be backgrounded, for now don't await
+  // TODO this should be backgrounded, for now just don't await
   provider.trigger(deployment);
 
   return true;
@@ -208,6 +221,7 @@ const findActiveDeployment = async (
       packageUploadUrl: data.deployments.package_upload_path,
       definitionUploadUrl: data.deployments.definition_upload_path,
       status: data.deployments.status,
+      provider: data.deployments.provider,
     })
     .from(data.deployments)
     .where(
