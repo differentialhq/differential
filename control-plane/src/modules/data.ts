@@ -170,6 +170,7 @@ export const deployments = pgTable("deployments", {
   })
     .default("uploading")
     .notNull(),
+  provider: varchar("provider", { length: 1024 }).notNull().default("mock"),
 });
 
 export const deploymentProvividerConfig = pgTable(

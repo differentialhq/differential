@@ -25,4 +25,5 @@ export interface DeploymentProvider {
   schema: () => ZodSchema;
   create: (deployment: Deployment) => Promise<any>;
   update: (deployment: Deployment) => Promise<any>;
+  trigger: (deployment: Deployment) => Promise<any>;
 }

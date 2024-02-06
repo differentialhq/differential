@@ -95,9 +95,10 @@ describe("releaseDeployment", () => {
 
   const provider: DeploymentProvider = {
     name: () => "mockProvider",
-    schema: (() => {}) as any,
+    schema: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    trigger: jest.fn(),
   };
 
   beforeAll(async () => {

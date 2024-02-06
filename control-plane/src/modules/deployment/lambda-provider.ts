@@ -3,6 +3,7 @@ import {
   CreateFunctionCommand,
   CreateFunctionCommandOutput,
   CreateFunctionRequest,
+  InvokeCommand,
   LambdaClient,
   UpdateFunctionCodeCommand,
 } from "@aws-sdk/client-lambda";
@@ -15,6 +16,8 @@ type LambdaProviderConfig = Pick<
 >;
 
 export class LambdaProvider implements DeploymentProvider {
+  private lambdaClient = new LambdaClient();
+
   public name(): string {
     return "lambda";
   }
@@ -33,12 +36,11 @@ export class LambdaProvider implements DeploymentProvider {
   ): Promise<CreateFunctionCommandOutput> {
     const config = await this.config();
     const functionName = this.buildFunctionName(deployment);
-    const lambdaClient = new LambdaClient();
 
     console.log("Creating new lambda", functionName);
 
     try {
-      return await lambdaClient.send(
+      return await this.lambdaClient.send(
         new CreateFunctionCommand({
           ...config,
           Tags: {
@@ -65,12 +67,11 @@ export class LambdaProvider implements DeploymentProvider {
 
   public async update(deployment: Deployment): Promise<any> {
     const functionName = this.buildFunctionName(deployment);
-    const lambdaClient = new LambdaClient();
 
     console.log("Updating existing lambda", functionName);
 
     try {
-      return await lambdaClient.send(
+      return await this.lambdaClient.send(
         new UpdateFunctionCodeCommand({
           FunctionName: functionName,
           Publish: true,
@@ -86,6 +87,17 @@ export class LambdaProvider implements DeploymentProvider {
 
       throw error;
     }
+  }
+
+  public async trigger(deployment: Deployment): Promise<any> {
+    const functionName = this.buildFunctionName(deployment);
+
+    console.log("Triggering lambda", functionName);
+
+    new InvokeCommand({
+      InvocationType: "Event",
+      FunctionName: functionName,
+    });
   }
 
   private async config(): Promise<LambdaProviderConfig> {
