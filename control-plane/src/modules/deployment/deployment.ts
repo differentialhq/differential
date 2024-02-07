@@ -3,7 +3,6 @@ import * as data from "../data";
 import { UPLOAD_BUCKET, getPresignedURL } from "../s3";
 import { and, eq, or, sql } from "drizzle-orm";
 import { DeploymentProvider } from "./deployment-provider";
-//import { LambdaProvider } from "./LambdaProvider";
 import { MockProvider } from "./mock-deployment-provider";
 import NodeCache from "node-cache";
 import { LambdaProvider } from "./lambda-provider";
@@ -35,7 +34,7 @@ const providers: { [key: string]: DeploymentProvider } = {
   lambda: new LambdaProvider(),
   mock: new MockProvider(),
 };
-const getProvider = (provider: string): DeploymentProvider => {
+export const getProvider = (provider: string): DeploymentProvider => {
   if (!providers[provider]) {
     throw new Error(`Unknown deployment provider: ${provider}`);
   }
@@ -79,6 +78,7 @@ export const createDeployment = async ({
         definition_upload_path: definitionUploadUrl,
         // Temporary, the expectation is that the deployment will be in the "uploading" while any async work is being done
         status: "ready",
+        provider: "lambda",
       },
     ])
     .returning({
@@ -127,9 +127,8 @@ export const getDeployment = async ({
 
 export const releaseDeployment = async (
   deployment: Deployment,
+  provider: DeploymentProvider,
 ): Promise<Deployment> => {
-  const provider = getProvider(deployment.provider);
-
   // Check if the service has been previously "released" (active or inactive) deployment
   const meta = (await previouslyReleased(deployment))
     ? await provider.update(deployment)

@@ -189,7 +189,7 @@ const buildPackageJson = (
 };
 
 const buildIndex = async (entrypoint: string, outDir: string) => {
-  const indexFilePath = path.join(outDir, "differential.index.js");
+  const indexFilePath = path.join(outDir, "differential-index.js");
 
   if (fs.existsSync(indexFilePath)) {
     throw new Error("Differential index file already exists.");

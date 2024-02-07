@@ -14,6 +14,7 @@ import * as routingHelpers from "./routing-helpers";
 import {
   createDeployment,
   getDeployment,
+  getProvider,
   releaseDeployment,
 } from "./deployment/deployment";
 import { UPLOAD_BUCKET } from "./s3";
@@ -424,7 +425,10 @@ export const router = s.router(contract, {
 
     return {
       status: 200,
-      body: await releaseDeployment(deployment),
+      body: await releaseDeployment(
+        deployment,
+        getProvider(deployment.provider),
+      ),
     };
   },
 });
