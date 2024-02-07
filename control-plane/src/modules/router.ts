@@ -14,10 +14,10 @@ import * as routingHelpers from "./routing-helpers";
 import {
   createDeployment,
   getDeployment,
-  getProvider,
   releaseDeployment,
 } from "./deployment/deployment";
 import { UPLOAD_BUCKET } from "./s3";
+import { getDeploymentProvider } from "./deployment/deployment-provider";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -427,7 +427,7 @@ export const router = s.router(contract, {
       status: 200,
       body: await releaseDeployment(
         deployment,
-        getProvider(deployment.provider),
+        getDeploymentProvider(deployment.provider),
       ),
     };
   },

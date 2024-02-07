@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "pg",
-  "id": "0f710190-96e0-41e7-b15c-0d7ef87f19ee",
+  "id": "f8053de2-8ff6-406c-b0d9-512de3a521aa",
   "prevId": "6213cb6d-e26a-4f60-9b5c-0b39a061df1a",
   "tables": {
     "clusters": {
@@ -149,10 +149,9 @@
         },
         "provider": {
           "name": "provider",
-          "type": "varchar(1024)",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'mock'"
+          "notNull": true
         }
       },
       "indexes": {},
@@ -477,6 +476,12 @@
           "type": "json",
           "primaryKey": false,
           "notNull": true
+        },
+        "deployment_provider": {
+          "name": "deployment_provider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},

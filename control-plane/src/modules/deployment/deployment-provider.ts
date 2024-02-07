@@ -2,6 +2,21 @@ import { ZodSchema } from "zod";
 import { Deployment } from "./deployment";
 import * as data from "../data";
 import { eq } from "drizzle-orm";
+import { LambdaProvider } from "./lambda-provider";
+import { MockProvider } from "./mock-deployment-provider";
+
+const mockProvider = new MockProvider();
+const lambdaProvider = new LambdaProvider();
+export const getDeploymentProvider = (provider: string): DeploymentProvider => {
+  switch (provider) {
+    case "lambda":
+      return lambdaProvider;
+    case "mock":
+      return mockProvider;
+    default:
+      throw new Error(`Unknown provider ${provider}`);
+  }
+};
 
 export const fetchConfig = async (
   provider: DeploymentProvider,
@@ -23,7 +38,10 @@ export const fetchConfig = async (
 export interface DeploymentProvider {
   name: () => string;
   schema: () => ZodSchema;
+  // Create a new deployment
   create: (deployment: Deployment) => Promise<any>;
+  // Update an existing deployment
   update: (deployment: Deployment) => Promise<any>;
-  trigger: (deployment: Deployment) => Promise<any>;
+  // Notify the provider of a a new job
+  notify: (deployment: Deployment) => Promise<any>;
 }

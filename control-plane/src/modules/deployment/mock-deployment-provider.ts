@@ -19,7 +19,7 @@ export class MockProvider implements DeploymentProvider {
     console.log("Would update existing deployment", deployment);
   }
 
-  public async trigger(deployment: Deployment): Promise<any> {
+  public async notify(deployment: Deployment): Promise<any> {
     console.log("Would trigger deployment", deployment);
   }
 }

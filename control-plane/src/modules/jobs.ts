@@ -10,7 +10,6 @@ import {
   functionDefinition,
   storeServiceDefinitionBG,
 } from "./service-definitions";
-import { triggerDeployment } from "./deployment/deployment";
 import { backgrounded } from "./util";
 
 type JobParams = {
@@ -148,7 +147,6 @@ const onAfterJobCreated = async ({
   owner,
   jobId,
 }: JobParams & { jobId: string }) => {
-  triggerDeployment({ serviceName: service, clusterId: owner.clusterId });
   events.write({
     type: "jobCreated",
     clusterId: owner.clusterId,
@@ -255,12 +253,12 @@ export const nextJobs = async ({
   // });
 
   const results = await data.db.execute(
-    sql`UPDATE jobs SET status = 'running', remaining_attempts = remaining_attempts - 1, last_retrieved_at=${new Date().toISOString()}
-    WHERE
-      id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining_attempts > 0))
-      AND owner_hash = ${owner.clusterId}
-      AND service = ${service}
-    LIMIT ${limit})
+    sql`UPDATE jobs SET status = 'running', remaining_attempts = remaining_attempts - 1, last_retrieved_at=${new Date().toISOString()} 
+    WHERE 
+      id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining_attempts > 0)) 
+      AND owner_hash = ${owner.clusterId} 
+      AND service = ${service} 
+    LIMIT ${limit}) 
     RETURNING *`,
   );
 

@@ -2,10 +2,12 @@ import { ulid } from "ulid";
 import * as data from "../data";
 import { UPLOAD_BUCKET, getPresignedURL } from "../s3";
 import { and, eq, or, sql } from "drizzle-orm";
-import { DeploymentProvider } from "./deployment-provider";
-import { MockProvider } from "./mock-deployment-provider";
+import {
+  DeploymentProvider,
+  getDeploymentProvider,
+} from "./deployment-provider";
 import NodeCache from "node-cache";
-import { LambdaProvider } from "./lambda-provider";
+import { backgrounded } from "../util";
 
 export type Deployment = {
   id: string;
@@ -28,17 +30,6 @@ export const s3AssetDetails = (
     S3Bucket: UPLOAD_BUCKET,
     S3Key: `${deployment.clusterId}/${deployment.service}/${deployment.id}-package`,
   };
-};
-
-const providers: { [key: string]: DeploymentProvider } = {
-  lambda: new LambdaProvider(),
-  mock: new MockProvider(),
-};
-export const getProvider = (provider: string): DeploymentProvider => {
-  if (!providers[provider]) {
-    throw new Error(`Unknown deployment provider: ${provider}`);
-  }
-  return providers[provider];
 };
 
 export const createDeployment = async ({
@@ -67,6 +58,19 @@ export const createDeployment = async ({
     `${id}-definition`,
   );
 
+  const provider =
+    (
+      await data.db
+        .select({ deployment_provider: data.services.deployment_provider })
+        .from(data.services)
+        .where(
+          and(
+            eq(data.services.service, serviceName),
+            eq(data.services.cluster_id, clusterId),
+          ),
+        )
+    ).shift()?.deployment_provider ?? "mock";
+
   const deployment = await data.db
     .insert(data.deployments)
     .values([
@@ -78,7 +82,7 @@ export const createDeployment = async ({
         definition_upload_path: definitionUploadUrl,
         // Temporary, the expectation is that the deployment will be in the "uploading" while any async work is being done
         status: "ready",
-        provider: "lambda",
+        provider: provider,
       },
     ])
     .returning({
@@ -176,25 +180,26 @@ export const releaseDeployment = async (
   return update[0];
 };
 
-export const triggerDeployment = async ({
-  clusterId,
-  serviceName,
-}: {
-  clusterId: string;
-  serviceName: string;
-}): Promise<boolean> => {
-  const deployment = await findActiveDeployment(clusterId, serviceName);
-  if (!deployment) {
-    return false;
-  }
+export const notifyDeployment = backgrounded(
+  async ({
+    clusterId,
+    serviceName,
+  }: {
+    clusterId: string;
+    serviceName: string;
+  }): Promise<boolean> => {
+    const deployment = await findActiveDeployment(clusterId, serviceName);
+    if (!deployment) {
+      return false;
+    }
 
-  const provider = getProvider(deployment.provider);
+    const provider = getDeploymentProvider(deployment.provider);
 
-  // TODO this should be backgrounded, for now just don't await
-  provider.trigger(deployment);
+    await provider.notify(deployment);
 
-  return true;
-};
+    return true;
+  },
+);
 
 const deploymentCache = new NodeCache({
   stdTTL: 300,

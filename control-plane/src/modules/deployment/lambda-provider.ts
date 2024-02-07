@@ -105,11 +105,11 @@ export class LambdaProvider implements DeploymentProvider {
     }
   }
 
-  public async trigger(deployment: Deployment): Promise<any> {
+  public async notify(deployment: Deployment): Promise<any> {
     const functionName = this.buildFunctionName(deployment);
 
+    // TODO: This is temporary until we have some scheduling in place
     console.log("Triggering lambda", functionName);
-
     await this.lambdaClient.send(
       new InvokeCommand({
         InvocationType: "Event",

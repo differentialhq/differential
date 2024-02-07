@@ -98,7 +98,7 @@ describe("releaseDeployment", () => {
     schema: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
-    trigger: jest.fn(),
+    notify: jest.fn(),
   };
 
   beforeAll(async () => {
