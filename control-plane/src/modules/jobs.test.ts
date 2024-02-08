@@ -5,7 +5,7 @@ import {
   nextJobs,
   persistJobResult,
   selfHealJobs,
-} from "./jobs";
+} from "./jobs/jobs";
 import * as eventAggregation from "./observability/event-aggregation";
 import * as events from "./observability/events";
 import { serializeError } from "./predictor/serialize-error";

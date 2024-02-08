@@ -5,7 +5,7 @@ import cors from "@fastify/cors";
 import { initServer } from "@ts-rest/fastify";
 import fastify from "fastify";
 import process from "process";
-import * as jobs from "./modules/jobs";
+import * as jobs from "./modules/jobs/jobs";
 import * as events from "./modules/observability/events";
 import * as router from "./modules/router";
 

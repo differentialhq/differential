@@ -6,18 +6,18 @@ import * as admin from "./admin";
 import * as auth from "./auth";
 import { contract } from "./contract";
 import * as data from "./data";
-import * as jobs from "./jobs";
-import * as management from "./management";
-import * as eventAggregation from "./observability/event-aggregation";
-import * as events from "./observability/events";
-import * as routingHelpers from "./routing-helpers";
 import {
   createDeployment,
   getDeployment,
   releaseDeployment,
 } from "./deployment/deployment";
-import { UPLOAD_BUCKET } from "./s3";
 import { getDeploymentProvider } from "./deployment/deployment-provider";
+import * as jobs from "./jobs/jobs";
+import * as management from "./management";
+import * as eventAggregation from "./observability/event-aggregation";
+import * as events from "./observability/events";
+import * as routingHelpers from "./routing-helpers";
+import { UPLOAD_BUCKET } from "./s3";
 
 const readFile = util.promisify(fs.readFile);
 

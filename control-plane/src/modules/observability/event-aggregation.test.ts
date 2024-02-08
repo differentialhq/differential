@@ -1,4 +1,4 @@
-import * as jobs from "../jobs";
+import * as jobs from "../jobs/jobs";
 import { createOwner } from "../test/util";
 import * as eventAggregation from "./event-aggregation";
 import * as events from "./events";
