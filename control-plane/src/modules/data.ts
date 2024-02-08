@@ -82,6 +82,8 @@ export const jobs = pgTable(
     function_execution_time_ms: integer("function_execution_time_ms"),
     timeout_interval_seconds: integer("timeout_interval_seconds"),
     service: varchar("service", { length: 1024 }).notNull(),
+    predicted_to_be_retryable: boolean("predicted_to_be_retryable"), // null = unknown, no = not retryable, yes = retryable
+    predicted_to_be_retryable_reason: text("predicted_to_be_retryable_reason"),
   },
   (table) => ({
     pk: primaryKey(table.owner_hash, table.target_fn, table.idempotency_key),
