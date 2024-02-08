@@ -122,6 +122,9 @@ export const services = pgTable(
       .notNull(),
     service: varchar("service", { length: 1024 }).notNull(),
     definition: json("definition").notNull(),
+    deployment_provider: text("deployment_provider", {
+      enum: ["lambda", "mock"],
+    }),
   },
   (table) => ({
     pk: primaryKey(table.cluster_id, table.service),
@@ -170,6 +173,9 @@ export const deployments = pgTable("deployments", {
   })
     .default("uploading")
     .notNull(),
+  provider: text("provider", {
+    enum: ["lambda", "mock"],
+  }).notNull(),
 });
 
 export const deploymentProvividerConfig = pgTable(

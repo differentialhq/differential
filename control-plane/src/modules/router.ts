@@ -17,6 +17,7 @@ import {
   releaseDeployment,
 } from "./deployment/deployment";
 import { UPLOAD_BUCKET } from "./s3";
+import { getDeploymentProvider } from "./deployment/deployment-provider";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -424,7 +425,10 @@ export const router = s.router(contract, {
 
     return {
       status: 200,
-      body: await releaseDeployment(deployment),
+      body: await releaseDeployment(
+        deployment,
+        getDeploymentProvider(deployment.provider),
+      ),
     };
   },
 });

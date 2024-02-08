@@ -3,28 +3,38 @@ import {
   CreateFunctionCommand,
   CreateFunctionCommandOutput,
   CreateFunctionRequest,
+  InvokeCommand,
   LambdaClient,
   UpdateFunctionCodeCommand,
+  PutFunctionConcurrencyCommand,
 } from "@aws-sdk/client-lambda";
 import { Deployment, s3AssetDetails } from "./deployment";
 import { DeploymentProvider, fetchConfig } from "./deployment-provider";
 
-type LambdaProviderConfig = Pick<
-  CreateFunctionRequest,
-  "Role" | "Handler" | "Runtime" | "Timeout"
->;
+type LambdaProviderConfig = {
+  createOptions: Pick<
+    CreateFunctionRequest,
+    "Role" | "Handler" | "Runtime" | "Timeout"
+  >;
+  reservedConcurrency?: number;
+};
 
 export class LambdaProvider implements DeploymentProvider {
+  private lambdaClient = new LambdaClient();
+
   public name(): string {
     return "lambda";
   }
 
   public schema(): ZodSchema<LambdaProviderConfig> {
     return z.object({
-      Role: z.string(),
-      Handler: z.string().default("index.handler"),
-      Runtime: z.enum(["nodejs20.x"]).default("nodejs20.x"),
-      Timeout: z.number().default(60),
+      createOptions: z.object({
+        Role: z.string(),
+        Handler: z.string().default("differential-index.handler"),
+        Runtime: z.enum(["nodejs20.x"]).default("nodejs20.x"),
+        Timeout: z.number().default(60),
+      }),
+      reservedConcurrency: z.number().default(1),
     });
   }
 
@@ -33,14 +43,13 @@ export class LambdaProvider implements DeploymentProvider {
   ): Promise<CreateFunctionCommandOutput> {
     const config = await this.config();
     const functionName = this.buildFunctionName(deployment);
-    const lambdaClient = new LambdaClient();
 
     console.log("Creating new lambda", functionName);
 
     try {
-      return await lambdaClient.send(
+      const lambda = await this.lambdaClient.send(
         new CreateFunctionCommand({
-          ...config,
+          ...config.createOptions,
           Tags: {
             clusterId: deployment.clusterId,
             service: deployment.service,
@@ -52,6 +61,15 @@ export class LambdaProvider implements DeploymentProvider {
           },
         }),
       );
+
+      await this.lambdaClient.send(
+        new PutFunctionConcurrencyCommand({
+          FunctionName: functionName,
+          ReservedConcurrentExecutions: config.reservedConcurrency,
+        }),
+      );
+
+      return lambda;
     } catch (error: any) {
       if (error.name === "ResourceConflictException") {
         throw new Error(
@@ -65,12 +83,11 @@ export class LambdaProvider implements DeploymentProvider {
 
   public async update(deployment: Deployment): Promise<any> {
     const functionName = this.buildFunctionName(deployment);
-    const lambdaClient = new LambdaClient();
 
     console.log("Updating existing lambda", functionName);
 
     try {
-      return await lambdaClient.send(
+      return await this.lambdaClient.send(
         new UpdateFunctionCodeCommand({
           FunctionName: functionName,
           Publish: true,
@@ -86,6 +103,19 @@ export class LambdaProvider implements DeploymentProvider {
 
       throw error;
     }
+  }
+
+  public async notify(deployment: Deployment): Promise<any> {
+    const functionName = this.buildFunctionName(deployment);
+
+    // TODO: This is temporary until we have some scheduling in place
+    console.log("Triggering lambda", functionName);
+    await this.lambdaClient.send(
+      new InvokeCommand({
+        InvocationType: "Event",
+        FunctionName: functionName,
+      }),
+    );
   }
 
   private async config(): Promise<LambdaProviderConfig> {
