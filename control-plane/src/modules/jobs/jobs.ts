@@ -1,9 +1,7 @@
 import { and, eq, gt, isNotNull, lt, sql } from "drizzle-orm";
-import * as cluster from "../cluster";
 import * as cron from "../cron";
 import * as data from "../data";
 import * as events from "../observability/events";
-import * as predictor from "../predictor/predictor";
 import {
   ServiceDefinition,
   storeServiceDefinitionBG,
@@ -131,116 +129,6 @@ const storeMachineInfoBG = backgrounded(async function storeMachineInfo(
       where: eq(data.machines.cluster_id, owner.clusterId),
     });
 });
-
-export async function persistJobResult({
-  result,
-  resultType,
-  functionExecutionTime,
-  jobId,
-  owner,
-  machineId,
-}: {
-  result: string;
-  resultType: "resolution" | "rejection";
-  functionExecutionTime?: number;
-  jobId: string;
-  owner: { clusterId: string };
-  machineId: string;
-}) {
-  const updateResult = await data.db
-    .update(data.jobs)
-    .set({
-      result,
-      result_type: resultType,
-      resulted_at: sql`now()`,
-      function_execution_time_ms: functionExecutionTime,
-      status: "success",
-    })
-    .where(
-      and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
-    )
-    .returning({ service: data.jobs.service, targetFn: data.jobs.target_fn });
-
-  events.write({
-    type: "jobResulted",
-    service: updateResult[0]?.service,
-    clusterId: owner.clusterId,
-    jobId,
-    machineId,
-    meta: {
-      targetFn: updateResult[0]?.targetFn,
-      result,
-      resultType,
-      functionExecutionTime,
-    },
-  });
-
-  const mustRetry =
-    resultType === "rejection" &&
-    (await cluster
-      .operationalCluster(owner.clusterId)
-      .then((c) => c?.predictiveRetriesEnabled));
-
-  console.log("mustRetry", mustRetry);
-  console.log("resultType", resultType);
-
-  if (mustRetry) {
-    const [job] = await data.db
-      .select({
-        remainingAttempts: data.jobs.remaining_attempts,
-      })
-      .from(data.jobs)
-      .where(
-        and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
-      );
-
-    if ((job.remainingAttempts ?? 0) > 0) {
-      const retryable = await predictor.isRetryable(result);
-
-      console.log("retryable", retryable);
-
-      if (retryable.retryable) {
-        events.write({
-          type: "predictorRetryableResult",
-          service: updateResult[0]?.service,
-          clusterId: owner.clusterId,
-          jobId,
-          machineId,
-          meta: {
-            retryable: true,
-            reason: retryable.reason,
-          },
-        });
-
-        // mark them as pending again with attempts - 1
-        await data.db
-          .update(data.jobs)
-          .set({
-            status: "pending",
-            remaining_attempts: sql`remaining_attempts - 1`,
-          })
-          .where(
-            and(
-              eq(data.jobs.id, jobId),
-              eq(data.jobs.owner_hash, owner.clusterId),
-            ),
-          );
-      } else {
-        events.write({
-          type: "predictorRetryableResult",
-          service: updateResult[0]?.service,
-          clusterId: owner.clusterId,
-          jobId,
-          machineId,
-          meta: {
-            retryable: false,
-            reason: retryable.reason,
-          },
-        });
-      }
-    }
-  }
-}
 
 export async function selfHealJobs() {
   // TODO: impose a global timeout on jobs that don't have a timeout set
