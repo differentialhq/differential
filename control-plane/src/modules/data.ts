@@ -40,7 +40,7 @@ pool.on("error", (err) => {
 });
 
 pool.on("connect", (client) => {
-  console.debug("Connected to database");
+  // console.debug("Connected to database");
 });
 
 pool.on("release", () => {
