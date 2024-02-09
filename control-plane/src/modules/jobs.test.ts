@@ -4,8 +4,8 @@ import {
   getJobStatus,
   nextJobs,
   persistJobResult,
-  selfHealJobs,
 } from "./jobs/jobs";
+import { selfHealJobs } from "./jobs/persist-result";
 import * as eventAggregation from "./observability/event-aggregation";
 import * as events from "./observability/events";
 import { serializeError } from "./predictor/serialize-error";
@@ -204,8 +204,8 @@ describe("selfHealJobs", () => {
     // run the self heal job
     const healedJobs = await selfHealJobs();
 
-    expect(healedJobs.stalled).toContain(createJobResult.id);
-    expect(healedJobs.recovered).toContain(createJobResult.id);
+    expect(healedJobs.stalledFailed).toContain(createJobResult.id);
+    expect(healedJobs.stalledRecovered).toContain(createJobResult.id);
 
     // query the next job, it should be good to go
     const nextJobResult2 = await nextJobs({
@@ -275,8 +275,8 @@ describe("selfHealJobs", () => {
     // run the self heal job
     const healedJobs = await selfHealJobs();
 
-    expect(healedJobs.stalled).toContain(createJobResult.id);
-    expect(healedJobs.recovered).not.toContain(createJobResult.id);
+    expect(healedJobs.stalledFailed).toContain(createJobResult.id);
+    expect(healedJobs.stalledRecovered).not.toContain(createJobResult.id);
 
     // query the next job, it should not appear
     const nextJobResult2 = await nextJobs({
@@ -383,6 +383,8 @@ describe("persistJobResult", () => {
       jobId: createJobResult.id,
       clusterId: owner.clusterId,
     });
+
+    expect(eventsForJob[0].type).toBe("predictorRetryableResult");
 
     expect(eventsForJob[0]).toEqual(
       expect.objectContaining({

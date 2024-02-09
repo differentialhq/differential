@@ -12,7 +12,8 @@ export type EventTypes =
   | "machinePing"
   | "machineResourceProbe"
   | "functionInvocation"
-  | "predictorRetryableResult";
+  | "predictorRetryableResult"
+  | "predictorRecovered";
 
 type Event = {
   clusterId: string;
@@ -112,14 +113,14 @@ export const quit = async () => {
   buffer = null;
 };
 
-export const write = (event: Event) => {
+// Synthetic delay is useful for ordering events that are written in the same tick.
+export const write = (event: Event, syntheticDelay = 0) => {
   if (buffer === null) {
-    console.debug("Event writer not initialized, this is a no-op", event);
     return;
   }
 
   buffer?.push({
     ...event,
-    createdAt: new Date(),
+    createdAt: new Date(Date.now() + syntheticDelay),
   });
 };
