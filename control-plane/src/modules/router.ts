@@ -431,4 +431,34 @@ export const router = s.router(contract, {
       ),
     };
   },
+  setClusterSettings: async (request) => {
+    await routingHelpers.validateManagementAccess(request);
+
+    const { clusterId } = request.params;
+
+    const settings = {
+      predictiveRetriesEnabled: request.body.predictiveRetriesEnabled,
+    };
+
+    await management.setClusterSettings(clusterId, settings);
+
+    return {
+      status: 204,
+      body: undefined,
+    };
+  },
+  getClusterSettings: async (request) => {
+    await routingHelpers.validateManagementAccess(request);
+
+    const { clusterId } = request.params;
+
+    const settings = await management.getClusterSettings(clusterId);
+
+    return {
+      status: 200,
+      body: {
+        predictiveRetriesEnabled: settings.predictiveRetriesEnabled ?? false,
+      },
+    };
+  },
 });
