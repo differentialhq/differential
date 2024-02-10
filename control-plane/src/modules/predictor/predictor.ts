@@ -2,6 +2,11 @@ import msgpackr from "msgpackr";
 import { client } from "./client";
 import { deserializeError } from "./serialize-error";
 
+export type PredictedRetryableResult = {
+  retryable: boolean;
+  reason?: string;
+};
+
 export const isRetryable = async (resultContent: string) => {
   const unpacked = msgpackr.unpack(Buffer.from(resultContent, "base64"));
 
@@ -30,6 +35,11 @@ export const isRetryable = async (resultContent: string) => {
         retryable: retryable.body.retryable,
       };
     } else {
+      console.error(`Failed to predict retryability`, {
+        status: retryable?.status,
+        body: retryable?.body,
+      });
+
       return {
         retryable: false,
         reason: `Something went wrong while predicting retryability. Status=${retryable?.status}`,

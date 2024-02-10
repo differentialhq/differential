@@ -27,3 +27,5 @@ spec:
               value: https://humane-grouper-98.clerk.accounts.dev/.well-known/jwks.json
             - name: CONSOLE_ORIGIN
               value: http://localhost:3000
+            - name: PREDICTOR_API_URL
+              value: https://differential-predictor.fly.dev

@@ -32,7 +32,9 @@ export function Activity({
 
   const meta = activity.meta;
 
-  const text = typeToText[activity.type](activity);
+  const parser = typeToText[activity.type] ?? (() => activity.type);
+
+  const text = parser(activity);
 
   if (!text) {
     console.warn(`Unknown activity type: ${activity.type}`);
