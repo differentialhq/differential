@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.11.0](https://github.com/differentialhq/differential/compare/v3.10.1...v3.11.0) (2024-02-10)
+
+### Bug Fixes
+
+- Fix the control-plane build with include flag ([f95a751](https://github.com/differentialhq/differential/commit/f95a751625586bb8f44d0ebc125663ae79197d87))
+- Predictive retries via self-heal mechanism ([#118](https://github.com/differentialhq/differential/issues/118)) ([d9dffe4](https://github.com/differentialhq/differential/commit/d9dffe432cef7857804a6a0c5994885319b11d63))
+
+### Features
+
+- Add management token for self hosting ([#100](https://github.com/differentialhq/differential/issues/100)) ([e0e8bf2](https://github.com/differentialhq/differential/commit/e0e8bf2a9126e170389a4afbe362016101aa064d))
+- **cli:** Differential entrypoint ([#114](https://github.com/differentialhq/differential/issues/114)) ([bb3564c](https://github.com/differentialhq/differential/commit/bb3564ce4bbfaa6654663063acc5419df3b55a62))
+- **cli:** Release deployments ([#110](https://github.com/differentialhq/differential/issues/110)) ([f016193](https://github.com/differentialhq/differential/commit/f016193d653ab8625df8af8ca915cef4137c6cce))
+- Deployment publishing scaffolding ([#105](https://github.com/differentialhq/differential/issues/105)) ([a5a4ab1](https://github.com/differentialhq/differential/commit/a5a4ab1961bfadf7d3c9dcc7c6989d55ccc2ec26)), closes [#2](https://github.com/differentialhq/differential/issues/2)
+- Deployment triggering ([#116](https://github.com/differentialhq/differential/issues/116)) ([509522c](https://github.com/differentialhq/differential/commit/509522cb81fa5ef4c66f9c38773d3517249dc834))
+- Initial LambdaProvider ([#106](https://github.com/differentialhq/differential/issues/106)) ([7215f70](https://github.com/differentialhq/differential/commit/7215f7089742f0a2c4e56acf1957998eec568479)), closes [#105](https://github.com/differentialhq/differential/issues/105)
+- Retry predictions for function rejections ([#109](https://github.com/differentialhq/differential/issues/109)) ([9dbf4d4](https://github.com/differentialhq/differential/commit/9dbf4d4bffe81bcf861366a080a0e0236b436c63))
+- Service compilation and upload ([#88](https://github.com/differentialhq/differential/issues/88)) ([5f0e069](https://github.com/differentialhq/differential/commit/5f0e069bd59932cfb3f18e83202fed9250db8aa7))
+
 ## [3.10.1](https://github.com/differentialhq/differential/compare/v3.10.0...v3.10.1) (2024-01-31)
 
 ### Bug Fixes
