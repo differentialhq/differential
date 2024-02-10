@@ -231,3 +231,31 @@ export const getClusterServiceDetailsForUser = async ({
       ) ?? null,
   };
 };
+
+export const setClusterSettings = async (
+  clusterId: string,
+  settings: {
+    predictiveRetriesEnabled?: boolean;
+  },
+): Promise<void> => {
+  const current = await getClusterSettings(clusterId);
+
+  await data.db
+    .update(data.clusters)
+    .set({
+      predictive_retries_enabled:
+        settings.predictiveRetriesEnabled ?? current.predictiveRetriesEnabled,
+    })
+    .where(eq(data.clusters.id, clusterId));
+};
+
+export const getClusterSettings = async (clusterId: string) => {
+  const [settings] = await data.db
+    .select({
+      predictiveRetriesEnabled: data.clusters.predictive_retries_enabled,
+    })
+    .from(data.clusters)
+    .where(eq(data.clusters.id, clusterId));
+
+  return settings;
+};

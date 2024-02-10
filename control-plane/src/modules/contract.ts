@@ -433,6 +433,39 @@ export const definition = {
       }),
     },
   },
+  setClusterSettings: {
+    method: "PUT",
+    path: "/clusters/:clusterId/settings",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      predictiveRetriesEnabled: z.boolean(),
+    }),
+    responses: {
+      204: z.undefined(),
+      401: z.undefined(),
+    },
+    pathParams: z.object({
+      clusterId: z.string(),
+    }),
+  },
+  getClusterSettings: {
+    method: "GET",
+    path: "/clusters/:clusterId/settings",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.object({
+        predictiveRetriesEnabled: z.boolean(),
+      }),
+      401: z.undefined(),
+    },
+    pathParams: z.object({
+      clusterId: z.string(),
+    }),
+  },
 } as const;
 
 export const contract = c.router(definition);
