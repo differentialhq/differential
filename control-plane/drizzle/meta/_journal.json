@@ -246,6 +246,13 @@
       "when": 1707426924338,
       "tag": "0035_eminent_fantastic_four",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "5",
+      "when": 1707604639068,
+      "tag": "0036_vengeful_bedlam",
+      "breakpoints": true
     }
   ]
 }

@@ -13,6 +13,48 @@ type PersistResultParams = {
   machineId: string;
 };
 
+// TODO: this should be configurable at a cluster level
+const MAX_PREDICTIVE_RETRIES = 1;
+
+const shouldPredictRetry = async ({
+  resultType,
+  jobId,
+  owner,
+}: Pick<PersistResultParams, "resultType" | "jobId" | "owner">) => {
+  const isRejected = resultType === "rejection";
+
+  if (!isRejected) {
+    return false;
+  }
+
+  const clusterHasPredictiveRetriesEnabled = await cluster
+    .operationalCluster(owner.clusterId)
+    .then((c) => c?.predictiveRetriesEnabled ?? false);
+
+  console.log(
+    "clusterHasPredictiveRetriesEnabled",
+    clusterHasPredictiveRetriesEnabled,
+  );
+
+  if (!clusterHasPredictiveRetriesEnabled) {
+    return false;
+  }
+
+  const jobHasRemainingAttempts = await data.db
+    .select({
+      retryCount: data.jobs.predictive_retry_count,
+    })
+    .from(data.jobs)
+    .where(
+      and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
+    )
+    .then((rows) => (rows[0]?.retryCount ?? 0) < MAX_PREDICTIVE_RETRIES);
+
+  console.log("jobHasRemainingAttempts", jobHasRemainingAttempts);
+
+  return jobHasRemainingAttempts;
+};
+
 export async function persistJobResult({
   result,
   resultType,
@@ -21,13 +63,11 @@ export async function persistJobResult({
   owner,
   machineId,
 }: PersistResultParams) {
-  const shouldPredictRetry =
-    resultType === "rejection" &&
-    (await cluster
-      .operationalCluster(owner.clusterId)
-      .then((c) => c?.predictiveRetriesEnabled ?? false));
-
-  const predictedToBeRetryableResult = shouldPredictRetry
+  const predictedToBeRetryableResult = (await shouldPredictRetry({
+    resultType,
+    jobId,
+    owner,
+  }))
     ? await predictor.isRetryable(result)
     : null;
 
@@ -102,6 +142,7 @@ async function updateJobWithRetryableResult({
       status: predictedToBeRetryableResult.retryable ? "pending" : "success",
       predicted_to_be_retryable: predictedToBeRetryableResult.retryable,
       predicted_to_be_retryable_reason: predictedToBeRetryableResult.reason,
+      predictive_retry_count: sql`predictive_retry_count + 1`,
     })
     .where(
       and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),

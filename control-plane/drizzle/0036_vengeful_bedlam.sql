@@ -1,0 +1,1 @@
+ALTER TABLE "jobs" ADD COLUMN "predictive_retry_count" integer DEFAULT 0;
