@@ -378,6 +378,94 @@ export const definition = {
       jobId: z.string(),
     }),
   },
+  createDeployment: {
+    method: "POST",
+    path: "/clusters/:clusterId/service/:serviceName/deployments",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.undefined(),
+    responses: {
+      501: z.undefined(),
+      401: z.undefined(),
+      200: z.object({
+        id: z.string(),
+        packageUploadUrl: z.string(),
+        definitionUploadUrl: z.string(),
+        status: z.string(),
+      }),
+    },
+  },
+  getDeployment: {
+    method: "GET",
+    path: "/clusters/:clusterId/service/:serviceName/deployments/:deploymentId",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.undefined(),
+    responses: {
+      401: z.undefined(),
+      404: z.undefined(),
+      200: z.object({
+        id: z.string(),
+        packageUploadUrl: z.string(),
+        definitionUploadUrl: z.string(),
+        status: z.string(),
+      }),
+    },
+  },
+  releaseDeployment: {
+    method: "POST",
+    path: "/clusters/:clusterId/service/:serviceName/deployments/:deploymentId/release",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.undefined(),
+    responses: {
+      400: z.undefined(),
+      401: z.undefined(),
+      404: z.undefined(),
+      200: z.object({
+        id: z.string(),
+        packageUploadUrl: z.string(),
+        definitionUploadUrl: z.string(),
+        status: z.string(),
+      }),
+    },
+  },
+  setClusterSettings: {
+    method: "PUT",
+    path: "/clusters/:clusterId/settings",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      predictiveRetriesEnabled: z.boolean(),
+    }),
+    responses: {
+      204: z.undefined(),
+      401: z.undefined(),
+    },
+    pathParams: z.object({
+      clusterId: z.string(),
+    }),
+  },
+  getClusterSettings: {
+    method: "GET",
+    path: "/clusters/:clusterId/settings",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.object({
+        predictiveRetriesEnabled: z.boolean(),
+      }),
+      401: z.undefined(),
+    },
+    pathParams: z.object({
+      clusterId: z.string(),
+    }),
+  },
 } as const;
 
 export const contract = c.router(definition);
