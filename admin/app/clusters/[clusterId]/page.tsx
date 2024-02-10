@@ -1,6 +1,7 @@
 import { client } from "@/client/client";
 import { auth } from "@clerk/nextjs";
 import { ClusterLiveTables } from "./ClusterLiveTables";
+import { ClusterSettings } from "./ClusterSettings";
 import { SecretKeyReveal } from "./SecretKeyReveal";
 
 export default async function Page({
@@ -29,13 +30,19 @@ export default async function Page({
         <p className="text-gray-400">Differential Cluster</p>
         <h1 className="text-2xl font-mono">{params.clusterId}</h1>
       </div>
-      <div className="mt-12">
-        <h2 className="text-xl">Secret Keys</h2>
-        <p className="text-gray-400 mt-2">
-          These keys are used to authenticate with the cluster. They should be
-          kept secret.
-        </p>
-        <SecretKeyReveal secretKey={clusterResult.body.apiSecret} />
+      <div className="mt-12 flex flex-row">
+        <div className="flex-1">
+          <h2 className="text-xl">Secret Keys</h2>
+          <p className="text-gray-400 mt-2">
+            These keys are used to authenticate with the cluster. They should be
+            kept secret.
+          </p>
+          <SecretKeyReveal secretKey={clusterResult.body.apiSecret} />
+        </div>
+        <div className="flex-1">
+          <h2 className="text-xl mb-4">Cluster Settings</h2>
+          <ClusterSettings clusterId={params.clusterId} />
+        </div>
       </div>
 
       <ClusterLiveTables clusterId={params.clusterId} />
