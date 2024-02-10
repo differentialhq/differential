@@ -58,6 +58,7 @@ export const jobs = pgTable(
     // TODO: (good-first-issue) rename this column to execution_id
     id: varchar("id", { length: 1024 }).notNull().unique(),
     owner_hash: text("owner_hash").notNull(),
+    deployment_id: varchar("deployment_id", { length: 1024 }),
     target_fn: varchar("target_fn", { length: 1024 }).notNull(),
     target_args: text("target_args").notNull(),
     idempotency_key: varchar("idempotency_key", { length: 1024 }).notNull(),
@@ -97,6 +98,7 @@ export const machines = pgTable("machines", {
   last_ping_at: timestamp("last_ping_at", { withTimezone: true }),
   ip: varchar("ip", { length: 1024 }),
   cluster_id: varchar("cluster_id").notNull(),
+  deployment_id: varchar("deployment_id"),
 });
 
 export const clusters = pgTable("clusters", {
@@ -178,6 +180,19 @@ export const deployments = pgTable("deployments", {
   provider: text("provider", {
     enum: ["lambda", "mock"],
   }).notNull(),
+});
+
+export const deploymentNotification = pgTable("deployment_notifications", {
+  id: varchar("id", { length: 1024 }).primaryKey().notNull(),
+  deployment_id: varchar("deployment_id", { length: 1024 })
+    .references(() => deployments.id)
+    .notNull(),
+  created_at: timestamp("created_at", {
+    withTimezone: true,
+    precision: 6,
+  })
+    .defaultNow()
+    .notNull(),
 });
 
 export const deploymentProvividerConfig = pgTable(

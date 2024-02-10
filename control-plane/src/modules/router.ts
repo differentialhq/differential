@@ -8,6 +8,7 @@ import { contract } from "./contract";
 import * as data from "./data";
 import {
   createDeployment,
+  findActiveDeployment,
   getDeployment,
   releaseDeployment,
 } from "./deployment/deployment";
@@ -104,11 +105,16 @@ export const router = s.router(contract, {
     const { targetFn, targetArgs, pool, service, idempotencyKey, cacheKey } =
       request.body;
 
+    const deployment = owner.cloudEnabled
+      ? await findActiveDeployment(owner.clusterId, service)
+      : null;
+
     const { id } = await jobs.createJob({
       service,
       targetFn,
       targetArgs,
       owner,
+      deploymentId: deployment?.id,
       pool,
       idempotencyKey,
       cacheKey,
@@ -378,7 +384,7 @@ export const router = s.router(contract, {
   },
   getDeployment: async (request) => {
     const owner = await auth.jobOwnerHash(request.headers.authorization);
-    const { clusterId, serviceName, deploymentId } = request.params;
+    const { clusterId, deploymentId } = request.params;
 
     if (!owner || owner.clusterId !== clusterId || !owner.cloudEnabled) {
       return {
@@ -388,16 +394,12 @@ export const router = s.router(contract, {
 
     return {
       status: 200,
-      body: await getDeployment({
-        clusterId,
-        serviceName,
-        id: deploymentId,
-      }),
+      body: await getDeployment(deploymentId),
     };
   },
   releaseDeployment: async (request) => {
     const owner = await auth.jobOwnerHash(request.headers.authorization);
-    const { clusterId, serviceName, deploymentId } = request.params;
+    const { clusterId, deploymentId } = request.params;
 
     if (!owner || owner.clusterId !== clusterId || !owner.cloudEnabled) {
       return {
@@ -405,11 +407,7 @@ export const router = s.router(contract, {
       };
     }
 
-    const deployment = await getDeployment({
-      clusterId,
-      serviceName,
-      id: deploymentId,
-    });
+    const deployment = await getDeployment(deploymentId);
 
     if (!deployment) {
       return {
