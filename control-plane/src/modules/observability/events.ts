@@ -20,6 +20,7 @@ type Event = {
   type: EventTypes;
   jobId?: string;
   machineId?: string;
+  deploymentId?: string;
   service?: string;
   meta?: {
     targetFn?: string;
@@ -77,12 +78,12 @@ class EventWriterBuffer {
 
       const values = events.map(
         (e) =>
-          sql`(${ulid()}, ${e.clusterId}, ${e.type}, ${e.jobId ?? null}, ${e.machineId ?? null}, ${e.createdAt}, ${e.meta ?? null}, ${e.service ?? null})`,
+          sql`(${ulid()}, ${e.clusterId}, ${e.type}, ${e.jobId ?? null}, ${e.machineId ?? null}, ${e.createdAt}, ${e.meta ?? null}, ${e.service ?? null}, ${e.deploymentId ?? null})`,
       );
 
       const result = await data.db.execute(
         sql`
-          INSERT INTO events (id, cluster_id, type, job_id, machine_id, created_at, meta, service)
+          INSERT INTO events (id, cluster_id, type, job_id, machine_id, created_at, meta, service, deployment_id)
           VALUES ${sql.join(values, sql`,`)};
         `,
       );

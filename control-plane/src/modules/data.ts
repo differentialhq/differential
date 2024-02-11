@@ -145,6 +145,9 @@ export const events = pgTable("events", {
   machine_id: varchar("machine_id", { length: 1024 }).references(
     () => machines.id,
   ),
+  deployment_id: varchar("deployment_id", { length: 1024 }).references(
+    () => deployments.id,
+  ),
   service: varchar("service", { length: 1024 }),
   created_at: timestamp("created_at", {
     withTimezone: true,

@@ -38,15 +38,22 @@ export type RegisteredService<T extends ServiceDefinition<any>> = {
   stop: () => Promise<void>;
 };
 
-const createClient = (
-  baseUrl: string,
-  machineId: string,
-  clientAbortController?: AbortController,
-) =>
+const createClient = ({
+  baseUrl,
+  machineId,
+  deploymentId,
+  clientAbortController,
+}: {
+  baseUrl: string;
+  machineId: string;
+  deploymentId?: string;
+  clientAbortController?: AbortController;
+}) =>
   initClient(contract, {
     baseUrl,
     baseHeaders: {
       "x-machine-id": machineId,
+      ...(deploymentId && { "x-deployment-id": deploymentId }),
     },
     api: clientAbortController
       ? (args) => {
@@ -132,6 +139,19 @@ type ServiceRegistryFunction = {
 
 const functionRegistry: { [key: string]: ServiceRegistryFunction } = {};
 
+type PollingAgentService = {
+  name: string;
+  idleTimeout?: number;
+  onIdle?: () => void;
+};
+type PollingAgentOptions = {
+  endpoint: string;
+  machineId: string;
+  deploymentId?: string;
+  authHeader: string;
+  service: PollingAgentService;
+  ttl?: number;
+};
 class PollingAgent {
   private errorCount = 0;
   private taskQueue = new TaskQueue();
@@ -145,23 +165,21 @@ class PollingAgent {
   };
 
   private client: ReturnType<typeof createClient>;
+  private authHeader: string;
+  private service: PollingAgentService;
+  private ttl?: number;
 
-  constructor(
-    private endpoint: string,
-    private machineId: string,
-    private authHeader: string,
-    private service: {
-      name: string;
-      idleTimeout?: number;
-      onIdle?: () => void;
-    },
-    private ttl?: number,
-  ) {
-    this.client = createClient(
-      this.endpoint,
-      this.machineId,
-      this.abortController,
-    );
+  constructor(options: PollingAgentOptions) {
+    this.authHeader = options.authHeader;
+    this.service = options.service;
+    this.ttl = options.ttl;
+
+    this.client = createClient({
+      baseUrl: options.endpoint,
+      machineId: options.machineId,
+      deploymentId: options.deploymentId,
+      clientAbortController: this.abortController,
+    });
   }
 
   private async pollForNextJob(): Promise<{
@@ -430,6 +448,7 @@ export class Differential {
   private authHeader: string;
   private endpoint: string;
   private machineId: string;
+  private deploymentId?: string;
   private controlPlaneClient: ReturnType<typeof createClient>;
 
   private jobPollWaitTime?: number;
@@ -469,6 +488,7 @@ export class Differential {
     this.authHeader = `Basic ${this.apiSecret}`;
     this.endpoint = options?.endpoint || "https://api.differential.dev";
     this.machineId = Math.random().toString(36).substring(7);
+    this.deploymentId = process.env.DIFFERENTIAL_DEPLOYMENT_ID;
 
     options?.encryptionKeys?.forEach((key, i) => {
       if (key.length !== 32) {
@@ -491,7 +511,11 @@ export class Differential {
       machineId: this.machineId,
     });
 
-    this.controlPlaneClient = createClient(this.endpoint, this.machineId);
+    this.controlPlaneClient = createClient({
+      baseUrl: this.endpoint,
+      machineId: this.machineId,
+      deploymentId: this.deploymentId,
+    });
     this.events = new Events(async (events) => {
       const result = await this.controlPlaneClient.ingestClientEvents({
         body: { events: events },
@@ -517,15 +541,16 @@ export class Differential {
       });
     }
 
-    const pollingAgent = new PollingAgent(
-      this.endpoint,
-      this.machineId,
-      this.authHeader,
-      {
+    const pollingAgent = new PollingAgent({
+      endpoint: this.endpoint,
+      machineId: this.machineId,
+      authHeader: this.authHeader,
+      deploymentId: this.deploymentId,
+      service: {
         name: service.name,
       },
-      this.jobPollWaitTime,
-    );
+      ttl: this.jobPollWaitTime,
+    });
 
     this.pollingAgents.push(pollingAgent);
 
