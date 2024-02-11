@@ -16,6 +16,7 @@ export const definition = {
     headers: z.object({
       authorization: z.string(),
       "x-machine-id": z.string(),
+      "x-deployment-id": z.string().optional(),
     }),
     body: z.object({
       limit: z.coerce.number().default(1),
@@ -96,6 +97,8 @@ export const definition = {
     path: "/jobs/:jobId/result",
     headers: z.object({
       authorization: z.string(),
+      "x-machine-id": z.string(),
+      "x-deployment-id": z.string().optional(),
     }),
     pathParams: z.object({
       jobId: z.string(),
@@ -339,6 +342,7 @@ export const definition = {
     headers: z.object({
       authorization: z.string(),
       "x-machine-id": z.string(),
+      "x-deployment-id": z.string().optional(),
     }),
     responses: {
       204: z.undefined(),

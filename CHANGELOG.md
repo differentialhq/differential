@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.12.0](https://github.com/differentialhq/differential/compare/v3.11.0...v3.12.0) (2024-02-11)
+
+### Bug Fixes
+
+- Keep one machine running to ([b25d8ad](https://github.com/differentialhq/differential/commit/b25d8ad6993a493c41fc45773d2c76a102cb1184))
+
+### Features
+
+- Adding interfaces to get and set cluster settings ([#119](https://github.com/differentialhq/differential/issues/119)) ([91c32cf](https://github.com/differentialhq/differential/commit/91c32cf115b5e20716a567c0d43608f860bd2d2d))
+- Attach deployment to machine and events ([#124](https://github.com/differentialhq/differential/issues/124)) ([f9c0ce5](https://github.com/differentialhq/differential/commit/f9c0ce50e66fb50caf911c24ce5ade61d16bac8e))
+- Initial deployment scheduling ([#121](https://github.com/differentialhq/differential/issues/121)) ([64a8c89](https://github.com/differentialhq/differential/commit/64a8c89c1b57f5e949e3d64c186893568b039937))
+- Predictive retries toggle on console ([#120](https://github.com/differentialhq/differential/issues/120)) ([8ec586e](https://github.com/differentialhq/differential/commit/8ec586e37fe6538ac0386b2bd16db2c635cf0a26))
+
 # [3.11.0](https://github.com/differentialhq/differential/compare/v3.10.1...v3.11.0) (2024-02-10)
 
 ### Bug Fixes

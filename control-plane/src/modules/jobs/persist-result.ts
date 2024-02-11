@@ -11,6 +11,7 @@ type PersistResultParams = {
   jobId: string;
   owner: { clusterId: string };
   machineId: string;
+  deploymentId?: string;
 };
 
 // TODO: this should be configurable at a cluster level
@@ -62,6 +63,7 @@ export async function persistJobResult({
   jobId,
   owner,
   machineId,
+  deploymentId,
 }: PersistResultParams) {
   const predictedToBeRetryableResult = (await shouldPredictRetry({
     resultType,
@@ -96,6 +98,7 @@ export async function persistJobResult({
     clusterId: owner.clusterId,
     jobId,
     machineId,
+    deploymentId,
     meta: {
       targetFn: updateResult[0]?.targetFn,
       result,
