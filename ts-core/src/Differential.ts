@@ -38,15 +38,22 @@ export type RegisteredService<T extends ServiceDefinition<any>> = {
   stop: () => Promise<void>;
 };
 
-const createClient = (
-  baseUrl: string,
-  machineId: string,
-  clientAbortController?: AbortController,
-) =>
+const createClient = ({
+  baseUrl,
+  machineId,
+  deploymentId,
+  clientAbortController,
+}: {
+  baseUrl: string;
+  machineId: string;
+  deploymentId?: string;
+  clientAbortController?: AbortController;
+}) =>
   initClient(contract, {
     baseUrl,
     baseHeaders: {
       "x-machine-id": machineId,
+      ...(deploymentId && { "x-deployment-id": deploymentId }),
     },
     api: clientAbortController
       ? (args) => {
@@ -430,6 +437,7 @@ export class Differential {
   private authHeader: string;
   private endpoint: string;
   private machineId: string;
+  private deploymentId?: string;
   private controlPlaneClient: ReturnType<typeof createClient>;
 
   private jobPollWaitTime?: number;
@@ -469,6 +477,7 @@ export class Differential {
     this.authHeader = `Basic ${this.apiSecret}`;
     this.endpoint = options?.endpoint || "https://api.differential.dev";
     this.machineId = Math.random().toString(36).substring(7);
+    this.deploymentId = process.env.DIFFERENTIAL_DEPLOYMENT_ID;
 
     options?.encryptionKeys?.forEach((key, i) => {
       if (key.length !== 32) {
@@ -491,7 +500,11 @@ export class Differential {
       machineId: this.machineId,
     });
 
-    this.controlPlaneClient = createClient(this.endpoint, this.machineId);
+    this.controlPlaneClient = createClient({
+      baseUrl: this.endpoint,
+      machineId: this.machineId,
+      deploymentId: this.deploymentId,
+    });
     this.events = new Events(async (events) => {
       const result = await this.controlPlaneClient.ingestClientEvents({
         body: { events: events },

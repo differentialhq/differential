@@ -16,6 +16,7 @@ export const definition = {
     headers: z.object({
       authorization: z.string(),
       "x-machine-id": z.string(),
+      "x-deployment-id": z.string().optional(),
     }),
     body: z.object({
       limit: z.coerce.number().default(1),
@@ -339,6 +340,7 @@ export const definition = {
     headers: z.object({
       authorization: z.string(),
       "x-machine-id": z.string(),
+      "x-deployment-id": z.string().optional(),
     }),
     responses: {
       204: z.undefined(),

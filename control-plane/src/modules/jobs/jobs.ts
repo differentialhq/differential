@@ -17,6 +17,7 @@ export const nextJobs = async ({
   owner,
   limit,
   machineId,
+  deploymentId,
   ip,
   definition,
 }: {
@@ -24,6 +25,7 @@ export const nextJobs = async ({
   owner: { clusterId: string };
   limit: number;
   machineId: string;
+  deploymentId?: string;
   ip: string;
   definition?: ServiceDefinition;
 }) => {
@@ -113,6 +115,7 @@ const storeMachineInfoBG = backgrounded(async function storeMachineInfo(
   machineId: string,
   ip: string,
   owner: { clusterId: string },
+  deploymentId?: string,
 ) {
   await data.db
     .insert(data.machines)
@@ -121,6 +124,7 @@ const storeMachineInfoBG = backgrounded(async function storeMachineInfo(
       last_ping_at: new Date(),
       ip,
       cluster_id: owner.clusterId,
+      //deployment_id: deploymentId,
     })
     .onConflictDoUpdate({
       target: data.machines.id,

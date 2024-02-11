@@ -49,6 +49,7 @@ export const router = s.router(contract, {
         owner,
         limit,
         machineId: request.headers["x-machine-id"],
+        deploymentId: request.headers["x-deployment-id"],
         ip: request.request.ip,
         service: request.body.service,
         definition: {
