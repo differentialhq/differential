@@ -133,4 +133,4 @@ const storeMachineInfoBG = backgrounded(async function storeMachineInfo(
 });
 
 export const start = () =>
-  cron.registerCron(selfHealJobs, { interval: 1000 * 5 }); // 5 seconds
+  cron.registerCron("selfHealJobs", selfHealJobs, { interval: 1000 * 5 }); // 5 seconds
