@@ -139,6 +139,19 @@ type ServiceRegistryFunction = {
 
 const functionRegistry: { [key: string]: ServiceRegistryFunction } = {};
 
+type PollingAgentService = {
+  name: string;
+  idleTimeout?: number;
+  onIdle?: () => void;
+};
+type PollingAgentOptions = {
+  endpoint: string;
+  machineId: string;
+  deploymentId?: string;
+  authHeader: string;
+  service: PollingAgentService;
+  ttl?: number;
+};
 class PollingAgent {
   private errorCount = 0;
   private taskQueue = new TaskQueue();
@@ -152,23 +165,21 @@ class PollingAgent {
   };
 
   private client: ReturnType<typeof createClient>;
+  private authHeader: string;
+  private service: PollingAgentService;
+  private ttl?: number;
 
-  constructor(
-    private endpoint: string,
-    private machineId: string,
-    private authHeader: string,
-    private service: {
-      name: string;
-      idleTimeout?: number;
-      onIdle?: () => void;
-    },
-    private ttl?: number,
-  ) {
-    this.client = createClient(
-      this.endpoint,
-      this.machineId,
-      this.abortController,
-    );
+  constructor(options: PollingAgentOptions) {
+    this.authHeader = options.authHeader;
+    this.service = options.service;
+    this.ttl = options.ttl;
+
+    this.client = createClient({
+      baseUrl: options.endpoint,
+      machineId: options.machineId,
+      deploymentId: options.deploymentId,
+      clientAbortController: this.abortController,
+    });
   }
 
   private async pollForNextJob(): Promise<{
@@ -530,15 +541,16 @@ export class Differential {
       });
     }
 
-    const pollingAgent = new PollingAgent(
-      this.endpoint,
-      this.machineId,
-      this.authHeader,
-      {
+    const pollingAgent = new PollingAgent({
+      endpoint: this.endpoint,
+      machineId: this.machineId,
+      authHeader: this.authHeader,
+      deploymentId: this.deploymentId,
+      service: {
         name: service.name,
       },
-      this.jobPollWaitTime,
-    );
+      ttl: this.jobPollWaitTime,
+    });
 
     this.pollingAgents.push(pollingAgent);
 

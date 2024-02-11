@@ -87,6 +87,7 @@ export const router = s.router(contract, {
       jobId,
       owner,
       machineId: request.headers["x-machine-id"] as string,
+      deploymentId: request.headers["x-deployment-id"] as string,
     });
 
     return {
@@ -325,6 +326,7 @@ export const router = s.router(contract, {
 
       events.write({
         machineId: request.headers["x-machine-id"],
+        deploymentId: request.headers["x-deployment-id"],
         clusterId: owner.clusterId,
         type: event.type,
         service: event.tags.service,

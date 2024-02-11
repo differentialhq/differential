@@ -97,6 +97,8 @@ export const definition = {
     path: "/jobs/:jobId/result",
     headers: z.object({
       authorization: z.string(),
+      "x-machine-id": z.string(),
+      "x-deployment-id": z.string().optional(),
     }),
     pathParams: z.object({
       jobId: z.string(),
