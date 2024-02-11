@@ -151,9 +151,11 @@ type PollingAgentOptions = {
   authHeader: string;
   service: PollingAgentService;
   ttl?: number;
+  maxIdleCycles?: number;
 };
 class PollingAgent {
   private errorCount = 0;
+  private idleCycleCount = 0;
   private taskQueue = new TaskQueue();
   private abortController = new AbortController();
   private pollingAborted = false;
@@ -168,11 +170,13 @@ class PollingAgent {
   private authHeader: string;
   private service: PollingAgentService;
   private ttl?: number;
+  private maxIdleCycles?: number;
 
   constructor(options: PollingAgentOptions) {
     this.authHeader = options.authHeader;
     this.service = options.service;
     this.ttl = options.ttl;
+    this.maxIdleCycles = options.maxIdleCycles;
 
     this.client = createClient({
       baseUrl: options.endpoint,
@@ -347,19 +351,27 @@ class PollingAgent {
       return;
     }
 
-    const [{ ok }] = await Promise.all([
+    const [{ ok, jobCount }] = await Promise.all([
       await this.pollForNextJob(),
       await new Promise((resolve) => setTimeout(resolve, 2000)), // this acts as a throttle
     ]);
 
     if (ok) {
       this.errorCount = 0;
+      jobCount > 0 ? (this.idleCycleCount = 0) : this.idleCycleCount++;
     } else {
       this.errorCount += 1;
     }
 
     if (this.errorCount > 10) {
       log("Too many errors, stopping polling agent", { service: this.service });
+      this.quit();
+    }
+
+    if (this.maxIdleCycles && this.idleCycleCount >= this.maxIdleCycles) {
+      log("Max idle cycles reached, stopping polling agent", {
+        service: this.service,
+      });
       this.quit();
     }
 
@@ -452,6 +464,8 @@ export class Differential {
   private controlPlaneClient: ReturnType<typeof createClient>;
 
   private jobPollWaitTime?: number;
+  private maxIdleCycles?: number;
+
   private pollingAgents: PollingAgent[] = [];
 
   private events: Events;
@@ -488,7 +502,12 @@ export class Differential {
     this.authHeader = `Basic ${this.apiSecret}`;
     this.endpoint = options?.endpoint || "https://api.differential.dev";
     this.machineId = Math.random().toString(36).substring(7);
+
     this.deploymentId = process.env.DIFFERENTIAL_DEPLOYMENT_ID;
+
+    if (process.env.DIFFERENTIAL_DEPLOYMENT_PROVIDER === "lambda") {
+      this.maxIdleCycles = 2;
+    }
 
     options?.encryptionKeys?.forEach((key, i) => {
       if (key.length !== 32) {
@@ -550,6 +569,7 @@ export class Differential {
         name: service.name,
       },
       ttl: this.jobPollWaitTime,
+      maxIdleCycles: this.maxIdleCycles,
     });
 
     this.pollingAgents.push(pollingAgent);

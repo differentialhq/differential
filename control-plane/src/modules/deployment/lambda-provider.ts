@@ -62,9 +62,7 @@ export class LambdaProvider implements DeploymentProvider {
           Publish: true,
           FunctionName: functionName,
           Environment: {
-            Variables: {
-              DIFFERENTIAL_DEPLOYMENT_ID: deployment.id,
-            },
+            ...this.getEnvironmentVariables(deployment),
           },
           Code: {
             ...s3AssetDetails(deployment),
@@ -100,9 +98,7 @@ export class LambdaProvider implements DeploymentProvider {
       await this.lambdaClient.send(
         new UpdateFunctionConfigurationCommand({
           Environment: {
-            Variables: {
-              DIFFERENTIAL_DEPLOYMENT_ID: deployment.id,
-            },
+            ...this.getEnvironmentVariables(deployment),
           },
           FunctionName: functionName,
         }),
@@ -186,6 +182,15 @@ export class LambdaProvider implements DeploymentProvider {
       }
       throw error;
     }
+  }
+
+  private getEnvironmentVariables(deployment: Deployment) {
+    return {
+      Variables: {
+        DIFFERENTIAL_DEPLOYMENT_ID: deployment.id,
+        DIFFERENTIAL_DEPLOYMENT_PROVIDER: this.name(),
+      },
+    };
   }
 
   private async config(): Promise<LambdaProviderConfig> {
