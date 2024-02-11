@@ -16,6 +16,7 @@ export const definition = {
     headers: z.object({
       authorization: z.string(),
       "x-machine-id": z.string(),
+      "x-deployment-id": z.string().optional(),
     }),
     body: z.object({
       limit: z.coerce.number().default(1),
@@ -96,6 +97,8 @@ export const definition = {
     path: "/jobs/:jobId/result",
     headers: z.object({
       authorization: z.string(),
+      "x-machine-id": z.string(),
+      "x-deployment-id": z.string().optional(),
     }),
     pathParams: z.object({
       jobId: z.string(),
@@ -302,20 +305,26 @@ export const definition = {
     }),
     responses: {
       200: z.object({
-        start: z.date(),
-        stop: z.date(),
-        success: z.object({
-          count: z.array(z.object({ timestamp: z.date(), value: z.number() })),
-          avgExecutionTime: z.array(
-            z.object({ timestamp: z.date(), value: z.number() }),
-          ),
-        }),
-        failure: z.object({
-          count: z.array(z.object({ timestamp: z.date(), value: z.number() })),
-          avgExecutionTime: z.array(
-            z.object({ timestamp: z.date(), value: z.number() }),
-          ),
-        }),
+        summary: z.array(
+          z.object({
+            targetFn: z.string(),
+            resultType: z.string(),
+            count: z.number(),
+            avgExecutionTime: z.number(),
+            minExecutionTime: z.number(),
+            maxExecutionTime: z.number(),
+          }),
+        ),
+        timeseries: z.array(
+          z.object({
+            timeBin: z.string(),
+            serviceName: z.string(),
+            avgExecutionTime: z.number(),
+            totalJobResulted: z.number(),
+            totalJobStalled: z.number(),
+            rejectionCount: z.number(),
+          }),
+        ),
       }),
       401: z.undefined(),
       404: z.undefined(),
@@ -324,10 +333,7 @@ export const definition = {
       clusterId: z.string(),
     }),
     query: z.object({
-      start: z.coerce.date().optional(),
-      stop: z.coerce.date().optional(),
-      functionName: z.string().optional(),
-      serviceName: z.string().optional(),
+      serviceName: z.string(),
     }),
   },
   ingestClientEvents: {
@@ -336,6 +342,7 @@ export const definition = {
     headers: z.object({
       authorization: z.string(),
       "x-machine-id": z.string(),
+      "x-deployment-id": z.string().optional(),
     }),
     responses: {
       204: z.undefined(),
@@ -361,11 +368,10 @@ export const definition = {
     responses: {
       200: z.array(
         z.object({
-          jobId: z.string(),
           type: z.string(),
-          meta: z.string().optional(),
+          meta: z.unknown(),
           machineId: z.string().nullable(),
-          timestamp: z.string(),
+          timestamp: z.date(),
           service: z.string().nullable(),
         }),
       ),
@@ -374,7 +380,94 @@ export const definition = {
     },
     query: z.object({
       jobId: z.string(),
-      interval: z.literal("-7d"),
+    }),
+  },
+  createDeployment: {
+    method: "POST",
+    path: "/clusters/:clusterId/service/:serviceName/deployments",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.undefined(),
+    responses: {
+      501: z.undefined(),
+      401: z.undefined(),
+      200: z.object({
+        id: z.string(),
+        packageUploadUrl: z.string(),
+        definitionUploadUrl: z.string(),
+        status: z.string(),
+      }),
+    },
+  },
+  getDeployment: {
+    method: "GET",
+    path: "/clusters/:clusterId/service/:serviceName/deployments/:deploymentId",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.undefined(),
+    responses: {
+      401: z.undefined(),
+      404: z.undefined(),
+      200: z.object({
+        id: z.string(),
+        packageUploadUrl: z.string(),
+        definitionUploadUrl: z.string(),
+        status: z.string(),
+      }),
+    },
+  },
+  releaseDeployment: {
+    method: "POST",
+    path: "/clusters/:clusterId/service/:serviceName/deployments/:deploymentId/release",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.undefined(),
+    responses: {
+      400: z.undefined(),
+      401: z.undefined(),
+      404: z.undefined(),
+      200: z.object({
+        id: z.string(),
+        packageUploadUrl: z.string(),
+        definitionUploadUrl: z.string(),
+        status: z.string(),
+      }),
+    },
+  },
+  setClusterSettings: {
+    method: "PUT",
+    path: "/clusters/:clusterId/settings",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      predictiveRetriesEnabled: z.boolean(),
+    }),
+    responses: {
+      204: z.undefined(),
+      401: z.undefined(),
+    },
+    pathParams: z.object({
+      clusterId: z.string(),
+    }),
+  },
+  getClusterSettings: {
+    method: "GET",
+    path: "/clusters/:clusterId/settings",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.object({
+        predictiveRetriesEnabled: z.boolean(),
+      }),
+      401: z.undefined(),
+    },
+    pathParams: z.object({
+      clusterId: z.string(),
     }),
   },
 } as const;

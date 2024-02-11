@@ -11,6 +11,7 @@ type PersistResultParams = {
   jobId: string;
   owner: { clusterId: string };
   machineId: string;
+  deploymentId?: string;
 };
 
 export async function persistJobResult({
@@ -20,6 +21,7 @@ export async function persistJobResult({
   jobId,
   owner,
   machineId,
+  deploymentId,
 }: PersistResultParams) {
   const shouldPredictRetry =
     resultType === "rejection" &&
@@ -54,6 +56,7 @@ export async function persistJobResult({
     clusterId: owner.clusterId,
     jobId,
     machineId,
+    deploymentId,
     meta: {
       targetFn: updateResult[0]?.targetFn,
       result,

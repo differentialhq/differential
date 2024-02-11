@@ -9,6 +9,7 @@ type CreateJobParams = {
   targetFn: string;
   targetArgs: string;
   owner: { clusterId: string };
+  deploymentId?: string;
   pool?: string;
   timeoutIntervalSeconds?: number;
   maxAttempts?: number;
@@ -19,6 +20,7 @@ export const createJob = async (params: {
   targetFn: string;
   targetArgs: string;
   owner: { clusterId: string };
+  deploymentId?: string;
   pool?: string;
   idempotencyKey?: string;
   cacheKey?: string;
@@ -87,6 +89,7 @@ const createJobStrategies = {
     targetFn,
     targetArgs,
     owner,
+    deploymentId,
     pool,
     idempotencyKey,
     timeoutIntervalSeconds,
@@ -103,6 +106,7 @@ const createJobStrategies = {
         idempotency_key: jobId,
         status: "pending",
         owner_hash: owner.clusterId,
+        deployment_id: deploymentId,
         machine_type: pool,
         service,
         remaining_attempts: maxAttempts ?? 1,
@@ -117,6 +121,7 @@ const createJobStrategies = {
     targetFn,
     targetArgs,
     owner,
+    deploymentId,
     pool,
     cacheKey,
     timeoutIntervalSeconds,
@@ -162,6 +167,7 @@ const createJobStrategies = {
       idempotency_key: jobId,
       status: "pending",
       owner_hash: owner.clusterId,
+      deployment_id: deploymentId,
       machine_type: pool,
       service,
       cache_key: cacheKey,
@@ -176,6 +182,7 @@ const createJobStrategies = {
     targetFn,
     targetArgs,
     owner,
+    deploymentId,
     pool,
     timeoutIntervalSeconds,
     maxAttempts,
@@ -189,6 +196,7 @@ const createJobStrategies = {
       idempotency_key: jobId,
       status: "pending",
       owner_hash: owner.clusterId,
+      deployment_id: deploymentId,
       machine_type: pool,
       service,
       remaining_attempts: maxAttempts ?? 1,

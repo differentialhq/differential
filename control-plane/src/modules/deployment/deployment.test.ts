@@ -77,11 +77,7 @@ describe("getDeployment", () => {
       serviceName: "testService",
     });
 
-    const result = await getDeployment({
-      clusterId: owner.clusterId,
-      serviceName: "testService",
-      id,
-    });
+    const result = await getDeployment(id);
 
     expect(result.id).toEqual(id);
     expect(result.clusterId).toEqual(owner.clusterId);
@@ -99,6 +95,7 @@ describe("releaseDeployment", () => {
     create: jest.fn(),
     update: jest.fn(),
     notify: jest.fn(),
+    minimumNotificationInterval: jest.fn(),
   };
 
   beforeAll(async () => {
@@ -150,13 +147,7 @@ describe("releaseDeployment", () => {
 
     await releaseDeployment(deployment, provider);
 
-    expect(
-      await getDeployment({
-        clusterId: owner.clusterId,
-        serviceName: "testService",
-        id: deployment.id,
-      }),
-    ).toEqual({
+    expect(await getDeployment(deployment.id)).toEqual({
       ...deployment,
       status: "active",
     });
@@ -169,23 +160,11 @@ describe("releaseDeployment", () => {
     await releaseDeployment(deployment2, provider);
 
     // Deployment 2 is now active and deployment 1 is inactive
-    expect(
-      await getDeployment({
-        clusterId: owner.clusterId,
-        serviceName: "testService",
-        id: deployment.id,
-      }),
-    ).toEqual({
+    expect(await getDeployment(deployment.id)).toEqual({
       ...deployment,
       status: "inactive",
     });
-    expect(
-      await getDeployment({
-        clusterId: owner.clusterId,
-        serviceName: "testService",
-        id: deployment2.id,
-      }),
-    ).toEqual({
+    expect(await getDeployment(deployment2.id)).toEqual({
       ...deployment2,
       status: "active",
     });

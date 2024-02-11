@@ -17,6 +17,7 @@ export const nextJobs = async ({
   owner,
   limit,
   machineId,
+  deploymentId,
   ip,
   definition,
 }: {
@@ -24,20 +25,21 @@ export const nextJobs = async ({
   owner: { clusterId: string };
   limit: number;
   machineId: string;
+  deploymentId?: string;
   ip: string;
   definition?: ServiceDefinition;
 }) => {
   const results = await data.db.execute(
-    sql`UPDATE jobs SET status = 'running', remaining_attempts = remaining_attempts - 1, last_retrieved_at=${new Date().toISOString()} 
-    WHERE 
-      id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining_attempts > 0)) 
-      AND owner_hash = ${owner.clusterId} 
-      AND service = ${service} 
-    LIMIT ${limit}) 
+    sql`UPDATE jobs SET status = 'running', remaining_attempts = remaining_attempts - 1, last_retrieved_at=${new Date().toISOString()}
+    WHERE
+      id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining_attempts > 0))
+      AND owner_hash = ${owner.clusterId}
+      AND service = ${service}
+    LIMIT ${limit})
     RETURNING *`,
   );
 
-  storeMachineInfoBG(machineId, ip, owner);
+  storeMachineInfoBG(machineId, ip, owner, deploymentId);
 
   if (definition) {
     storeServiceDefinitionBG(service, definition, owner);
@@ -64,6 +66,7 @@ export const nextJobs = async ({
       jobId: job.id,
       type: "jobReceived",
       machineId,
+      deploymentId,
       meta: {
         targetFn: job.targetFn,
         targetArgs: job.targetArgs,
@@ -113,6 +116,7 @@ const storeMachineInfoBG = backgrounded(async function storeMachineInfo(
   machineId: string,
   ip: string,
   owner: { clusterId: string },
+  deploymentId?: string,
 ) {
   await data.db
     .insert(data.machines)
@@ -121,6 +125,7 @@ const storeMachineInfoBG = backgrounded(async function storeMachineInfo(
       last_ping_at: new Date(),
       ip,
       cluster_id: owner.clusterId,
+      deployment_id: deploymentId,
     })
     .onConflictDoUpdate({
       target: data.machines.id,

@@ -8,6 +8,7 @@ import process from "process";
 import * as jobs from "./modules/jobs/jobs";
 import * as events from "./modules/observability/events";
 import * as router from "./modules/router";
+import * as deploymentScheduler from "./modules/deployment/scheduler";
 
 const app = fastify({
   logger: process.env.ENABLE_FASTIFY_LOGGER === "true",
@@ -30,6 +31,7 @@ app.setErrorHandler((error, request, reply) => {
 const start = async () => {
   await jobs.start();
   await events.initialize();
+  await deploymentScheduler.start();
 
   try {
     await app.listen({ port: 4000, host: "0.0.0.0" });

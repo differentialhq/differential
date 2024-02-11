@@ -7,6 +7,7 @@ import {
   LambdaClient,
   UpdateFunctionCodeCommand,
   PutFunctionConcurrencyCommand,
+  UpdateFunctionConfigurationCommand,
 } from "@aws-sdk/client-lambda";
 import { Deployment, s3AssetDetails } from "./deployment";
 import { DeploymentProvider, fetchConfig } from "./deployment-provider";
@@ -24,6 +25,10 @@ export class LambdaProvider implements DeploymentProvider {
 
   public name(): string {
     return "lambda";
+  }
+
+  public minimumNotificationInterval(): number {
+    return 10000;
   }
 
   public schema(): ZodSchema<LambdaProviderConfig> {
@@ -56,6 +61,11 @@ export class LambdaProvider implements DeploymentProvider {
           },
           Publish: true,
           FunctionName: functionName,
+          Environment: {
+            Variables: {
+              DIFFERENTIAL_DEPLOYMENT_ID: deployment.id,
+            },
+          },
           Code: {
             ...s3AssetDetails(deployment),
           },
@@ -84,16 +94,21 @@ export class LambdaProvider implements DeploymentProvider {
   public async update(deployment: Deployment): Promise<any> {
     const functionName = this.buildFunctionName(deployment);
 
-    console.log("Updating existing lambda", functionName);
+    console.log("Updating existing lambda", functionName, deployment.id);
 
     try {
-      return await this.lambdaClient.send(
-        new UpdateFunctionCodeCommand({
+      await this.lambdaClient.send(
+        new UpdateFunctionConfigurationCommand({
+          Environment: {
+            Variables: {
+              DIFFERENTIAL_DEPLOYMENT_ID: deployment.id,
+            },
+          },
           FunctionName: functionName,
-          Publish: true,
-          ...s3AssetDetails(deployment),
         }),
       );
+      await this.updateFunctionCode(functionName, deployment);
+      console.log("Updated lambda", functionName, deployment.id);
     } catch (error: any) {
       if (error.name === "ResourceNotFoundException") {
         throw new Error(
@@ -105,17 +120,72 @@ export class LambdaProvider implements DeploymentProvider {
     }
   }
 
-  public async notify(deployment: Deployment): Promise<any> {
+  public async notify(
+    deployment: Deployment,
+    pendingJobs: number,
+    runningMachines: number,
+  ): Promise<any> {
     const functionName = this.buildFunctionName(deployment);
 
-    // TODO: This is temporary until we have some scheduling in place
-    console.log("Triggering lambda", functionName);
-    await this.lambdaClient.send(
-      new InvokeCommand({
-        InvocationType: "Event",
-        FunctionName: functionName,
-      }),
-    );
+    // TODO: This should actually evaluate the number of running instances
+    // and determine how many more are needed to handle the pending jobs.
+    // For now, we'll just trigger a new instance if none are running.
+    if (runningMachines > 0) {
+      return;
+    }
+
+    try {
+      console.log("Triggering lambda", {
+        functionName,
+        pendingJobs,
+        runningMachines,
+      });
+
+      await this.lambdaClient.send(
+        new InvokeCommand({
+          InvocationType: "Event",
+          FunctionName: functionName,
+        }),
+      );
+    } catch (error: any) {
+      console.error("Failed to trigger lambda", functionName, error);
+    }
+  }
+
+  private async updateFunctionCode(
+    functionName: string,
+    deployment: Deployment,
+    attempt = 1,
+  ) {
+    try {
+      return await this.lambdaClient.send(
+        new UpdateFunctionCodeCommand({
+          FunctionName: functionName,
+          Publish: true,
+          ...s3AssetDetails(deployment),
+        }),
+      );
+    } catch (error: any) {
+      if (attempt > 5) {
+        console.error(
+          "Failed to update function code after 5 attempts",
+          functionName,
+          error,
+        );
+        throw error;
+      }
+
+      if (error.name === "ResourceConflictException") {
+        const waitTime = 1000 * attempt;
+        console.log(
+          `Function is still being updated. Will retry in ${waitTime} ms.`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
+        await this.updateFunctionCode(functionName, deployment, attempt + 1);
+        return;
+      }
+      throw error;
+    }
   }
 
   private async config(): Promise<LambdaProviderConfig> {
