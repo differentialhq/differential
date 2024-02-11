@@ -1,1 +1,1 @@
-ALTER TABLE "jobs" ADD COLUMN "predictive_retry_count" integer DEFAULT 0;
+ALTER TABLE "jobs" ADD COLUMN IF NOT EXISTS "predictive_retry_count" integer DEFAULT 0;
