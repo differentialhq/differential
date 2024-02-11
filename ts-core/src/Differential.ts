@@ -477,7 +477,6 @@ export class Differential {
    * @param options.endpoint The endpoint for the Differential cluster. Defaults to https://api.differential.dev.
    * @param options.encryptionKeys An array of encryption keys to use for encrypting and decrypting data. These keys are never sent to the control-plane and allows you to encrypt function arguments and return values. If you do not provide any keys, Differential will not encrypt any data. Encryption has a performance impact on your functions. When you want to rotate keys, you can add new keys to the start of the array. Differential will try to decrypt data with each key in the array until it finds a key that works. Differential will encrypt data with the first key in the array. Each key must be 32 bytes long.
    * @param options.jobPollWaitTime The amount of time in milliseconds that the client will maintain a connection to the control-plane when polling for jobs. Defaults to 20000ms. If a job is not received within this time, the client will close the connection and try again.
-   * @param options.maxIdleCycles The maximum number of idle cycles before the client stops polling for jobs. If the client does not receive any jobs for this number of cycles, it will stop polling for jobs.
    * @example
    * ```ts
    * // Basic usage
@@ -498,13 +497,17 @@ export class Differential {
       endpoint?: string;
       encryptionKeys?: Buffer[];
       jobPollWaitTime?: number;
-      maxIdleCycles?: number;
     },
   ) {
     this.authHeader = `Basic ${this.apiSecret}`;
     this.endpoint = options?.endpoint || "https://api.differential.dev";
     this.machineId = Math.random().toString(36).substring(7);
+
     this.deploymentId = process.env.DIFFERENTIAL_DEPLOYMENT_ID;
+
+    if (process.env.DIFFERENTIAL_DEPLOYMENT_PROVIDER === "lambda") {
+      this.maxIdleCycles = 2;
+    }
 
     options?.encryptionKeys?.forEach((key, i) => {
       if (key.length !== 32) {
@@ -521,8 +524,6 @@ export class Differential {
     }
 
     this.jobPollWaitTime = options?.jobPollWaitTime;
-
-    this.maxIdleCycles = options?.maxIdleCycles;
 
     log("Initializing control plane client", {
       endpoint: this.endpoint,
