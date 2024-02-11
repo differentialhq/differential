@@ -43,5 +43,11 @@ export interface DeploymentProvider {
   // Update an existing deployment
   update: (deployment: Deployment) => Promise<any>;
   // Notify the provider of a a new job
-  notify: (deployment: Deployment) => Promise<any>;
+  notify: (
+    deployment: Deployment,
+    pendingJobs: number,
+    runningMachines: number,
+  ) => Promise<any>;
+  // How frequently the provider should be notified of new jobs
+  minimumNotificationInterval: () => number;
 }

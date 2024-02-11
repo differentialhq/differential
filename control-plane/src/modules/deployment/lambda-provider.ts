@@ -26,6 +26,10 @@ export class LambdaProvider implements DeploymentProvider {
     return "lambda";
   }
 
+  public minimumNotificationInterval(): number {
+    return 10000;
+  }
+
   public schema(): ZodSchema<LambdaProviderConfig> {
     return z.object({
       createOptions: z.object({
@@ -105,17 +109,36 @@ export class LambdaProvider implements DeploymentProvider {
     }
   }
 
-  public async notify(deployment: Deployment): Promise<any> {
+  public async notify(
+    deployment: Deployment,
+    pendingJobs: number,
+    runningMachines: number,
+  ): Promise<any> {
     const functionName = this.buildFunctionName(deployment);
 
-    // TODO: This is temporary until we have some scheduling in place
-    console.log("Triggering lambda", functionName);
-    await this.lambdaClient.send(
-      new InvokeCommand({
-        InvocationType: "Event",
-        FunctionName: functionName,
-      }),
-    );
+    // TODO: This should actually evaluate the number of running instances
+    // and determine how many more are needed to handle the pending jobs.
+    // For now, we'll just trigger a new instance if none are running.
+    if (runningMachines > 0) {
+      return;
+    }
+
+    try {
+      console.log("Triggering lambda", {
+        functionName,
+        pendingJobs,
+        runningMachines,
+      });
+
+      await this.lambdaClient.send(
+        new InvokeCommand({
+          InvocationType: "Event",
+          FunctionName: functionName,
+        }),
+      );
+    } catch (error: any) {
+      console.error("Failed to trigger lambda", functionName, error);
+    }
   }
 
   private async config(): Promise<LambdaProviderConfig> {

@@ -11,6 +11,10 @@ export class MockProvider implements DeploymentProvider {
     return z.object({});
   }
 
+  public minimumNotificationInterval(): number {
+    return 10000;
+  }
+
   public async create(deployment: Deployment): Promise<any> {
     console.log("Would create new deployment", deployment);
   }
@@ -19,7 +23,15 @@ export class MockProvider implements DeploymentProvider {
     console.log("Would update existing deployment", deployment);
   }
 
-  public async notify(deployment: Deployment): Promise<any> {
-    console.log("Would trigger deployment", deployment);
+  public async notify(
+    deployment: Deployment,
+    pendingJobs: number,
+    runningMachines: number,
+  ): Promise<any> {
+    console.log("Would notify provider of new jobs", {
+      deployment,
+      pendingJobs,
+      runningMachines,
+    });
   }
 }

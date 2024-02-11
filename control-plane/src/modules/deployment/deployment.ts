@@ -2,12 +2,8 @@ import { ulid } from "ulid";
 import * as data from "../data";
 import { UPLOAD_BUCKET, getPresignedURL } from "../s3";
 import { and, eq, or, sql } from "drizzle-orm";
-import {
-  DeploymentProvider,
-  getDeploymentProvider,
-} from "./deployment-provider";
+import { DeploymentProvider } from "./deployment-provider";
 import NodeCache from "node-cache";
-import { backgrounded } from "../util";
 
 export type Deployment = {
   id: string;
@@ -98,15 +94,7 @@ export const createDeployment = async ({
   return deployment[0];
 };
 
-export const getDeployment = async ({
-  clusterId,
-  serviceName,
-  id,
-}: {
-  clusterId: string;
-  serviceName: string;
-  id: string;
-}): Promise<Deployment> => {
+export const getDeployment = async (id: string): Promise<Deployment> => {
   const deployment = await data.db
     .select({
       id: data.deployments.id,
@@ -118,13 +106,7 @@ export const getDeployment = async ({
       provider: data.deployments.provider,
     })
     .from(data.deployments)
-    .where(
-      and(
-        eq(data.deployments.id, id),
-        eq(data.deployments.cluster_id, clusterId),
-        eq(data.deployments.service, serviceName),
-      ),
-    );
+    .where(eq(data.deployments.id, id));
 
   return deployment[0];
 };
@@ -180,39 +162,17 @@ export const releaseDeployment = async (
   return update[0];
 };
 
-export const notifyDeployment = backgrounded(
-  async ({
-    clusterId,
-    serviceName,
-  }: {
-    clusterId: string;
-    serviceName: string;
-  }): Promise<boolean> => {
-    const deployment = await findActiveDeployment(clusterId, serviceName);
-    if (!deployment) {
-      return false;
-    }
-
-    const provider = getDeploymentProvider(deployment.provider);
-
-    await provider.notify(deployment);
-
-    return true;
-  },
-);
-
 const deploymentCache = new NodeCache({
   stdTTL: 300,
   checkperiod: 100,
   maxKeys: 5000,
 });
-const findActiveDeployment = async (
+export const findActiveDeployment = async (
   clusterId: string,
   serviceName: string,
-): Promise<Deployment | null> => {
-  const cached = deploymentCache.get<Deployment | null>(
-    `${clusterId}-${serviceName}`,
-  );
+): Promise<Pick<Deployment, "id"> | null> => {
+  const cacheKey = `${clusterId}-${serviceName}`;
+  const cached = deploymentCache.get<Deployment | null>(cacheKey);
   if (cached !== undefined) {
     return cached;
   }
@@ -220,12 +180,6 @@ const findActiveDeployment = async (
   const deployments = await data.db
     .select({
       id: data.deployments.id,
-      clusterId: data.deployments.cluster_id,
-      service: data.deployments.service,
-      packageUploadUrl: data.deployments.package_upload_path,
-      definitionUploadUrl: data.deployments.definition_upload_path,
-      status: data.deployments.status,
-      provider: data.deployments.provider,
     })
     .from(data.deployments)
     .where(
@@ -237,15 +191,18 @@ const findActiveDeployment = async (
     );
 
   if (deployments.length === 0) {
-    deploymentCache.set(`${clusterId}-${serviceName}`, null);
+    deploymentCache.set(cacheKey, null);
     return null;
   }
 
-  deploymentCache.set(`${clusterId}-${serviceName}`, deployments[0]);
+  deploymentCache.set(cacheKey, deployments[0]);
   return deployments[0];
 };
 
 const previouslyReleased = async (deployment: Deployment): Promise<boolean> => {
+  if (await findActiveDeployment(deployment.clusterId, deployment.service)) {
+    return true;
+  }
   const releases = await data.db
     .select({
       count: sql<number>`count(${data.deployments.id})`,
