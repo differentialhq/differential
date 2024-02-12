@@ -19,6 +19,8 @@ const typeToText: { [key: string]: (activity: Activity) => string } = {
     `Function was received by the machine for execution. Execution was queued in the local task queue.`,
   jobResulted: () =>
     `Function execution succeeded. Result was sent to the control plane.`,
+  predictorRetryableResult: () =>
+    `The promise has been rejected, predictive retries has deetermined the retryable status.`,
 };
 
 export function Activity({
@@ -32,15 +34,25 @@ export function Activity({
 
   const meta = activity.meta;
 
-  const text = typeToText[activity.type](activity);
+  const parser = typeToText[activity.type] ?? (() => activity.type);
+
+  const text = parser(activity);
 
   if (!text) {
     console.warn(`Unknown activity type: ${activity.type}`);
   }
 
+  const distanceToPreviousActivity =
+    previousActivity?.type === activity.type ? `-mt-4 opacity-50` : ``;
+
+  const aiGlowBorder = `border-2 border-blue-500 border-opacity-50 rounded-md shadow-sm shadow-blue-900 shadow-opacity-50 border-t-purple-500 border-opacity-50 rounded-md shadow-md shadow-purple-900 shadow-opacity-50`;
+  const normalBorder = `border border-slate-700 border-t-slate-500 rounded-md`;
+
   return (
-    <div className="flex flex-col mb-4">
-      <div className="flex p-1 border border-slate-700 border-t-slate-500 rounded-md items-center space-x-4">
+    <div className={`flex flex-col mb-4 ${distanceToPreviousActivity}`}>
+      <div
+        className={`flex p-1 border rounded-md items-center space-x-4 ${activity.type.includes("predict") ? aiGlowBorder : normalBorder}`}
+      >
         <p className="font-mono text-sm ml-2 mr-2 text-slate-500">
           {new Date(activity.timestamp).toISOString()}
         </p>
@@ -79,6 +91,15 @@ export function Activity({
               >
                 promise_result:
                 {meta?.resultType === "resolution" ? "resolved" : "rejected"}
+              </Badge>
+            ) : null}
+            {meta?.retryable !== undefined ? (
+              <Badge
+                variant="secondary"
+                className={meta?.retryable ? `bg-green-700` : `bg-red-700`}
+              >
+                retryable:
+                {meta?.retryable ? "true" : "false"}
               </Badge>
             ) : null}
           </div>

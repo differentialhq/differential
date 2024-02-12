@@ -14,6 +14,48 @@ type PersistResultParams = {
   deploymentId?: string;
 };
 
+// TODO: this should be configurable at a cluster level
+const MAX_PREDICTIVE_RETRIES = 1;
+
+const shouldPredictRetry = async ({
+  resultType,
+  jobId,
+  owner,
+}: Pick<PersistResultParams, "resultType" | "jobId" | "owner">) => {
+  const isRejected = resultType === "rejection";
+
+  if (!isRejected) {
+    return false;
+  }
+
+  const clusterHasPredictiveRetriesEnabled = await cluster
+    .operationalCluster(owner.clusterId)
+    .then((c) => c?.predictiveRetriesEnabled ?? false);
+
+  console.log(
+    "clusterHasPredictiveRetriesEnabled",
+    clusterHasPredictiveRetriesEnabled,
+  );
+
+  if (!clusterHasPredictiveRetriesEnabled) {
+    return false;
+  }
+
+  const jobHasRemainingAttempts = await data.db
+    .select({
+      retryCount: data.jobs.predictive_retry_count,
+    })
+    .from(data.jobs)
+    .where(
+      and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
+    )
+    .then((rows) => (rows[0]?.retryCount ?? 0) < MAX_PREDICTIVE_RETRIES);
+
+  console.log("jobHasRemainingAttempts", jobHasRemainingAttempts);
+
+  return jobHasRemainingAttempts;
+};
+
 export async function persistJobResult({
   result,
   resultType,
@@ -23,32 +65,32 @@ export async function persistJobResult({
   machineId,
   deploymentId,
 }: PersistResultParams) {
-  const shouldPredictRetry =
-    resultType === "rejection" &&
-    (await cluster
-      .operationalCluster(owner.clusterId)
-      .then((c) => c?.predictiveRetriesEnabled ?? false));
-
-  const predictedToBeRetryableResult = shouldPredictRetry
+  const predictedToBeRetryableResult = (await shouldPredictRetry({
+    resultType,
+    jobId,
+    owner,
+  }))
     ? await predictor.isRetryable(result)
     : null;
 
-  const updateResult = await data.db
-    .update(data.jobs)
-    .set({
-      result,
-      result_type: resultType,
-      resulted_at: sql`now()`,
-      function_execution_time_ms: functionExecutionTime,
-      status: "success",
-      predicted_to_be_retryable:
-        predictedToBeRetryableResult?.retryable ?? null,
-      predicted_to_be_retryable_reason: predictedToBeRetryableResult?.reason,
-    })
-    .where(
-      and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
-    )
-    .returning({ service: data.jobs.service, targetFn: data.jobs.target_fn });
+  const updateResult = predictedToBeRetryableResult
+    ? await updateJobWithRetryableResult({
+        result,
+        resultType,
+        functionExecutionTime,
+        predictedToBeRetryableResult,
+        jobId,
+        owner,
+        machineId,
+      })
+    : await updateJobWithoutRetryableResult({
+        result,
+        resultType,
+        functionExecutionTime,
+        jobId,
+        owner,
+        machineId,
+      });
 
   events.write({
     type: "jobResulted",
@@ -81,6 +123,56 @@ export async function persistJobResult({
       1,
     );
   }
+}
+
+async function updateJobWithRetryableResult({
+  result,
+  resultType,
+  functionExecutionTime,
+  predictedToBeRetryableResult,
+  jobId,
+  owner,
+}: PersistResultParams & {
+  predictedToBeRetryableResult: predictor.PredictedRetryableResult;
+}) {
+  return await data.db
+    .update(data.jobs)
+    .set({
+      result,
+      result_type: resultType,
+      resulted_at: sql`now()`,
+      function_execution_time_ms: functionExecutionTime,
+      status: predictedToBeRetryableResult.retryable ? "pending" : "success",
+      predicted_to_be_retryable: predictedToBeRetryableResult.retryable,
+      predicted_to_be_retryable_reason: predictedToBeRetryableResult.reason,
+      predictive_retry_count: sql`predictive_retry_count + 1`,
+    })
+    .where(
+      and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
+    )
+    .returning({ service: data.jobs.service, targetFn: data.jobs.target_fn });
+}
+
+async function updateJobWithoutRetryableResult({
+  result,
+  resultType,
+  functionExecutionTime,
+  jobId,
+  owner,
+}: PersistResultParams) {
+  return await data.db
+    .update(data.jobs)
+    .set({
+      result,
+      result_type: resultType,
+      resulted_at: sql`now()`,
+      function_execution_time_ms: functionExecutionTime,
+      status: "success",
+    })
+    .where(
+      and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
+    )
+    .returning({ service: data.jobs.service, targetFn: data.jobs.target_fn });
 }
 
 export async function selfHealJobs() {
@@ -127,29 +219,6 @@ export async function selfHealJobs() {
       remainingAttempts: data.jobs.remaining_attempts,
     });
 
-  // If jobs have been successful, but they have been rejected
-  // make them pending again if they are predicted to be retryable
-  const predictedRetryable = await data.db
-    .update(data.jobs)
-    .set({
-      status: "pending",
-    })
-    .where(
-      and(
-        eq(data.jobs.status, "success"),
-        gt(data.jobs.remaining_attempts, 0),
-        eq(data.jobs.result_type, "rejection"),
-        eq(data.jobs.predicted_to_be_retryable, true),
-      ),
-    )
-    .returning({
-      id: data.jobs.id,
-      service: data.jobs.service,
-      targetFn: data.jobs.target_fn,
-      ownerHash: data.jobs.owner_hash,
-      remainingAttempts: data.jobs.remaining_attempts,
-    });
-
   stalledFailed.forEach((row) => {
     events.write({
       service: row.service,
@@ -171,21 +240,8 @@ export async function selfHealJobs() {
     });
   });
 
-  predictedRetryable.forEach((row) => {
-    events.write({
-      service: row.service,
-      clusterId: row.ownerHash,
-      jobId: row.id,
-      type: "predictorRecovered",
-      meta: {
-        attemptsRemaining: row.remainingAttempts ?? undefined,
-      },
-    });
-  });
-
   return {
     stalledFailed: stalledFailed.map((row) => row.id),
     stalledRecovered: stalledRecovered.map((row) => row.id),
-    predictedRetryable: predictedRetryable.map((row) => row.id),
   };
 }
