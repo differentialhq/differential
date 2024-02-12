@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.12.2](https://github.com/differentialhq/differential/compare/v3.12.1...v3.12.2) (2024-02-12)
+
+### Bug Fixes
+
+- Cleanup resource probes on PollingAgent abort ([#125](https://github.com/differentialhq/differential/issues/125)) ([bfc23ae](https://github.com/differentialhq/differential/commit/bfc23aedd9ad0f013f379771535aa587def8d8fb)), closes [/github.com/differentialhq/differential/blob/c43e67579b8a129faf9381a75a05fd50182fb050/ts-core/src/events.ts#L29](https://github.com//github.com/differentialhq/differential/blob/c43e67579b8a129faf9381a75a05fd50182fb050/ts-core/src/events.ts/issues/L29)
+
 ## [3.12.1](https://github.com/differentialhq/differential/compare/v3.12.0...v3.12.1) (2024-02-12)
 
 ### Bug Fixes

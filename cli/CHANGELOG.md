@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.12.2](https://github.com/differentialhq/differential/compare/v3.12.1...v3.12.2) (2024-02-12)
+
+### Bug Fixes
+
+- **cli:** move detective to dependency ([#126](https://github.com/differentialhq/differential/issues/126)) ([6237d6f](https://github.com/differentialhq/differential/commit/6237d6fbb8d58566979ea42bf0977170dbfb387d))
+
 # [3.11.0](https://github.com/differentialhq/differential/compare/v3.10.1...v3.11.0) (2024-02-10)
 
 ### Features
