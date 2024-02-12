@@ -152,6 +152,7 @@ type PollingAgentOptions = {
   service: PollingAgentService;
   ttl?: number;
   maxIdleCycles?: number;
+  exitHandler: () => void;
 };
 class PollingAgent {
   private errorCount = 0;
@@ -160,6 +161,7 @@ class PollingAgent {
   private abortController = new AbortController();
   private pollingAborted = false;
   private active = false;
+  private exitHandler: () => void;
 
   private pollState = {
     current: 0,
@@ -177,6 +179,7 @@ class PollingAgent {
     this.service = options.service;
     this.ttl = options.ttl;
     this.maxIdleCycles = options.maxIdleCycles;
+    this.exitHandler = options.exitHandler;
 
     this.client = createClient({
       baseUrl: options.endpoint,
@@ -387,6 +390,10 @@ class PollingAgent {
   }
 
   async quit(): Promise<void> {
+    if (!this.active) {
+      return;
+    }
+
     log("Quitting polling agent", { service: this.service });
 
     this.abortController.abort();
@@ -399,6 +406,7 @@ class PollingAgent {
     }
 
     this.active = false;
+    this.exitHandler();
     log("Polling aborted");
   }
 
@@ -570,6 +578,13 @@ export class Differential {
       },
       ttl: this.jobPollWaitTime,
       maxIdleCycles: this.maxIdleCycles,
+      exitHandler: () => {
+        const pollingAgents = this.pollingAgents.find((agent) => agent.polling);
+        if (!pollingAgents) {
+          console.log("All polling agents quit");
+          this.stop();
+        }
+      },
     });
 
     this.pollingAgents.push(pollingAgent);
