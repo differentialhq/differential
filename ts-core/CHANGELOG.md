@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.12.1](https://github.com/differentialhq/differential/compare/v3.12.0...v3.12.1) (2024-02-12)
+
+### Bug Fixes
+
+- Add maxIdleCycles ([#113](https://github.com/differentialhq/differential/issues/113)) ([266fca0](https://github.com/differentialhq/differential/commit/266fca0fa34d7c9c9d0ce595b457191569f880d5))
+
 # [3.12.0](https://github.com/differentialhq/differential/compare/v3.11.0...v3.12.0) (2024-02-11)
 
 ### Features

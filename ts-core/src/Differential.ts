@@ -390,7 +390,6 @@ class PollingAgent {
   }
 
   async quit(): Promise<void> {
-    // Allow for multiple calls to quit
     if (!this.active) {
       return;
     }
