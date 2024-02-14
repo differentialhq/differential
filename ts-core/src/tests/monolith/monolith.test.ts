@@ -12,7 +12,7 @@ describe("monolith", () => {
   afterAll(async () => {
     await expertService.stop();
     await facadeService.stop();
-  }, 10000);
+  });
 
   it("should not import a service, if we're just consuming it", async () => {
     const db = d.client<typeof dbService>("db", { background: true });
@@ -31,20 +31,20 @@ describe("monolith", () => {
       .callExpert("Can't touch this");
 
     expect(result).toBe("Expert says: Can't touch this");
-  }, 10000);
+  });
 
   it("service client should return the same result as 'call'", async () => {
     const result = await d.call<typeof expertService, "callExpert">(
       "expert",
       "callExpert",
-      "Can't touch this"
+      "Can't touch this",
     );
 
     const client = d.client<typeof expertService>("expert");
     const clientResult = await client.callExpert("Can't touch this");
 
     expect(clientResult).toBe(result);
-  }, 10000);
+  });
 
   it("should be able to call a service from another service", async () => {
     const result = await d
@@ -67,11 +67,11 @@ describe("monolith", () => {
   "Expert says: foobar",
 ]
 `);
-  }, 10000);
+  });
 
   it("should not let an already started service start again", async () => {
     await expect(expertService.start()).rejects.toThrowError(
-      "Service is already started"
+      "Service is already started",
     );
   });
 });

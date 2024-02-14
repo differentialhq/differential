@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/differentialhq/differential#readme",
   "dependencies": {
-    "@differentialhq/core": "^3.2.3",
+    "@differentialhq/core": "^3.12.2",
     "tsx": "^4.6.2",
     "typescript": "^5.3.3"
   },

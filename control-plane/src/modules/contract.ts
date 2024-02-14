@@ -92,6 +92,28 @@ export const definition = {
       401: z.undefined(),
     },
   },
+  getJobStatuses: {
+    method: "POST",
+    path: "/batch-jobs-status-request",
+    body: z.object({
+      jobIds: z.array(z.string()).max(1000),
+      ttl: z.coerce.number().min(5000).max(20000).default(20000),
+    }),
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.array(
+        z.object({
+          id: z.string(),
+          status: z.enum(["pending", "running", "success", "failure"]),
+          result: z.string().nullable(),
+          resultType: z.enum(["resolution", "rejection"]).nullable(),
+        }),
+      ),
+      401: z.undefined(),
+    },
+  },
   persistJobResult: {
     method: "POST",
     path: "/jobs/:jobId/result",

@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import * as cron from "../cron";
 import * as data from "../data";
 import * as events from "../observability/events";
@@ -110,6 +110,49 @@ export const getJobStatus = async ({
   }
 
   return job;
+};
+
+export const getJobStatuses = async ({
+  jobIds,
+  owner,
+}: {
+  jobIds: string[];
+  owner: { clusterId: string };
+}) => {
+  if (jobIds.length === 0) {
+    return [];
+  }
+
+  const jobs = await data.db
+    .select({
+      id: data.jobs.id,
+      service: data.jobs.service,
+      status: data.jobs.status,
+      result: data.jobs.result,
+      resultType: data.jobs.result_type,
+    })
+    .from(data.jobs)
+    .where(
+      and(
+        eq(data.jobs.owner_hash, owner.clusterId),
+        inArray(data.jobs.id, jobIds),
+      ),
+    );
+
+  jobs.forEach((job) => {
+    events.write({
+      service: job.service,
+      clusterId: owner.clusterId,
+      jobId: job.id,
+      type: "jobStatusRequest",
+      meta: {
+        status: job.status,
+        resultType: job.resultType ?? undefined,
+      },
+    });
+  });
+
+  return jobs;
 };
 
 const storeMachineInfoBG = backgrounded(async function storeMachineInfo(

@@ -462,4 +462,25 @@ export const router = s.router(contract, {
       },
     };
   },
+  getJobStatuses: async (request) => {
+    const owner = await auth.jobOwnerHash(request.headers.authorization);
+
+    if (!owner) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { jobIds } = request.body;
+
+    const result = await jobs.getJobStatuses({
+      jobIds,
+      owner,
+    });
+
+    return {
+      status: 200,
+      body: result,
+    };
+  },
 });
