@@ -197,7 +197,8 @@ const buildIndex = async (entrypoint: string, outDir: string) => {
 
   fs.writeFileSync(
     indexFilePath,
-    `exports.handler = () => {require('${entrypoint}')};`,
+    `exports.handler = () => {Object.keys(require.cache).forEach((c) => delete require.cache[c])
+; require('${entrypoint}')};`,
     "utf-8",
   );
 };
