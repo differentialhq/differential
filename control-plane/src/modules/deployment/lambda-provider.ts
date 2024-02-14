@@ -8,6 +8,7 @@ import {
   UpdateFunctionCodeCommand,
   PutFunctionConcurrencyCommand,
   UpdateFunctionConfigurationCommand,
+  PutFunctionEventInvokeConfigCommand,
 } from "@aws-sdk/client-lambda";
 import { Deployment, s3AssetDetails } from "./deployment";
 import { DeploymentProvider, fetchConfig } from "./deployment-provider";
@@ -70,10 +71,21 @@ export class LambdaProvider implements DeploymentProvider {
         }),
       );
 
-      await this.lambdaClient.send(
+      await this.sendFunctionUpdateCommand(
+        functionName,
+        deployment,
         new PutFunctionConcurrencyCommand({
           FunctionName: functionName,
           ReservedConcurrentExecutions: config.reservedConcurrency,
+        }),
+      );
+
+      await this.sendFunctionUpdateCommand(
+        functionName,
+        deployment,
+        new PutFunctionEventInvokeConfigCommand({
+          FunctionName: functionName,
+          MaximumRetryAttempts: 0,
         }),
       );
 
@@ -95,7 +107,9 @@ export class LambdaProvider implements DeploymentProvider {
     console.log("Updating existing lambda", functionName, deployment.id);
 
     try {
-      await this.lambdaClient.send(
+      await this.sendFunctionUpdateCommand(
+        functionName,
+        deployment,
         new UpdateFunctionConfigurationCommand({
           Environment: {
             ...this.getEnvironmentVariables(deployment),
@@ -103,7 +117,17 @@ export class LambdaProvider implements DeploymentProvider {
           FunctionName: functionName,
         }),
       );
-      await this.updateFunctionCode(functionName, deployment);
+
+      await this.sendFunctionUpdateCommand(
+        functionName,
+        deployment,
+        new UpdateFunctionCodeCommand({
+          FunctionName: functionName,
+          Publish: true,
+          ...s3AssetDetails(deployment),
+        }),
+      );
+
       console.log("Updated lambda", functionName, deployment.id);
     } catch (error: any) {
       if (error.name === "ResourceNotFoundException") {
@@ -148,19 +172,19 @@ export class LambdaProvider implements DeploymentProvider {
     }
   }
 
-  private async updateFunctionCode(
+  // Sends a command to Lambda and retry if the function is still being updated
+  private async sendFunctionUpdateCommand(
     functionName: string,
     deployment: Deployment,
+    command:
+      | PutFunctionConcurrencyCommand
+      | PutFunctionEventInvokeConfigCommand
+      | UpdateFunctionConfigurationCommand
+      | UpdateFunctionCodeCommand,
     attempt = 1,
   ) {
     try {
-      return await this.lambdaClient.send(
-        new UpdateFunctionCodeCommand({
-          FunctionName: functionName,
-          Publish: true,
-          ...s3AssetDetails(deployment),
-        }),
-      );
+      return await this.lambdaClient.send(command as any);
     } catch (error: any) {
       if (attempt > 5) {
         console.error(
@@ -177,7 +201,12 @@ export class LambdaProvider implements DeploymentProvider {
           `Function is still being updated. Will retry in ${waitTime} ms.`,
         );
         await new Promise((resolve) => setTimeout(resolve, waitTime));
-        await this.updateFunctionCode(functionName, deployment, attempt + 1);
+        await this.sendFunctionUpdateCommand(
+          functionName,
+          deployment,
+          command,
+          attempt + 1,
+        );
         return;
       }
       throw error;
