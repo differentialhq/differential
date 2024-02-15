@@ -7,18 +7,17 @@ export const validateManagementAccess = async (request: {
   params: {
     clusterId: string;
   };
-}) => {
+}): Promise<boolean> => {
   const managementToken = request.headers.authorization.split(" ")[1];
 
-  const hasAccess = await management.hasAccessToCluster({
-    managementToken,
-    clusterId: request.params.clusterId,
-  });
-
-  if (!hasAccess) {
-    return {
-      status: 403,
-      body: undefined,
-    };
+  try {
+    const clusterAccess = await management.hasAccessToCluster({
+      managementToken,
+      clusterId: request.params.clusterId,
+    });
+    return clusterAccess;
+  } catch {
+    console.error("Error validating management token", managementToken);
+    return false;
   }
 };
