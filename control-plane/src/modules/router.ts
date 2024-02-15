@@ -59,7 +59,7 @@ export const router = s.router(contract, {
       });
 
       if (collection.length === 0) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
     } while (collection.length === 0 && Date.now() - start < request.body.ttl);
 
@@ -460,6 +460,27 @@ export const router = s.router(contract, {
       body: {
         predictiveRetriesEnabled: settings.predictiveRetriesEnabled ?? false,
       },
+    };
+  },
+  getJobStatuses: async (request) => {
+    const owner = await auth.jobOwnerHash(request.headers.authorization);
+
+    if (!owner) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { jobIds } = request.body;
+
+    const result = await jobs.getJobStatuses({
+      jobIds,
+      owner,
+    });
+
+    return {
+      status: 200,
+      body: result,
     };
   },
 });
