@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.13.1](https://github.com/differentialhq/differential/compare/v3.13.0...v3.13.1) (2024-02-15)
+
+### Bug Fixes
+
+- Polling with more efficiency ([#131](https://github.com/differentialhq/differential/issues/131)) ([f295aa7](https://github.com/differentialhq/differential/commit/f295aa7f1dd636b379f12cc3a30cfe4886b053cd))
+
 # [3.13.0](https://github.com/differentialhq/differential/compare/v3.12.2...v3.13.0) (2024-02-15)
 
 ### Bug Fixes
