@@ -19,6 +19,7 @@ export class ResultsPoller {
   private static MAX_ERROR_CYCLES = 50;
   private currentErrorCycle = 0;
   private exited = false;
+  private polling = false;
 
   constructor(
     private client: ReturnType<typeof createClient>,
@@ -43,9 +44,16 @@ export class ResultsPoller {
   }
 
   private next = async () => {
+    this.polling = true;
+
     const unresolved = Object.values(this.jobs).filter((job) => {
       return job.result === undefined;
     });
+
+    if (unresolved.length === 0) {
+      this.polling = false;
+      return;
+    }
 
     const result = await this.client.getJobStatuses({
       body: {
@@ -108,6 +116,8 @@ export class ResultsPoller {
         break;
       }
     }
+
+    this.polling = false;
   };
 
   public start = async () => {
@@ -117,11 +127,19 @@ export class ResultsPoller {
       }
 
       await this.next();
+
+      // wait for 100ms before polling again
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   };
 
-  public stop = () => {
+  public stop = async () => {
     this.exited = true;
+
+    while (this.polling) {
+      // wait for the polling to finish
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
   };
 
   public getResult = (
