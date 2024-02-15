@@ -8,6 +8,7 @@ import {
   isFunctionIdempotent,
   retryConfigForFunction,
 } from "./functions";
+import { ResultsPoller } from "./results-poller";
 import { pack, unpack } from "./serialize";
 import { deserializeError, serializeError } from "./serialize-error";
 import { Result, TaskQueue } from "./task-queue";
@@ -65,68 +66,6 @@ const createClient = ({
       : undefined,
   });
 
-const pollForJob = async (
-  client: ReturnType<typeof createClient>,
-  params: { jobId: string },
-  authHeader: string,
-  attempt = 1,
-): Promise<Result> => {
-  log("Polling for job", { attempt });
-
-  const result = await client.getJobStatus({
-    params: {
-      jobId: params.jobId,
-    },
-    headers: {
-      authorization: authHeader,
-    },
-  });
-
-  if (result.status === 200 && result.body.status === "success") {
-    return {
-      content: unpack(result.body.result!),
-      type: result.body.resultType!,
-    };
-  }
-
-  if (result.status === 200 && result.body.status === "failure") {
-    throw new DifferentialError("Unexpected Error", {
-      code: "UNEXPECTED_ERROR",
-    });
-  }
-
-  const jobPending =
-    result.status === 200 &&
-    (result.body.status === "pending" || result.body.status === "running");
-
-  const serviceUnavailable =
-    result.status === 503 ||
-    result.status === 504 ||
-    result.status === 502 ||
-    result.status === 500 ||
-    result.status === 429;
-
-  if (jobPending || serviceUnavailable) {
-    // TODO: if this happens, we need to update the job status to "failed"
-    // and see if we can cancel the job on the service through some signal implementation.
-    if (attempt > 10) {
-      throw new DifferentialError("Failed to execute job due to timeout", {
-        code: "JOB_TIMEOUT",
-        attempts: attempt,
-      });
-    }
-
-    // TODO: rework attempt logic
-    await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
-    return pollForJob(client, params, authHeader, attempt + 1);
-  }
-
-  throw new DifferentialError("Unexpected Error", {
-    code: "UNEXPECTED_ERROR",
-    serverResponse: result,
-  });
-};
-
 type ServiceRegistryFunction = {
   fn: AsyncFunction;
   name: string;
@@ -144,6 +83,7 @@ type PollingAgentService = {
   idleTimeout?: number;
   onIdle?: () => void;
 };
+
 type PollingAgentOptions = {
   endpoint: string;
   machineId: string;
@@ -270,6 +210,7 @@ class PollingAgent {
           const onComplete = async (result: Result) => {
             log("Persisting job result", {
               id: job.id,
+              targetFn: job.targetFn,
               resultType: result.type,
               functionExecutionTime: result.functionExecutionTime,
             });
@@ -478,6 +419,8 @@ export class Differential {
 
   private events: Events;
 
+  private resultsPoller: ResultsPoller;
+
   /**
    * Initializes a new Differential instance.
    * @param apiSecret The API Secret for your Differential cluster. You can obtain one from https://api.differential.dev/demo/token.
@@ -543,6 +486,7 @@ export class Differential {
       machineId: this.machineId,
       deploymentId: this.deploymentId,
     });
+
     this.events = new Events(async (events) => {
       const result = await this.controlPlaneClient.ingestClientEvents({
         body: { events: events },
@@ -554,6 +498,13 @@ export class Differential {
         result: result,
       });
     });
+
+    this.resultsPoller = new ResultsPoller(
+      this.controlPlaneClient,
+      this.authHeader,
+    );
+
+    this.resultsPoller.start();
   }
 
   private async listen(service: ServiceDefinition<any>) {
@@ -600,6 +551,8 @@ export class Differential {
     log("All polling agents quit", {
       count: this.pollingAgents.length,
     });
+
+    await this.resultsPoller.stop();
   }
 
   private register({
@@ -748,37 +701,43 @@ export class Differential {
 
     log("Waiting for job to complete", { id });
 
-    // wait for the job to complete
-    const result = await pollForJob(
-      this.controlPlaneClient,
-      { jobId: id },
-      this.authHeader,
-    );
-    const end = Date.now();
+    return new Promise((resolve, reject) => {
+      this.resultsPoller.getResult(id, (err, result) => {
+        if (err) {
+          return reject(err);
+        }
 
-    this.events.push({
-      timestamp: new Date(),
-      type: "functionInvocation",
-      tags: {
-        function: fn as string,
-        service: service,
-      },
-      intFields: {
-        roundTripTime: end - start,
-      },
+        log("Got result", { fn, id, result });
+
+        const end = Date.now();
+
+        this.events.push({
+          timestamp: new Date(),
+          type: "functionInvocation",
+          tags: {
+            function: fn as string,
+            service: service,
+          },
+          intFields: {
+            roundTripTime: end - start,
+          },
+        });
+
+        log("Result received", { id, result });
+
+        if (result.type === "resolution") {
+          // return the result
+          return resolve(
+            result.content as ReturnType<T["definition"]["functions"][U]>,
+          );
+        } else if (result.type === "rejection") {
+          const error = deserializeError(result.content);
+          return reject(error);
+        } else {
+          return reject(new DifferentialError("Unexpected result type"));
+        }
+      });
     });
-
-    log("Result received", { id, result });
-
-    if (result.type === "resolution") {
-      // return the result
-      return result.content as ReturnType<T["definition"]["functions"][U]>;
-    } else if (result.type === "rejection") {
-      const error = deserializeError(result.content);
-      throw error;
-    } else {
-      throw new DifferentialError("Unexpected result type");
-    }
   }
 
   /**
