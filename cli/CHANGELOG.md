@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.13.0](https://github.com/differentialhq/differential/compare/v3.12.2...v3.13.0) (2024-02-15)
+
+### Bug Fixes
+
+- Clear CommonJS cache between invocations ([#128](https://github.com/differentialhq/differential/issues/128)) ([1fcb01d](https://github.com/differentialhq/differential/commit/1fcb01dc6ba0d60c039bd82e842021ff98bea27d)), closes [/github.com/differentialhq/differential/blob/main/cli/src/lib/package.ts#L200](https://github.com//github.com/differentialhq/differential/blob/main/cli/src/lib/package.ts/issues/L200)
+
+### Features
+
+- Add CLI auth flow ([#129](https://github.com/differentialhq/differential/issues/129)) ([9639761](https://github.com/differentialhq/differential/commit/963976147d5d3afd74a82a666378174ce8cfd009))
+- **cli:** Use management token for authentication ([#130](https://github.com/differentialhq/differential/issues/130)) ([dbdd113](https://github.com/differentialhq/differential/commit/dbdd113567c8e6346458af49a3f4d0b93f13409c))
+
 ## [3.12.2](https://github.com/differentialhq/differential/compare/v3.12.1...v3.12.2) (2024-02-12)
 
 ### Bug Fixes
