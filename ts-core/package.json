@@ -30,8 +30,5 @@
     "typedoc": "^0.25.4",
     "typedoc-plugin-markdown": "^3.17.1",
     "typescript": "^5.2.2"
-  },
-  "jest": {
-    "timeout": 10000
   }
 }
