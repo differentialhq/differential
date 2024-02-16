@@ -13,7 +13,7 @@ import * as router from "./modules/router";
 import { RateLimiterMemory } from "rate-limiter-flexible";
 
 const rateLimiter = new RateLimiterMemory({
-  points: 50, // 10 points
+  points: 50,
   duration: 1, // Per second
 });
 
