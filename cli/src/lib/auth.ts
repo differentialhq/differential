@@ -3,7 +3,8 @@ import path from "path";
 import fs from "fs";
 
 import http from "http";
-import { exec } from "child_process";
+import { openBrowser } from "../utils";
+import { BASE_URL } from "../constants";
 
 const TOKEN_PATH = path.join(os.homedir(), ".differential", "credentials");
 export const storeToken = (token: string) => {
@@ -22,13 +23,9 @@ export const getToken = () => {
   return null;
 };
 
-const AUTH_URL = "http://localhost:3000/cli-auth";
+const AUTH_URL = `${BASE_URL}/cli-auth`;
 export const startTokenFlow = () => {
-  if (process.platform === "darwin") {
-    exec(`open ${AUTH_URL}`);
-  } else {
-    console.log(`Please open your browser and navigate to ${AUTH_URL}`);
-  }
+  openBrowser(AUTH_URL);
 
   console.log("Listening at port 9999");
   const server = http
