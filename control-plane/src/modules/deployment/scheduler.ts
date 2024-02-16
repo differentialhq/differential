@@ -1,9 +1,9 @@
 import { and, desc, eq, gt, sql } from "drizzle-orm";
-import { ulid } from "ulid";
 import { registerCron } from "../cron";
 import * as data from "../data";
-import { getDeployment } from "./deployment";
 import { getDeploymentProvider } from "./deployment-provider";
+import { ulid } from "ulid";
+import { getDeployment } from "./deployment";
 
 const getJobBacklog = async () => {
   return await data.db
@@ -50,51 +50,51 @@ const getMachineCount = async (
   return machines[0].count ?? 0;
 };
 
-const scheduleDeployments = async () => {
-  for (const backlog of await getJobBacklog()) {
-    if (backlog.deployment_id == undefined) continue;
-
-    //TODO: This should be combined with the group by query
-    const deployment = await getDeployment(backlog.deployment_id);
-    if (!deployment) {
-      continue;
-    }
-
-    const provider = getDeploymentProvider(deployment.provider);
-    if (!provider) {
-      continue;
-    }
-
-    const lastNotification = await getLastNotification(deployment.id);
-
-    if (lastNotification) {
-      // Check if the last notification was within the minimum interval
-      const notificationInterval =
-        Date.now() - lastNotification?.created_at.getTime();
-      if (notificationInterval < provider.minimumNotificationInterval()) {
-        continue;
-      }
-    }
-
-    const runningMachines = await getMachineCount(
-      deployment.id,
-      new Date(Date.now() - provider.minimumNotificationInterval()),
-    );
-
-    await data.db.insert(data.deploymentNotification).values({
-      id: ulid(),
-      deployment_id: deployment.id,
-    });
-    await provider.notify(deployment, backlog.pending, runningMachines);
-  }
-};
-
 // Scheduled job which checks for pending jobs and notifies the deployment providers.
 // This is a naive implementation that will lead to duplicate notifications as there is no locking
 export const start = async () => {
   if (!process.env.DEPLOYMENT_SCHEDULING_ENABLED) {
     return;
   }
+  registerCron(
+    async () => {
+      for (const backlog of await getJobBacklog()) {
+        if (backlog.deployment_id == undefined) continue;
 
-  registerCron("scheduleDeployments", scheduleDeployments, { interval: 500 });
+        //TODO: This should be combined with the group by query
+        const deployment = await getDeployment(backlog.deployment_id);
+        if (!deployment) {
+          continue;
+        }
+
+        const provider = getDeploymentProvider(deployment.provider);
+        if (!provider) {
+          continue;
+        }
+
+        const lastNotification = await getLastNotification(deployment.id);
+
+        if (lastNotification) {
+          // Check if the last notification was within the minimum interval
+          const notificationInterval =
+            Date.now() - lastNotification?.created_at.getTime();
+          if (notificationInterval < provider.minimumNotificationInterval()) {
+            continue;
+          }
+        }
+
+        const runningMachines = await getMachineCount(
+          deployment.id,
+          new Date(Date.now() - provider.minimumNotificationInterval()),
+        );
+
+        await data.db.insert(data.deploymentNotification).values({
+          id: ulid(),
+          deployment_id: deployment.id,
+        });
+        await provider.notify(deployment, backlog.pending, runningMachines);
+      }
+    },
+    { interval: 500 },
+  );
 };
