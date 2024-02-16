@@ -5,10 +5,17 @@ import cors from "@fastify/cors";
 import { initServer } from "@ts-rest/fastify";
 import fastify from "fastify";
 import process from "process";
+import * as deploymentScheduler from "./modules/deployment/scheduler";
 import * as jobs from "./modules/jobs/jobs";
 import * as events from "./modules/observability/events";
 import * as router from "./modules/router";
-import * as deploymentScheduler from "./modules/deployment/scheduler";
+
+import { RateLimiterMemory } from "rate-limiter-flexible";
+
+const rateLimiter = new RateLimiterMemory({
+  points: 50, // 10 points
+  duration: 1, // Per second
+});
 
 const app = fastify({
   logger: process.env.ENABLE_FASTIFY_LOGGER === "true",
@@ -26,6 +33,25 @@ app.setErrorHandler((error, request, reply) => {
   console.error(error);
 
   return reply.status(500).send();
+});
+
+app.addHook("onRequest", async (request, reply) => {
+  try {
+    await rateLimiter.consume(request.ip, 1);
+  } catch (rejRes) {
+    const rateLimiterRes: {
+      msBeforeNext: number;
+    } = rejRes as any;
+
+    const headers = {
+      "Retry-After": rateLimiterRes.msBeforeNext,
+    };
+
+    return reply
+      .headers(headers)
+      .code(429)
+      .send({ error: "Too Many Requests" });
+  }
 });
 
 const start = async () => {
