@@ -21,7 +21,7 @@ describe("Load test", () => {
 
     const results = await Promise.all(promises);
 
-    // expect(results).toHaveLength(100);
+    expect(results).toHaveLength(100);
     expect(results[0].echo).toBe("hello");
   }, 20000);
 
