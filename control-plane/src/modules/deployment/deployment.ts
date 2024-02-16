@@ -4,6 +4,7 @@ import { UPLOAD_BUCKET, getPresignedURL } from "../s3";
 import { and, eq, or, sql } from "drizzle-orm";
 import { DeploymentProvider } from "./deployment-provider";
 import NodeCache from "node-cache";
+import { storeServiceDefinitionBG } from "../service-definitions";
 
 export type Deployment = {
   id: string;
@@ -54,18 +55,24 @@ export const createDeployment = async ({
     `${id}-definition`,
   );
 
-  const provider =
-    (
-      await data.db
-        .select({ deployment_provider: data.services.deployment_provider })
-        .from(data.services)
-        .where(
-          and(
-            eq(data.services.service, serviceName),
-            eq(data.services.cluster_id, clusterId),
-          ),
-        )
-    ).shift()?.deployment_provider ?? "mock";
+  const service = (
+    await data.db
+      .select({ deployment_provider: data.services.deployment_provider })
+      .from(data.services)
+      .where(
+        and(
+          eq(data.services.service, serviceName),
+          eq(data.services.cluster_id, clusterId),
+        ),
+      )
+  ).shift();
+
+  if (!service) {
+    console.log("Service not found, creating service definition");
+    storeServiceDefinitionBG(serviceName, { name: serviceName }, { clusterId });
+  }
+
+  const provider = service?.deployment_provider ?? "mock";
 
   const deployment = await data.db
     .insert(data.deployments)

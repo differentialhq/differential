@@ -49,6 +49,9 @@ export const selectService = async (
 
   return select({
     message: "Select a service",
-    choices: d.body.definitions.map((c: any) => ({ name: c.id, value: c.id })),
+    choices: d.body.definitions.map((c: any) => ({
+      name: c.name,
+      value: c.name,
+    })),
   });
 };
