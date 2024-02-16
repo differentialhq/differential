@@ -210,5 +210,8 @@ export const deploymentProvividerConfig = pgTable(
 export const db = drizzle(pool);
 
 export const isAlive = async () => {
-  await db.execute(sql`select 1`);
+  await db.execute(sql`select 1`).catch((e) => {
+    console.error("Database is not alive", e);
+    throw e;
+  });
 };
