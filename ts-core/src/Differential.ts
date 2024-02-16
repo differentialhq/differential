@@ -12,6 +12,7 @@ import { pack, unpack } from "./serialize";
 import { deserializeError, serializeError } from "./serialize-error";
 import { Result, TaskQueue } from "./task-queue";
 import { AsyncFunction } from "./types";
+import { isRetryableStatusCode } from "./util";
 
 const log = debug("differential:client");
 
@@ -795,13 +796,28 @@ export class Differential {
     } else if (result.status === 401) {
       throw new DifferentialError(DifferentialError.UNAUTHORISED);
     } else if (result.status === 429) {
-      const retryAfter = result.headers.get("retry-after") ?? "5000";
+      const retryAfter =
+        result.headers.get("retry-after") ??
+        (attempt * attempt * 1000).toString();
 
       log("Rate limited", { retryAfter });
 
       await new Promise((resolve) => setTimeout(resolve, parseInt(retryAfter)));
 
       log("Retrying job creation", { service, fn, args, attempt });
+
+      return this.createJob({
+        service,
+        fn,
+        args,
+        attempt: attempt + 1,
+      });
+    } else if (isRetryableStatusCode(result.status)) {
+      log("Retrying job creation", { service, fn, args, attempt });
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, 1000 * attempt * attempt),
+      );
 
       return this.createJob({
         service,
