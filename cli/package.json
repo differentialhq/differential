@@ -14,6 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@inquirer/prompts": "^4.0.0",
     "@ts-rest/core": "^3.28.0",
     "debug": "^4.3.4",
     "detective": "^5.2.1",
