@@ -111,6 +111,34 @@ export const getDeployment = async (id: string): Promise<Deployment> => {
   return deployment[0];
 };
 
+export const getDeployments = async (
+  cluster: string,
+  service: string,
+): Promise<Deployment[]> => {
+  const deployment = await data.db
+    .select({
+      id: data.deployments.id,
+      clusterId: data.deployments.cluster_id,
+      service: data.deployments.service,
+      packageUploadUrl: data.deployments.package_upload_path,
+      definitionUploadUrl: data.deployments.definition_upload_path,
+      status: data.deployments.status,
+      provider: data.deployments.provider,
+    })
+    .from(data.deployments)
+    .where(
+      and(
+        eq(data.deployments.cluster_id, cluster),
+        eq(data.deployments.service, service),
+      ),
+    )
+    .orderBy(
+      sql`case when ${data.deployments.status} = 'active' then 1 else 2 end`,
+    );
+
+  return deployment;
+};
+
 export const releaseDeployment = async (
   deployment: Deployment,
   provider: DeploymentProvider,

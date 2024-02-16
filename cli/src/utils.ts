@@ -29,3 +29,26 @@ export const selectCluster = async (): Promise<string | undefined> => {
     choices: d.body.map((c: any) => ({ name: c.id, value: c.id })),
   });
 };
+
+export const selectService = async (
+  clusterId: string,
+): Promise<string | undefined> => {
+  const d = await client.getClusterDetailsForUser({
+    params: { clusterId },
+  });
+
+  if (d.status !== 200) {
+    console.error(`Failed to get cluster: ${d.status}`);
+    return;
+  }
+
+  if (!d.body || !d.body.definitions || d.body.definitions.length === 0) {
+    console.log("No services found");
+    return;
+  }
+
+  return select({
+    message: "Select a service",
+    choices: d.body.definitions.map((c: any) => ({ name: c.id, value: c.id })),
+  });
+};

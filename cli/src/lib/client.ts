@@ -2,8 +2,10 @@ import { initClient, tsRestFetchApi } from "@ts-rest/core";
 import { contract } from "../client/contract";
 
 import { getToken } from "../lib/auth";
+import { API_URL } from "../constants";
+
 export const client = initClient(contract, {
-  baseUrl: process.env.DIFFERENTIAL_API_URL || "https://api.differential.dev",
+  baseUrl: API_URL,
   baseHeaders: {
     authorization: `Bearer ${getToken()}`,
   },
