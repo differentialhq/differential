@@ -49,7 +49,7 @@ export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
     }
 
     if (!service) {
-      service = await selectService(cluster);
+      service = await selectService(cluster, true);
       if (!service) {
         console.log("No service selected");
         return;
