@@ -71,7 +71,7 @@ export const jobs = pgTable(
       enum: ["resolution", "rejection"],
     }),
     machine_type: text("machine_type"),
-    remaining_attempts: integer("remaining_attempts").default(1),
+    remaining_attempts: integer("remaining_attempts").notNull(),
     created_at: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -117,6 +117,9 @@ export const clusters = pgTable("clusters", {
   predictive_retries_enabled: boolean("predictive_retries_enabled").default(
     false,
   ),
+  auto_retry_stalled_jobs_enabled: boolean("retry_on_stall_enabled")
+    .notNull()
+    .default(true),
 });
 
 export const services = pgTable(
