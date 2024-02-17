@@ -16,6 +16,7 @@ export const definition = {
     headers: z.object({
       authorization: z.string(),
       "x-machine-id": z.string(),
+      "x-deployment-id": z.string().optional(),
     }),
     body: z.object({
       limit: z.coerce.number().default(1),
@@ -91,11 +92,35 @@ export const definition = {
       401: z.undefined(),
     },
   },
+  getJobStatuses: {
+    method: "POST",
+    path: "/batch-jobs-status-request",
+    body: z.object({
+      jobIds: z.array(z.string()).max(1000),
+      ttl: z.coerce.number().min(5000).max(20000).default(20000),
+    }),
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.array(
+        z.object({
+          id: z.string(),
+          status: z.enum(["pending", "running", "success", "failure"]),
+          result: z.string().nullable(),
+          resultType: z.enum(["resolution", "rejection"]).nullable(),
+        }),
+      ),
+      401: z.undefined(),
+    },
+  },
   persistJobResult: {
     method: "POST",
     path: "/jobs/:jobId/result",
     headers: z.object({
       authorization: z.string(),
+      "x-machine-id": z.string(),
+      "x-deployment-id": z.string().optional(),
     }),
     pathParams: z.object({
       jobId: z.string(),
@@ -339,6 +364,7 @@ export const definition = {
     headers: z.object({
       authorization: z.string(),
       "x-machine-id": z.string(),
+      "x-deployment-id": z.string().optional(),
     }),
     responses: {
       204: z.undefined(),
@@ -414,6 +440,28 @@ export const definition = {
       }),
     },
   },
+  getDeployments: {
+    method: "GET",
+    path: "/clusters/:clusterId/service/:serviceName/deployments",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    query: z.object({
+      status: z.enum(["uploading", "ready", "active", "inactive"]).optional(),
+      limit: z.coerce.number().min(1).max(100).default(10),
+    }),
+    responses: {
+      200: z.array(
+        z.object({
+          id: z.string(),
+          packageUploadUrl: z.string(),
+          definitionUploadUrl: z.string(),
+          status: z.string(),
+        }),
+      ),
+      401: z.undefined(),
+    },
+  },
   releaseDeployment: {
     method: "POST",
     path: "/clusters/:clusterId/service/:serviceName/deployments/:deploymentId/release",
@@ -432,6 +480,39 @@ export const definition = {
         status: z.string(),
       }),
     },
+  },
+  setClusterSettings: {
+    method: "PUT",
+    path: "/clusters/:clusterId/settings",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      predictiveRetriesEnabled: z.boolean(),
+    }),
+    responses: {
+      204: z.undefined(),
+      401: z.undefined(),
+    },
+    pathParams: z.object({
+      clusterId: z.string(),
+    }),
+  },
+  getClusterSettings: {
+    method: "GET",
+    path: "/clusters/:clusterId/settings",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.object({
+        predictiveRetriesEnabled: z.boolean(),
+      }),
+      401: z.undefined(),
+    },
+    pathParams: z.object({
+      clusterId: z.string(),
+    }),
   },
 } as const;
 

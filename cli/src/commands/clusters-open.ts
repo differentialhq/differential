@@ -1,6 +1,6 @@
 import { CommandModule } from "yargs";
 import { openBrowser, selectCluster } from "../utils";
-import { BASE_URL } from "../constants";
+import { CONSOLE_URL } from "../constants";
 
 interface ClusterOpenArgs {
   cluster?: string;
@@ -23,6 +23,6 @@ export const ClusterOpen: CommandModule<{}, ClusterOpenArgs> = {
       }
     }
 
-    openBrowser(`${BASE_URL}/clusters/${cluster}`);
+    openBrowser(`${CONSOLE_URL}/clusters/${cluster}`);
   },
 };

@@ -4,7 +4,7 @@ import fs from "fs";
 
 import http from "http";
 import { openBrowser } from "../utils";
-import { BASE_URL } from "../constants";
+import { CONSOLE_URL } from "../constants";
 
 const TOKEN_PATH = path.join(os.homedir(), ".differential", "credentials");
 export const storeToken = (token: string) => {
@@ -23,7 +23,7 @@ export const getToken = () => {
   return null;
 };
 
-const AUTH_URL = `${BASE_URL}/cli-auth`;
+const AUTH_URL = `${CONSOLE_URL}/cli-auth`;
 export const startTokenFlow = () => {
   openBrowser(AUTH_URL);
 
