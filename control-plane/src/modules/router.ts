@@ -108,9 +108,7 @@ export const router = s.router(contract, {
     const { targetFn, targetArgs, pool, service, idempotencyKey, cacheKey } =
       request.body;
 
-    const deployment = owner.cloudEnabled
-      ? await findActiveDeployment(owner.clusterId, service)
-      : null;
+    const deployment = await findActiveDeployment(owner.clusterId, service);
 
     const { id } = await jobs.createJob({
       service,

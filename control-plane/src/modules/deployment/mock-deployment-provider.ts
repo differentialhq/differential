@@ -29,7 +29,7 @@ export class MockProvider implements DeploymentProvider {
     runningMachines: number,
   ): Promise<any> {
     console.log("Would notify provider of new jobs", {
-      deployment,
+      deployment: deployment.id,
       pendingJobs,
       runningMachines,
     });

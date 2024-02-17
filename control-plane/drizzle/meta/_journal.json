@@ -267,6 +267,13 @@
       "when": 1707637722057,
       "tag": "0038_woozy_tiger_shark",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "5",
+      "when": 1708131743327,
+      "tag": "0039_special_warlock",
+      "breakpoints": true
     }
   ]
 }
