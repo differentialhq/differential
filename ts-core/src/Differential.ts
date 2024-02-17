@@ -1,6 +1,5 @@
-import { initClient, tsRestFetchApi } from "@ts-rest/core";
 import debug from "debug";
-import { contract } from "./contract";
+import { createClient } from "./create-client";
 import { DifferentialError } from "./errors";
 import { Events } from "./events";
 import {
@@ -13,6 +12,7 @@ import { pack, unpack } from "./serialize";
 import { deserializeError, serializeError } from "./serialize-error";
 import { Result, TaskQueue } from "./task-queue";
 import { AsyncFunction } from "./types";
+import { isRetryableStatusCode } from "./util";
 
 const log = debug("differential:client");
 
@@ -38,33 +38,6 @@ export type RegisteredService<T extends ServiceDefinition<any>> = {
   start: () => Promise<void>;
   stop: () => Promise<void>;
 };
-
-const createClient = ({
-  baseUrl,
-  machineId,
-  deploymentId,
-  clientAbortController,
-}: {
-  baseUrl: string;
-  machineId: string;
-  deploymentId?: string;
-  clientAbortController?: AbortController;
-}) =>
-  initClient(contract, {
-    baseUrl,
-    baseHeaders: {
-      "x-machine-id": machineId,
-      ...(deploymentId && { "x-deployment-id": deploymentId }),
-    },
-    api: clientAbortController
-      ? (args) => {
-          return tsRestFetchApi({
-            ...args,
-            signal: clientAbortController.signal,
-          });
-        }
-      : undefined,
-  });
 
 type ServiceRegistryFunction = {
   fn: AsyncFunction;
@@ -105,7 +78,7 @@ class PollingAgent {
 
   private pollState = {
     current: 0,
-    concurrency: 100,
+    concurrency: 1000,
   };
 
   private client: ReturnType<typeof createClient>;
@@ -232,6 +205,17 @@ class PollingAgent {
               .then((res) => {
                 if (res.status === 204) {
                   log("Completed job", job.id, job.targetFn);
+                } else if (res.status === 429) {
+                  log("Rate limited while persisting result", {
+                    retryAfter: res.headers.get("retry-after"),
+                  });
+
+                  return new Promise((resolve) =>
+                    setTimeout(
+                      resolve,
+                      parseInt(res.headers.get("retry-after") ?? "5000"),
+                    ),
+                  ).then(() => onComplete(result));
                 } else {
                   throw new DifferentialError(
                     `Failed to persist job: ${res.status}`,
@@ -241,6 +225,11 @@ class PollingAgent {
                     },
                   );
                 }
+              })
+              .catch((e) => {
+                log("Failed to persist job result", e.message);
+
+                throw e;
               })
               .finally(() => {
                 this.pollState.current -= 1;
@@ -697,7 +686,7 @@ export class Differential {
   ): Promise<ReturnType<T["definition"]["functions"][U]>> {
     const start = Date.now();
     // create a job
-    const id = await this.createJob<T, U>(service, fn, args);
+    const id = await this.createJob<T, U>({ service, fn, args });
 
     log("Waiting for job to complete", { id });
 
@@ -753,7 +742,7 @@ export class Differential {
     ...args: Parameters<T["definition"]["functions"][U]>
   ): Promise<{ id: string }> {
     // create a job
-    const id = await this.createJob<T, U>(service, fn, args);
+    const id = await this.createJob<T, U>({ service, fn, args });
 
     return { id };
   }
@@ -761,35 +750,99 @@ export class Differential {
   private async createJob<
     T extends RegisteredService<any>,
     U extends keyof T["definition"]["functions"],
-  >(
-    service: T["definition"]["name"],
-    fn: string | number | symbol,
-    args: Parameters<T["definition"]["functions"][U]>,
-  ) {
+  >({
+    service,
+    fn,
+    args,
+    attempt = 1,
+  }: {
+    service: T["definition"]["name"];
+    fn: string | number | symbol;
+    args: Parameters<T["definition"]["functions"][U]>;
+    attempt?: number;
+  }) {
     log("Creating job", { service, fn, args });
 
     const { differentialConfig, originalArgs } =
       extractDifferentialConfig(args);
 
-    const result = await this.controlPlaneClient.createJob({
-      body: {
-        service,
-        targetFn: fn as string,
-        targetArgs: pack(originalArgs),
-        idempotencyKey: differentialConfig.$idempotencyKey,
-        cacheKey: differentialConfig.$cacheKey,
-      },
-      headers: {
-        authorization: this.authHeader,
-      },
-    });
+    const result = await this.controlPlaneClient
+      .createJob({
+        body: {
+          service,
+          targetFn: fn as string,
+          targetArgs: pack(originalArgs),
+          idempotencyKey: differentialConfig.$idempotencyKey,
+          cacheKey: differentialConfig.$cacheKey,
+        },
+        headers: {
+          authorization: this.authHeader,
+        },
+      })
+      .then((res) => {
+        log("Job created", { service, fn, args, body: res.body });
 
-    log("Job created", { service, fn, args, body: result.body });
+        return res;
+      })
+      .catch(async (e) => {
+        return {
+          status: -1,
+          message: e.cause?.message ?? "",
+        } as const;
+      });
 
     if (result.status === 201) {
       return result.body.id;
     } else if (result.status === 401) {
       throw new DifferentialError(DifferentialError.UNAUTHORISED);
+    } else if (result.status === 429) {
+      const retryAfter =
+        result.headers.get("retry-after") ??
+        (attempt * attempt * 1000).toString();
+
+      log("Rate limited", { retryAfter });
+
+      await new Promise((resolve) => setTimeout(resolve, parseInt(retryAfter)));
+
+      log("Retrying job creation", { service, fn, args, attempt });
+
+      return this.createJob({
+        service,
+        fn,
+        args,
+        attempt: attempt + 1,
+      });
+    } else if (isRetryableStatusCode(result.status)) {
+      log("Retrying job creation", { service, fn, args, attempt });
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, 1000 * attempt * attempt),
+      );
+
+      return this.createJob({
+        service,
+        fn,
+        args,
+        attempt: attempt + 1,
+      });
+    } else if (result.status === -1) {
+      const retryable = attempt < 3 && result.message.includes("ECONNRESET");
+
+      if (!retryable) {
+        throw new DifferentialError(`Failed to create job: ${result.message}`);
+      }
+
+      // backoff and retry
+      await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+
+      log("Retrying job creation", { service, fn, args, attempt });
+
+      return this.createJob({
+        service,
+        fn,
+        args,
+        attempt: attempt + 1,
+      });
     } else {
       throw new DifferentialError(`Failed to create job: ${result.status}`);
     }
