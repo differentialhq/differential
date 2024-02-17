@@ -440,6 +440,28 @@ export const definition = {
       }),
     },
   },
+  getDeployments: {
+    method: "GET",
+    path: "/clusters/:clusterId/service/:serviceName/deployments",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    query: z.object({
+      status: z.enum(["uploading", "ready", "active", "inactive"]).optional(),
+      limit: z.coerce.number().min(1).max(100).default(10),
+    }),
+    responses: {
+      200: z.array(
+        z.object({
+          id: z.string(),
+          packageUploadUrl: z.string(),
+          definitionUploadUrl: z.string(),
+          status: z.string(),
+        }),
+      ),
+      401: z.undefined(),
+    },
+  },
   releaseDeployment: {
     method: "POST",
     path: "/clusters/:clusterId/service/:serviceName/deployments/:deploymentId/release",

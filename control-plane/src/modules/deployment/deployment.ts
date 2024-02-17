@@ -4,6 +4,7 @@ import { UPLOAD_BUCKET, getPresignedURL } from "../s3";
 import { and, eq, or, sql } from "drizzle-orm";
 import { DeploymentProvider } from "./deployment-provider";
 import NodeCache from "node-cache";
+import { storeServiceDefinitionBG } from "../service-definitions";
 
 export type Deployment = {
   id: string;
@@ -54,18 +55,24 @@ export const createDeployment = async ({
     `${id}-definition`,
   );
 
-  const provider =
-    (
-      await data.db
-        .select({ deployment_provider: data.services.deployment_provider })
-        .from(data.services)
-        .where(
-          and(
-            eq(data.services.service, serviceName),
-            eq(data.services.cluster_id, clusterId),
-          ),
-        )
-    ).shift()?.deployment_provider ?? "mock";
+  const service = (
+    await data.db
+      .select({ deployment_provider: data.services.deployment_provider })
+      .from(data.services)
+      .where(
+        and(
+          eq(data.services.service, serviceName),
+          eq(data.services.cluster_id, clusterId),
+        ),
+      )
+  ).shift();
+
+  if (!service) {
+    console.log("Service not found, creating service definition");
+    storeServiceDefinitionBG(serviceName, { name: serviceName }, { clusterId });
+  }
+
+  const provider = service?.deployment_provider ?? "mock";
 
   const deployment = await data.db
     .insert(data.deployments)
@@ -109,6 +116,34 @@ export const getDeployment = async (id: string): Promise<Deployment> => {
     .where(eq(data.deployments.id, id));
 
   return deployment[0];
+};
+
+export const getDeployments = async (
+  cluster: string,
+  service: string,
+): Promise<Deployment[]> => {
+  const deployment = await data.db
+    .select({
+      id: data.deployments.id,
+      clusterId: data.deployments.cluster_id,
+      service: data.deployments.service,
+      packageUploadUrl: data.deployments.package_upload_path,
+      definitionUploadUrl: data.deployments.definition_upload_path,
+      status: data.deployments.status,
+      provider: data.deployments.provider,
+    })
+    .from(data.deployments)
+    .where(
+      and(
+        eq(data.deployments.cluster_id, cluster),
+        eq(data.deployments.service, service),
+      ),
+    )
+    .orderBy(
+      sql`case when ${data.deployments.status} = 'active' then 1 else 2 end`,
+    );
+
+  return deployment;
 };
 
 export const releaseDeployment = async (

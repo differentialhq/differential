@@ -8,13 +8,14 @@ import { buildPackage } from "../lib/package";
 import { uploadPackage } from "../lib/upload";
 import { release } from "../lib/release";
 import { waitForDeploymentStatus } from "../lib/client";
+import { selectCluster, selectService } from "../utils";
 
 const log = debug("differential:cli:deploy:create");
 
 interface DeployCreateArgs {
   entrypoint: string;
-  cluster: string;
-  service: string;
+  cluster?: string;
+  service?: string;
 }
 export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
   command: "create",
@@ -28,16 +29,33 @@ export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
       })
       .option("cluster", {
         describe: "Cluster ID",
-        demandOption: true,
+        demandOption: false,
         type: "string",
       })
       .option("service", {
         describe: "Service name",
-        demandOption: true,
+        demandOption: false,
         type: "string",
       }),
   handler: async ({ entrypoint, cluster, service }) => {
     log("Running deploy command", { argv });
+
+    if (!cluster) {
+      cluster = await selectCluster();
+      if (!cluster) {
+        console.log("No cluster selected");
+        return;
+      }
+    }
+
+    if (!service) {
+      service = await selectService(cluster);
+      if (!service) {
+        console.log("No service selected");
+        return;
+      }
+    }
+
     const tmpDir = fs.mkdtempSync(os.tmpdir());
     try {
       const outDir = `${tmpDir}/out`;

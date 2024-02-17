@@ -10,6 +10,7 @@ import {
   createDeployment,
   findActiveDeployment,
   getDeployment,
+  getDeployments,
   releaseDeployment,
 } from "./deployment/deployment";
 import { getDeploymentProvider } from "./deployment/deployment-provider";
@@ -424,6 +425,22 @@ export const router = s.router(contract, {
     return {
       status: 200,
       body: deployment,
+    };
+  },
+  getDeployments: async (request) => {
+    const access = await routingHelpers.validateManagementAccess(request);
+    if (!access) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { clusterId, serviceName } = request.params;
+    const deployments = await getDeployments(clusterId, serviceName);
+
+    return {
+      status: 200,
+      body: deployments,
     };
   },
   releaseDeployment: async (request) => {
