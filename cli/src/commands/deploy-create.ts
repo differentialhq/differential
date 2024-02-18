@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as os from "os";
 
 import { CommandModule, argv } from "yargs";
-import { buildPackage } from "../lib/package";
+import { buildService } from "../lib/package";
 import { uploadPackage } from "../lib/upload";
 import { release } from "../lib/release";
 import { waitForDeploymentStatus } from "../lib/client";
@@ -13,7 +13,7 @@ import { selectCluster, selectService } from "../utils";
 const log = debug("differential:cli:deploy:create");
 
 interface DeployCreateArgs {
-  entrypoint: string;
+  entrypoint?: string;
   cluster?: string;
   service?: string;
 }
@@ -23,8 +23,9 @@ export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
   builder: (yargs) =>
     yargs
       .option("entrypoint", {
-        describe: "Path to service entrypoint file",
-        demandOption: true,
+        describe:
+          "Path to service entrypoint file (default: package.json#main)",
+        demandOption: false,
         type: "string",
       })
       .option("cluster", {
@@ -61,9 +62,10 @@ export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
       const outDir = `${tmpDir}/out`;
 
       console.log("⚙️   Building service...");
-      const { packagePath, definitionPath } = await buildPackage(
-        entrypoint,
+      const { packagePath, definitionPath } = await buildService(
+        service,
         outDir,
+        entrypoint,
       );
       console.log("✅  Build complete");
 
