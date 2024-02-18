@@ -305,5 +305,10 @@ export async function selfHealJobs(params?: { machineStallTimeout: number }) {
   return {
     stalledFailedByTimeout: stalledFailedByTimeout.map((row) => row.id),
     stalledRecovered: stalledRecovered.map((row) => row.id),
+    stalledMachines: stalledMachines.map((row) => ({
+      id: row.id,
+      clusterId: row.clusterId,
+    })),
+    stalledFailedByMachine: stalledFailedByMachine.rows.map((row) => row.id),
   };
 }

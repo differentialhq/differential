@@ -175,13 +175,16 @@ const storeMachineInfoBG = backgrounded(async function storeMachineInfo(
       deployment_id: deploymentId,
     })
     .onConflictDoUpdate({
-      target: data.machines.id,
+      target: [data.machines.id, data.machines.cluster_id],
       set: {
         last_ping_at: new Date(),
         ip,
         status: "active",
       },
-      where: eq(data.machines.cluster_id, owner.clusterId),
+      where: and(
+        eq(data.machines.cluster_id, owner.clusterId),
+        eq(data.machines.id, machineId),
+      ),
     });
 });
 

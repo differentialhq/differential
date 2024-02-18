@@ -396,4 +396,40 @@ describe("persistJobResult", () => {
       }),
     );
   }, 10000);
+
+  it("should auto retry when a machine is stalled", async () => {
+    const owner = await createOwner();
+    const targetFn = "testTargetFn";
+    const targetArgs = "testTargetArgs";
+    const service = "testService";
+
+    const createJobResult = await createJob({
+      targetFn,
+      targetArgs,
+      owner,
+      service,
+    });
+
+    // last ping will be now
+    await nextJobs({
+      owner,
+      limit: 10,
+      machineId: "testMachineId",
+      ip: "1.1.1.1",
+      service,
+    });
+
+    // wait 2s
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // self heal jobs with machine stall timeout of 1s
+    const healedJobs = await selfHealJobs({ machineStallTimeout: 1 });
+
+    expect(
+      healedJobs.stalledMachines.some(
+        (x) => x.id === "testMachineId" && x.clusterId === owner.clusterId,
+      ),
+    ).toBe(true);
+    expect(healedJobs.stalledRecovered).toContain(createJobResult.id);
+  });
 });
