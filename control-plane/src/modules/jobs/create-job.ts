@@ -111,7 +111,6 @@ const createJobStrategies = {
         status: "pending",
         owner_hash: owner.clusterId,
         deployment_id: deploymentId,
-        machine_type: pool,
         service,
         remaining_attempts: 1, // idempotent jobs only get one attempt
         timeout_interval_seconds: timeoutIntervalSeconds,
@@ -176,11 +175,10 @@ const createJobStrategies = {
       status: "pending",
       owner_hash: owner.clusterId,
       deployment_id: deploymentId,
-      machine_type: pool,
       service,
       cache_key: cacheKey,
       remaining_attempts:
-        maxAttempts ?? cluster.autoRetryStalledJobsEnabled ? 2 : 1,
+        maxAttempts ?? (cluster.autoRetryStalledJobsEnabled ? 2 : 1),
       timeout_interval_seconds: timeoutIntervalSeconds,
     });
 
@@ -207,10 +205,9 @@ const createJobStrategies = {
       status: "pending",
       owner_hash: owner.clusterId,
       deployment_id: deploymentId,
-      machine_type: pool,
       service,
       remaining_attempts:
-        maxAttempts ?? cluster.autoRetryStalledJobsEnabled ? 2 : 1,
+        maxAttempts ?? (cluster.autoRetryStalledJobsEnabled ? 2 : 1),
       timeout_interval_seconds: timeoutIntervalSeconds,
     });
 

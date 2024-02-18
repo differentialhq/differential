@@ -56,8 +56,6 @@ export class TaskQueue {
     resolve: (value: Result) => void;
   }> = [];
 
-  private isRunning = false;
-
   addTask(
     fn: AsyncFunction,
     args: Parameters<AsyncFunction>,

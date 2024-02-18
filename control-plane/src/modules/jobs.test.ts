@@ -76,7 +76,7 @@ describe("nextJobs", () => {
 
   it("should respect idempotency", async () => {
     const ik = Math.random().toString();
-    const owner = { clusterId: Math.random().toString() };
+    const owner = await createOwner();
     const service = "minimal";
     const targetFn = "foo";
 
@@ -204,7 +204,7 @@ describe("selfHealJobs", () => {
     // run the self heal job
     const healedJobs = await selfHealJobs();
 
-    expect(healedJobs.stalledFailed).toContain(createJobResult.id);
+    expect(healedJobs.stalledFailedByTimeout).toContain(createJobResult.id);
     expect(healedJobs.stalledRecovered).toContain(createJobResult.id);
 
     // query the next job, it should be good to go
@@ -275,7 +275,7 @@ describe("selfHealJobs", () => {
     // run the self heal job
     const healedJobs = await selfHealJobs();
 
-    expect(healedJobs.stalledFailed).toContain(createJobResult.id);
+    expect(healedJobs.stalledFailedByTimeout).toContain(createJobResult.id);
     expect(healedJobs.stalledRecovered).not.toContain(createJobResult.id);
 
     // query the next job, it should not appear

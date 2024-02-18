@@ -70,7 +70,7 @@ export const jobs = pgTable(
     result_type: text("result_type", {
       enum: ["resolution", "rejection"],
     }),
-    machine_type: text("machine_type"),
+    executing_machine_id: text("executing_machine_id"),
     remaining_attempts: integer("remaining_attempts").notNull(),
     created_at: timestamp("created_at", { withTimezone: true })
       .defaultNow()
@@ -100,6 +100,9 @@ export const machines = pgTable("machines", {
   ip: varchar("ip", { length: 1024 }),
   cluster_id: varchar("cluster_id").notNull(),
   deployment_id: varchar("deployment_id"),
+  status: text("status", {
+    enum: ["active", "inactive"],
+  }).default("active"),
 });
 
 export const clusters = pgTable("clusters", {
