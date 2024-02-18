@@ -35,7 +35,6 @@ type ServicePackageDetails = {
   packageJson: PackageJson;
 };
 
-// Compile the project the entire project (based on entry point) and return the project details
 export const buildProject = async (
   outDir: string,
   entrypoint?: string,
