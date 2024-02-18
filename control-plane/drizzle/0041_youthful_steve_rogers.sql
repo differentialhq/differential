@@ -1,5 +1,5 @@
-DELETE FROM "machines";
 DELETE FROM "events";
+DELETE FROM "machines";
 ALTER TABLE "events" DROP CONSTRAINT IF EXISTS "events_machine_id_machines_id_fk";
 
 --> statement-breakpoint
