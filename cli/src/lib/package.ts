@@ -24,16 +24,23 @@ type PackageJson = {
   scripts?: { [key: string]: string };
 };
 
-export const buildService = async (
-  service: string,
-  outDir: string,
-  entrypoint?: string,
-): Promise<{
+type ProjectDetails = {
+  dependencies: string[];
+  serviceRegistrations: Map<string, string>;
+};
+
+type ServicePackageDetails = {
   packagePath: string;
   definitionPath: string;
-}> => {
+  packageJson: PackageJson;
+};
+
+// Compile the project the entire project (based on entry point) and return the project details
+export const buildProject = async (
+  outDir: string,
+  entrypoint?: string,
+): Promise<ProjectDetails> => {
   const packageOut = path.join(outDir, "package");
-  const definitionOut = path.join(outDir, "definition");
 
   entrypoint = entrypoint || getPackageMain(process.cwd());
 
@@ -43,8 +50,20 @@ export const buildService = async (
     );
   }
 
-  compile(entrypoint, packageOut);
-  const builtPackage = buildPackage(entrypoint, service, packageOut);
+  compileProject(entrypoint, packageOut);
+  const compiledEntrypoint = entrypoint.replace(".ts", ".js");
+  return evaluateProject(compiledEntrypoint, packageOut, []);
+};
+
+export const packageService = async (
+  service: string,
+  project: ProjectDetails,
+  outDir: string,
+): Promise<ServicePackageDetails> => {
+  const packageOut = path.join(outDir, "package");
+  const definitionOut = path.join(outDir, "definition");
+
+  const builtPackage = buildPackage(project, service, packageOut);
   if (builtPackage.main === undefined) {
     throw new Error("Could not generate entrypoint for service");
   }
@@ -54,10 +73,11 @@ export const buildService = async (
   return {
     packagePath: await zipDirectory(packageOut),
     definitionPath: await zipDirectory(definitionOut),
+    packageJson: builtPackage,
   };
 };
 
-const compile = (entrypoint: string, outDir: string) => {
+const compileProject = (entrypoint: string, outDir: string) => {
   const tsconfigPath = path.join(process.cwd(), "tsconfig.json");
   const tsconfig = JSON.parse(fs.readFileSync(tsconfigPath, "utf-8"));
 
@@ -110,7 +130,7 @@ const extractServiceTypes = (
   );
   fs.mkdirSync(outDir, { recursive: true });
   fs.copyFileSync(typesPath, path.join(outDir, "service.d.ts"));
-  fs.rmdirSync(path.join(packageDir, "types"), { recursive: true });
+  fs.rmSync(path.join(packageDir, "types"), { recursive: true });
 };
 
 const listPackageDependencies = (basePath: string): PackageDependencies => {
@@ -123,16 +143,13 @@ const getPackageMain = (basePath: string): string | undefined => {
   return packageJson.main;
 };
 
-// Recursively traverse the file tree to find all requires
-const findDependencies = (
+// Recursively traverse the file tree and find all dependencies and service registrations
+const evaluateProject = (
   filePath: string,
   walkPath: string,
   paths: string[],
   serviceRegistrations = new Map<string, string>(),
-): {
-  dependencies: string[];
-  serviceRegistrations: Map<string, string>;
-} => {
+): ProjectDetails => {
   // Find all `requires` in a file
   const listFileRequires = (filePath: string): string[] =>
     detective
@@ -155,7 +172,7 @@ const findDependencies = (
 
     const dependencies = listFileRequires(fullPath);
     for (const require of dependencies) {
-      const subEval = findDependencies(
+      const subEval = evaluateProject(
         require,
         path.dirname(fullPath),
         paths,
@@ -184,14 +201,11 @@ const findDependencies = (
 };
 
 const buildPackage = (
-  entrypoint: string,
+  project: ProjectDetails,
   service: string,
   outDir: string,
 ): PackageJson => {
-  const compiledEntrypoint = entrypoint.replace(".ts", ".js");
-
-  const result = findDependencies(compiledEntrypoint, outDir, []);
-  const registration = result.serviceRegistrations.get(service);
+  const registration = project.serviceRegistrations.get(service);
 
   if (!registration) {
     throw new Error(`Service registration for ${service} not found`);
@@ -205,7 +219,7 @@ const buildPackage = (
     name: service,
     main: serviceEntrypoint,
     // Only include dependencies that are used in the origin package.json
-    dependencies: result.dependencies.reduce((acc, dependency) => {
+    dependencies: project.dependencies.reduce((acc, dependency) => {
       if (rootDependencies[dependency]) {
         acc[dependency] = rootDependencies[dependency];
       }

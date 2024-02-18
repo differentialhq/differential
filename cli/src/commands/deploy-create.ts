@@ -4,11 +4,12 @@ import * as fs from "fs";
 import * as os from "os";
 
 import { CommandModule, argv } from "yargs";
-import { buildService } from "../lib/package";
+import { buildProject, packageService } from "../lib/package";
 import { uploadPackage } from "../lib/upload";
 import { release } from "../lib/release";
 import { waitForDeploymentStatus } from "../lib/client";
 import { selectCluster, selectService } from "../utils";
+import { select } from "@inquirer/prompts";
 
 const log = debug("differential:cli:deploy:create");
 
@@ -49,41 +50,62 @@ export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
       }
     }
 
-    if (!service) {
-      service = await selectService(cluster);
-      if (!service) {
-        console.log("No service selected");
-        return;
-      }
-    }
-
     const tmpDir = fs.mkdtempSync(os.tmpdir());
     try {
       const outDir = `${tmpDir}/out`;
 
-      console.log("⚙️   Building service...");
-      const { packagePath, definitionPath } = await buildService(
-        service,
-        outDir,
-        entrypoint,
-      );
-      console.log("✅  Build complete");
+      console.log("⚙️   Building project");
 
-      console.log("📦  Uploading service...");
+      const project = await buildProject(outDir, entrypoint);
+
+      console.log("🔍   Finding service registrations");
+      if (project.serviceRegistrations.size === 0) {
+        throw new Error("No service registrations found in project");
+      }
+
+      if (service) {
+        if (!project.serviceRegistrations.has(service)) {
+          throw new Error(`Service ${service} not found in project`);
+        }
+      } else {
+        const choices = Array.from(project.serviceRegistrations.keys()).map(
+          (name) => ({
+            name,
+            value: name,
+          }),
+        );
+
+        service = await select({
+          message: "Select a service",
+          choices: choices,
+        });
+      }
+
+      console.log(`📦  Packaging service ${service}`);
+
+      const { packagePath, definitionPath } = await packageService(
+        service,
+        project,
+        outDir,
+      );
+
+      console.log(`📦  Uploading service ${service}`);
+
       const deployment = await uploadPackage(
         packagePath,
         definitionPath,
         cluster,
         service,
       );
-      console.log("✅  Upload complete");
 
-      console.log("☁️   Deploying service");
+      console.log(`☁️   Deploying ${service}:${deployment.id} to ${cluster}`);
+
       await release({
         deploymentId: deployment.id,
         serviceName: service,
         clusterId: cluster,
       });
+
       await waitForDeploymentStatus(
         deployment.id,
         service,
@@ -91,6 +113,7 @@ export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
         "active",
         1000,
       );
+
       console.log(
         `✅  Deployment complete, ${service}:${deployment.id} is now available!`,
       );
