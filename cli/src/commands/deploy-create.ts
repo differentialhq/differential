@@ -4,11 +4,15 @@ import * as fs from "fs";
 import * as os from "os";
 
 import { CommandModule, argv } from "yargs";
-import { buildProject, packageService } from "../lib/package";
+import {
+  buildClientPackage,
+  buildProject,
+  packageService,
+} from "../lib/package";
 import { uploadPackage } from "../lib/upload";
 import { release } from "../lib/release";
 import { waitForDeploymentStatus } from "../lib/client";
-import { selectCluster, selectService } from "../utils";
+import { selectCluster } from "../utils";
 import { select } from "@inquirer/prompts";
 
 const log = debug("differential:cli:deploy:create");
@@ -89,11 +93,15 @@ export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
         outDir,
       );
 
+      console.log(`📦  Packaging client library`);
+
+      const clientPath = await buildClientPackage(project, outDir);
+
       console.log(`📦  Uploading service ${service}`);
 
       const deployment = await uploadPackage(
         packagePath,
-        definitionPath,
+        clientPath,
         cluster,
         service,
       );
