@@ -4,7 +4,9 @@ import { redirect } from "next/navigation";
 export default async function CliAuth() {
   const { getToken } = await auth();
 
-  const token = await getToken();
+  const token = await getToken({
+    template: "extended-cli-token",
+  });
 
   if (!token) {
     return null;
