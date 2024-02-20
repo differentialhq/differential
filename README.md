@@ -6,16 +6,15 @@
 
 # Differential
 
-Differential is an open-source "Durable RPC" framework for TypeScript. It uses a **centralised control-plane** and SDK that give superpowers to your remote function calls.
+Differential is an open-source "Durable RPC" platform that makes your services more reliable and efficient. By using a centralised control-plane, Differential transparently handles network faults, machine restarts, retries, and more. It comes with end-to-end encryption, observability, service registry, caching, and more without any extra configuration. Moreover, it doesn't change your existing programming paradigm. It acts as a thin wrapper around your existing functions, making your services more reliable, efficient, and usable.
 
-- Delightful DX: Write your remote calls as if they were local, with full type safety.
-- Reliable: The control plane transparently handles network faults, machine restarts, retries across all your functions.
-- Batteries Included: Comes with end-to-end encryption, observability, service registry, caching, and more.
-- Open Source and Self-Hostable: Differential is fully open-source and can be self-hosted.
-
-![Alt text](assets/image-3.png)
+- **Reliable**: Transparently recover from machine failures, network faults, and more.
+- **Efficient**: Cache results, run functions idempotently, and split your deployments without splitting your code.
+- **Usable**: Use your existing programming paradigm. No need to learn a new framework, or configure infrastructure.
 
 ## Differential in 60 seconds
+
+![Alt text](assets/image-3.png)
 
 ### 1. Write a service that connects to the Differential control-plane
 

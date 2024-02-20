@@ -12,9 +12,9 @@ expanded: true
 Differential is in the technical preview stage, and is open-source. We are working hard to make our cloud offering generally available. Sign up for the waitlist [here](https://forms.fillout.com/t/9M1VhL8Wxyus).
 !!!
 
-Differential is an open-source "Durable RPC" platform that makes your services more reliable and efficient. By using a centralised control-plane, Differential transparently handles network faults, machine restarts, retries, and more. It comes with end-to-end encryption, observability, service registry, caching, and more without any extra configuration. You just write your functions, and decorate them with the features you need.
+Differential is an open-source "Durable RPC" platform that makes your services more reliable and efficient. By using a centralised control-plane, Differential transparently handles network faults, machine restarts, retries, and more. It comes with end-to-end encryption, observability, service registry, caching, and more without any extra configuration. Moreover, it doesn't change your existing programming paradigm. It acts as a thin wrapper around your existing functions to make them callable from anywhere, with full type safety.
 
-![Alt text](./assets/image-1.png)
+![Features](./assets/image-1.png)
 
 ## Reliability
 

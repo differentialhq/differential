@@ -43,3 +43,8 @@ const customer2 = await customerClient.getCustomer(customerId, {
 
 assert.deepEqual(customer === customer2);
 ```
+
+One question you might have is why the client function call has to provide the cache key. The reason for this is two-fold:
+
+1. Control-plane doesn't have to compute the cache key at the time of job distribution, which is a performance optimization.
+2. Security features such as [end to end encryption](./end-to-end-encryption.md) still work, as the cache key is not visible to the control-plane.
