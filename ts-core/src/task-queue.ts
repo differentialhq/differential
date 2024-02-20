@@ -56,8 +56,6 @@ export class TaskQueue {
     resolve: (value: Result) => void;
   }> = [];
 
-  private isRunning = false;
-
   addTask(
     fn: AsyncFunction,
     args: Parameters<AsyncFunction>,
@@ -73,16 +71,12 @@ export class TaskQueue {
   }
 
   private run() {
-    this.isRunning = true;
-
     const tasks = this.tasks;
     this.tasks = [];
 
     Promise.all(
       tasks.map((task) => executeFn(task.fn, task.args).then(task.resolve)),
-    ).then(() => {
-      this.isRunning = false;
-    });
+    );
   }
 
   async quit() {

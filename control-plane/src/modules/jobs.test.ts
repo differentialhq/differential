@@ -76,7 +76,7 @@ describe("nextJobs", () => {
 
   it("should respect idempotency", async () => {
     const ik = Math.random().toString();
-    const owner = { clusterId: Math.random().toString() };
+    const owner = await createOwner();
     const service = "minimal";
     const targetFn = "foo";
 
@@ -204,7 +204,7 @@ describe("selfHealJobs", () => {
     // run the self heal job
     const healedJobs = await selfHealJobs();
 
-    expect(healedJobs.stalledFailed).toContain(createJobResult.id);
+    expect(healedJobs.stalledFailedByTimeout).toContain(createJobResult.id);
     expect(healedJobs.stalledRecovered).toContain(createJobResult.id);
 
     // query the next job, it should be good to go
@@ -275,7 +275,7 @@ describe("selfHealJobs", () => {
     // run the self heal job
     const healedJobs = await selfHealJobs();
 
-    expect(healedJobs.stalledFailed).toContain(createJobResult.id);
+    expect(healedJobs.stalledFailedByTimeout).toContain(createJobResult.id);
     expect(healedJobs.stalledRecovered).not.toContain(createJobResult.id);
 
     // query the next job, it should not appear
@@ -396,4 +396,40 @@ describe("persistJobResult", () => {
       }),
     );
   }, 10000);
+
+  it("should auto retry when a machine is stalled", async () => {
+    const owner = await createOwner();
+    const targetFn = "testTargetFn";
+    const targetArgs = "testTargetArgs";
+    const service = "testService";
+
+    const createJobResult = await createJob({
+      targetFn,
+      targetArgs,
+      owner,
+      service,
+    });
+
+    // last ping will be now
+    await nextJobs({
+      owner,
+      limit: 10,
+      machineId: "testMachineId",
+      ip: "1.1.1.1",
+      service,
+    });
+
+    // wait 2s
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // self heal jobs with machine stall timeout of 1s
+    const healedJobs = await selfHealJobs({ machineStallTimeout: 1 });
+
+    expect(
+      healedJobs.stalledMachines.some(
+        (x) => x.id === "testMachineId" && x.clusterId === owner.clusterId,
+      ),
+    ).toBe(true);
+    expect(healedJobs.stalledRecovered).toContain(createJobResult.id);
+  });
 });

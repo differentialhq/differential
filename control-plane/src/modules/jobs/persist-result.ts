@@ -175,12 +175,12 @@ async function updateJobWithoutRetryableResult({
     .returning({ service: data.jobs.service, targetFn: data.jobs.target_fn });
 }
 
-export async function selfHealJobs() {
+export async function selfHealJobs(params?: { machineStallTimeout: number }) {
   // TODO: impose a global timeout on jobs that don't have a timeout set
   // TODO: these queries need to be chunked. If there are 100k jobs, we don't want to update them all at once
 
   // Jobs are failed if they are running and have timed out
-  const stalledFailed = await data.db
+  const stalledFailedByTimeout = await data.db
     .update(data.jobs)
     .set({
       status: "failure",
@@ -203,6 +203,46 @@ export async function selfHealJobs() {
       remainingAttempts: data.jobs.remaining_attempts,
     });
 
+  const stalledMachines = await data.db
+    .update(data.machines)
+    .set({
+      status: "inactive",
+    })
+    .where(
+      and(
+        lt(
+          data.machines.last_ping_at,
+          sql`now() - interval '1 second' * ${params?.machineStallTimeout ?? 90}`,
+        ),
+        eq(data.machines.status, "active"),
+      ),
+    )
+    .returning({
+      id: data.machines.id,
+      clusterId: data.machines.cluster_id,
+    });
+
+  // mark jobs with stalled machines as failed
+  const stalledFailedByMachine = await data.db.execute<{
+    id: string;
+    service: string;
+    target_fn: string;
+    owner_hash: string;
+    remaining_attempts: number;
+  }>(
+    sql`
+      UPDATE jobs as j
+      SET status = 'failure'
+      FROM machines as m
+      WHERE 
+        j.status = 'running' AND
+        j.executing_machine_id = m.id AND 
+        m.status = 'inactive' AND 
+        j.owner_hash = m.cluster_id AND
+        j.remaining_attempts > 0
+    `,
+  );
+
   const stalledRecovered = await data.db
     .update(data.jobs)
     .set({
@@ -219,7 +259,7 @@ export async function selfHealJobs() {
       remainingAttempts: data.jobs.remaining_attempts,
     });
 
-  stalledFailed.forEach((row) => {
+  stalledFailedByTimeout.forEach((row) => {
     events.write({
       service: row.service,
       clusterId: row.ownerHash,
@@ -227,7 +267,29 @@ export async function selfHealJobs() {
       type: "jobStalled",
       meta: {
         attemptsRemaining: row.remainingAttempts ?? undefined,
+        reason: "timeout",
       },
+    });
+  });
+
+  stalledFailedByMachine.rows.forEach((row) => {
+    events.write({
+      service: row.service,
+      clusterId: row.owner_hash,
+      jobId: row.id,
+      type: "jobStalled",
+      meta: {
+        attemptsRemaining: row.remaining_attempts ?? undefined,
+        reason: "machine stalled",
+      },
+    });
+  });
+
+  stalledMachines.forEach((row) => {
+    events.write({
+      type: "machineStalled",
+      clusterId: row.clusterId,
+      machineId: row.id,
     });
   });
 
@@ -241,7 +303,12 @@ export async function selfHealJobs() {
   });
 
   return {
-    stalledFailed: stalledFailed.map((row) => row.id),
+    stalledFailedByTimeout: stalledFailedByTimeout.map((row) => row.id),
     stalledRecovered: stalledRecovered.map((row) => row.id),
+    stalledMachines: stalledMachines.map((row) => ({
+      id: row.id,
+      clusterId: row.clusterId,
+    })),
+    stalledFailedByMachine: stalledFailedByMachine.rows.map((row) => row.id),
   };
 }

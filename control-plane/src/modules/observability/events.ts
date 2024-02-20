@@ -13,7 +13,8 @@ export type EventTypes =
   | "machineResourceProbe"
   | "functionInvocation"
   | "predictorRetryableResult"
-  | "predictorRecovered";
+  | "predictorRecovered"
+  | "machineStalled";
 
 type Event = {
   clusterId: string;
