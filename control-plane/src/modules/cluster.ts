@@ -4,13 +4,14 @@ import * as data from "./data";
 
 const cache = new NodeCache({ stdTTL: 60, checkperiod: 65, maxKeys: 5000 });
 
-type OperationalCluster = {
+export type OperationalCluster = {
   predictiveRetriesEnabled: boolean | null;
+  autoRetryStalledJobsEnabled: boolean;
 };
 
 export const operationalCluster = async (
   clusterId: string,
-): Promise<OperationalCluster | null> => {
+): Promise<OperationalCluster> => {
   const cached = cache.get<OperationalCluster>(clusterId);
 
   if (cached) {
@@ -20,12 +21,14 @@ export const operationalCluster = async (
   const results = await data.db
     .select({
       predictiveRetriesEnabled: data.clusters.predictive_retries_enabled,
+      autoRetryStalledJobsEnabled:
+        data.clusters.auto_retry_stalled_jobs_enabled,
     })
     .from(data.clusters)
     .where(eq(data.clusters.id, clusterId));
 
   if (results.length === 0) {
-    return null;
+    throw new Error(`Cluster not found: ${clusterId}`);
   }
 
   cache.set<OperationalCluster>(clusterId, results[0]);

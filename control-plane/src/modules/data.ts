@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
   boolean,
+  foreignKey,
   integer,
   json,
   pgTable,
@@ -70,8 +71,8 @@ export const jobs = pgTable(
     result_type: text("result_type", {
       enum: ["resolution", "rejection"],
     }),
-    machine_type: text("machine_type"),
-    remaining_attempts: integer("remaining_attempts").default(1),
+    executing_machine_id: text("executing_machine_id"),
+    remaining_attempts: integer("remaining_attempts").notNull(),
     created_at: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -92,15 +93,24 @@ export const jobs = pgTable(
   }),
 );
 
-export const machines = pgTable("machines", {
-  id: varchar("id", { length: 1024 }).primaryKey(),
-  description: varchar("description", { length: 1024 }),
-  machine_type: varchar("class", { length: 1024 }),
-  last_ping_at: timestamp("last_ping_at", { withTimezone: true }),
-  ip: varchar("ip", { length: 1024 }),
-  cluster_id: varchar("cluster_id").notNull(),
-  deployment_id: varchar("deployment_id"),
-});
+export const machines = pgTable(
+  "machines",
+  {
+    id: varchar("id", { length: 1024 }).notNull(),
+    description: varchar("description", { length: 1024 }),
+    machine_type: varchar("class", { length: 1024 }),
+    last_ping_at: timestamp("last_ping_at", { withTimezone: true }),
+    ip: varchar("ip", { length: 1024 }),
+    cluster_id: varchar("cluster_id").notNull(),
+    deployment_id: varchar("deployment_id"),
+    status: text("status", {
+      enum: ["active", "inactive"],
+    }).default("active"),
+  },
+  (table) => ({
+    pk: primaryKey(table.id, table.cluster_id),
+  }),
+);
 
 export const clusters = pgTable("clusters", {
   id: varchar("id", { length: 1024 }).primaryKey(),
@@ -117,6 +127,9 @@ export const clusters = pgTable("clusters", {
   predictive_retries_enabled: boolean("predictive_retries_enabled").default(
     false,
   ),
+  auto_retry_stalled_jobs_enabled: boolean("retry_on_stall_enabled")
+    .notNull()
+    .default(true),
 });
 
 export const services = pgTable(
@@ -136,26 +149,33 @@ export const services = pgTable(
   }),
 );
 
-export const events = pgTable("events", {
-  id: varchar("id", { length: 1024 }).primaryKey().notNull(),
-  cluster_id: varchar("cluster_id")
-    .references(() => clusters.id)
-    .notNull(),
-  type: varchar("type", { length: 1024 }).notNull(),
-  job_id: varchar("job_id", { length: 1024 }).references(() => jobs.id),
-  machine_id: varchar("machine_id", { length: 1024 }).references(
-    () => machines.id,
-  ),
-  deployment_id: varchar("deployment_id", { length: 1024 }).references(
-    () => deployments.id,
-  ),
-  service: varchar("service", { length: 1024 }),
-  created_at: timestamp("created_at", {
-    withTimezone: true,
-    precision: 6,
-  }).notNull(),
-  meta: json("meta"),
-});
+export const events = pgTable(
+  "events",
+  {
+    id: varchar("id", { length: 1024 }).primaryKey().notNull(),
+    cluster_id: varchar("cluster_id")
+      .references(() => clusters.id)
+      .notNull(),
+    type: varchar("type", { length: 1024 }).notNull(),
+    job_id: varchar("job_id", { length: 1024 }).references(() => jobs.id),
+    machine_id: varchar("machine_id", { length: 1024 }),
+    deployment_id: varchar("deployment_id", { length: 1024 }).references(
+      () => deployments.id,
+    ),
+    service: varchar("service", { length: 1024 }),
+    created_at: timestamp("created_at", {
+      withTimezone: true,
+      precision: 6,
+    }).notNull(),
+    meta: json("meta"),
+  },
+  (table) => ({
+    machineReference: foreignKey({
+      columns: [table.machine_id, table.cluster_id],
+      foreignColumns: [machines.id, machines.cluster_id],
+    }),
+  }),
+);
 
 export const deployments = pgTable("deployments", {
   id: varchar("id", { length: 1024 }).primaryKey().notNull(),

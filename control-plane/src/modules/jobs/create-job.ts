@@ -1,5 +1,6 @@
 import { and, desc, eq, gte } from "drizzle-orm";
 import { ulid } from "ulid";
+import * as clusters from "../cluster";
 import * as data from "../data";
 import * as events from "../observability/events";
 import { functionDefinition } from "../service-definitions";
@@ -31,6 +32,8 @@ export const createJob = async (params: {
     params.targetFn,
   );
 
+  const cluster = await clusters.operationalCluster(params.owner.clusterId);
+
   const retryParams = {
     timeoutIntervalSeconds: serviceDefinition?.timeoutIntervalSeconds,
     maxAttempts: serviceDefinition?.maxAttempts,
@@ -59,6 +62,7 @@ export const createJob = async (params: {
       ...params,
       ...retryParams,
       cacheKey: params.cacheKey,
+      cluster,
     });
 
     onAfterJobCreated({
@@ -71,6 +75,7 @@ export const createJob = async (params: {
     const { id } = await createJobStrategies.default({
       ...params,
       ...retryParams,
+      cluster,
     });
 
     onAfterJobCreated({
@@ -93,7 +98,6 @@ const createJobStrategies = {
     pool,
     idempotencyKey,
     timeoutIntervalSeconds,
-    maxAttempts,
   }: CreateJobParams & { idempotencyKey: string }) => {
     const jobId = idempotencyKey;
 
@@ -107,9 +111,8 @@ const createJobStrategies = {
         status: "pending",
         owner_hash: owner.clusterId,
         deployment_id: deploymentId,
-        machine_type: pool,
         service,
-        remaining_attempts: maxAttempts ?? 1,
+        remaining_attempts: 1, // idempotent jobs only get one attempt
         timeout_interval_seconds: timeoutIntervalSeconds,
       })
       .onConflictDoNothing();
@@ -126,7 +129,11 @@ const createJobStrategies = {
     cacheKey,
     timeoutIntervalSeconds,
     maxAttempts,
-  }: CreateJobParams & { cacheKey: string }) => {
+    cluster,
+  }: CreateJobParams & {
+    cacheKey: string;
+    cluster: clusters.OperationalCluster;
+  }) => {
     const cacheTTL = await functionDefinition(owner, service, targetFn)
       .then((d) => d?.cacheTTL ?? 0)
       .catch(() => 0); // on error, just don't cache
@@ -168,10 +175,10 @@ const createJobStrategies = {
       status: "pending",
       owner_hash: owner.clusterId,
       deployment_id: deploymentId,
-      machine_type: pool,
       service,
       cache_key: cacheKey,
-      remaining_attempts: maxAttempts ?? 1,
+      remaining_attempts:
+        maxAttempts ?? (cluster.autoRetryStalledJobsEnabled ? 2 : 1),
       timeout_interval_seconds: timeoutIntervalSeconds,
     });
 
@@ -186,7 +193,8 @@ const createJobStrategies = {
     pool,
     timeoutIntervalSeconds,
     maxAttempts,
-  }: CreateJobParams) => {
+    cluster,
+  }: CreateJobParams & { cluster: clusters.OperationalCluster }) => {
     const jobId = ulid();
 
     await data.db.insert(data.jobs).values({
@@ -197,9 +205,9 @@ const createJobStrategies = {
       status: "pending",
       owner_hash: owner.clusterId,
       deployment_id: deploymentId,
-      machine_type: pool,
       service,
-      remaining_attempts: maxAttempts ?? 1,
+      remaining_attempts:
+        maxAttempts ?? (cluster.autoRetryStalledJobsEnabled ? 2 : 1),
       timeout_interval_seconds: timeoutIntervalSeconds,
     });
 
