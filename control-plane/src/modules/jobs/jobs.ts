@@ -30,13 +30,17 @@ export const nextJobs = async ({
   definition?: ServiceDefinition;
 }) => {
   const results = await data.db.execute(
-    sql`UPDATE jobs SET status = 'running', remaining_attempts = remaining_attempts - 1, last_retrieved_at=${new Date().toISOString()}
+    sql`UPDATE 
+      jobs SET status = 'running', 
+      remaining_attempts = remaining_attempts - 1, 
+      last_retrieved_at=${new Date().toISOString()}, 
+      executing_machine_id=${machineId}
     WHERE
       id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining_attempts > 0))
       AND owner_hash = ${owner.clusterId}
       AND service = ${service}
     LIMIT ${limit})
-    RETURNING *`,
+    RETURNING id, target_fn, target_args`,
   );
 
   storeMachineInfoBG(machineId, ip, owner, deploymentId);
@@ -171,14 +175,18 @@ const storeMachineInfoBG = backgrounded(async function storeMachineInfo(
       deployment_id: deploymentId,
     })
     .onConflictDoUpdate({
-      target: data.machines.id,
+      target: [data.machines.id, data.machines.cluster_id],
       set: {
         last_ping_at: new Date(),
         ip,
+        status: "active",
       },
-      where: eq(data.machines.cluster_id, owner.clusterId),
+      where: and(
+        eq(data.machines.cluster_id, owner.clusterId),
+        eq(data.machines.id, machineId),
+      ),
     });
 });
 
 export const start = () =>
-  cron.registerCron(selfHealJobs, { interval: 1000 * 5 }); // 5 seconds
+  cron.registerCron(selfHealJobs, { interval: 1000 * 10 }); // 10 seconds
