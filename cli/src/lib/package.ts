@@ -9,6 +9,7 @@ import * as fs from "fs";
 import * as detective from "detective";
 import * as childProcess from "child_process";
 import { zip } from "zip-a-folder";
+import { findServiceRegistration } from "./service-discovery";
 
 const log = debug("differential:cli:package");
 
@@ -18,32 +19,64 @@ const NPM_TARGET_PLATFORM = "linux";
 type PackageDependencies = { [key: string]: string };
 type PackageJson = {
   name: string;
+  main?: string;
   dependencies?: PackageDependencies;
   scripts?: { [key: string]: string };
 };
 
-export const buildPackage = async (
-  entrypoint: string,
-  outDir: string,
-): Promise<{
+type ProjectDetails = {
+  dependencies: string[];
+  serviceRegistrations: Map<string, string>;
+};
+
+type ServicePackageDetails = {
   packagePath: string;
   definitionPath: string;
-}> => {
+  packageJson: PackageJson;
+};
+
+export const buildProject = async (
+  outDir: string,
+  entrypoint?: string,
+): Promise<ProjectDetails> => {
+  const packageOut = path.join(outDir, "package");
+
+  entrypoint = entrypoint || getPackageMain(process.cwd());
+
+  if (!entrypoint) {
+    throw new Error(
+      "No entrypoint specified and no package.json#main provided",
+    );
+  }
+
+  compileProject(entrypoint, packageOut);
+  const compiledEntrypoint = entrypoint.replace(".ts", ".js");
+  return evaluateProject(compiledEntrypoint, packageOut, []);
+};
+
+export const packageService = async (
+  service: string,
+  project: ProjectDetails,
+  outDir: string,
+): Promise<ServicePackageDetails> => {
   const packageOut = path.join(outDir, "package");
   const definitionOut = path.join(outDir, "definition");
 
-  compile(entrypoint, packageOut);
-  buildPackageJson(entrypoint, packageOut);
+  const builtPackage = buildPackage(project, service, packageOut);
+  if (builtPackage.main === undefined) {
+    throw new Error("Could not generate entrypoint for service");
+  }
   installDependencies(packageOut);
-  extractServiceTypes(entrypoint, packageOut, definitionOut);
+  extractServiceTypes(builtPackage.main, packageOut, definitionOut);
 
   return {
     packagePath: await zipDirectory(packageOut),
     definitionPath: await zipDirectory(definitionOut),
+    packageJson: builtPackage,
   };
 };
 
-const compile = (entrypoint: string, outDir: string) => {
+const compileProject = (entrypoint: string, outDir: string) => {
   const tsconfigPath = path.join(process.cwd(), "tsconfig.json");
   const tsconfig = JSON.parse(fs.readFileSync(tsconfigPath, "utf-8"));
 
@@ -92,27 +125,30 @@ const extractServiceTypes = (
   const typesPath = path.join(
     packageDir,
     "types",
-    `${entrypoint.replace(".ts", ".d.ts")}`,
+    `${entrypoint.replace(".js", ".d.ts")}`,
   );
   fs.mkdirSync(outDir, { recursive: true });
   fs.copyFileSync(typesPath, path.join(outDir, "service.d.ts"));
-  fs.rmdirSync(path.join(packageDir, "types"), { recursive: true });
+  fs.rmSync(path.join(packageDir, "types"), { recursive: true });
 };
 
-const listPackageDependencies = (
-  packageJsonPath: string,
-): PackageDependencies => {
-  const packageJsonContent = fs.readFileSync(packageJsonPath, "utf-8");
-  const packageJson: PackageJson = JSON.parse(packageJsonContent);
+const listPackageDependencies = (basePath: string): PackageDependencies => {
+  const packageJson: PackageJson = getPackageJson(basePath);
   return packageJson.dependencies || {};
 };
 
-// Recursively traverse the file tree to find all requires
-const findDependencies = (
+const getPackageMain = (basePath: string): string | undefined => {
+  const packageJson = getPackageJson(basePath);
+  return packageJson.main;
+};
+
+// Recursively traverse the file tree and find all dependencies and service registrations
+const evaluateProject = (
   filePath: string,
   walkPath: string,
   paths: string[],
-): string[] => {
+  serviceRegistrations = new Map<string, string>(),
+): ProjectDetails => {
   // Find all `requires` in a file
   const listFileRequires = (filePath: string): string[] =>
     detective
@@ -128,12 +164,28 @@ const findDependencies = (
 
   // Check if file exists and if so walk it's dependencies recursively
   if (fs.existsSync(fullPath)) {
+    const registration = findServiceRegistration(fullPath);
+    if (registration) {
+      serviceRegistrations.set(registration, fullPath);
+    }
+
     const dependencies = listFileRequires(fullPath);
     for (const require of dependencies) {
+      const subEval = evaluateProject(
+        require,
+        path.dirname(fullPath),
+        paths,
+        serviceRegistrations,
+      );
       paths.push(
         // Call recursively with new entrypoint
-        ...findDependencies(require, path.dirname(fullPath), paths),
+        ...subEval.dependencies,
       );
+
+      serviceRegistrations = new Map([
+        ...serviceRegistrations,
+        ...subEval.serviceRegistrations,
+      ]);
     }
   } else {
     // If not, assume it's a module and add it to the list.
@@ -141,32 +193,32 @@ const findDependencies = (
     paths.push(filePath);
   }
 
-  return paths;
+  return {
+    dependencies: paths,
+    serviceRegistrations,
+  };
 };
 
-const buildPackageJson = (
-  entrypoint: string,
+const buildPackage = (
+  project: ProjectDetails,
+  service: string,
   outDir: string,
-  name?: string,
 ): PackageJson => {
-  if (!name) {
-    name = path.basename(entrypoint).replace(".ts", "");
+  const registration = project.serviceRegistrations.get(service);
+
+  if (!registration) {
+    throw new Error(`Service registration for ${service} not found`);
   }
 
-  const compiledEntrypoint = entrypoint.replace(".ts", ".js");
+  const serviceEntrypoint = path.relative(outDir, registration);
 
-  const dependencies = findDependencies(compiledEntrypoint, outDir, []);
-
-  const rootPackageJsonPath = path.join(process.cwd(), "package.json");
-  const rootDependencies = listPackageDependencies(rootPackageJsonPath);
+  const rootDependencies = listPackageDependencies(process.cwd());
 
   const packageJson: PackageJson = {
-    name,
-    scripts: {
-      start: `node ${compiledEntrypoint}`,
-    },
+    name: service,
+    main: serviceEntrypoint,
     // Only include dependencies that are used in the origin package.json
-    dependencies: dependencies.reduce((acc, dependency) => {
+    dependencies: project.dependencies.reduce((acc, dependency) => {
       if (rootDependencies[dependency]) {
         acc[dependency] = rootDependencies[dependency];
       }
@@ -182,7 +234,7 @@ const buildPackageJson = (
     "utf-8",
   );
 
-  buildIndex(compiledEntrypoint, outDir);
+  buildIndex(serviceEntrypoint, outDir);
 
   log("Wrote package.json", { dependencies: packageJson.dependencies });
   return packageJson;
@@ -197,8 +249,7 @@ const buildIndex = async (entrypoint: string, outDir: string) => {
 
   fs.writeFileSync(
     indexFilePath,
-    `exports.handler = () => {Object.keys(require.cache).forEach((c) => delete require.cache[c])
-; require('${entrypoint}')};`,
+    `exports.handler = () => { require('./${entrypoint}').default.start()};`,
     "utf-8",
   );
 };
@@ -211,6 +262,12 @@ const installDependencies = (outputDir: string): void => {
       stdio: "ignore",
     },
   );
+};
+
+const getPackageJson = (packagePath: string): PackageJson => {
+  const packageJsonPath = path.join(packagePath, "package.json");
+  const packageJsonContent = fs.readFileSync(packageJsonPath, "utf-8");
+  return JSON.parse(packageJsonContent);
 };
 
 const zipDirectory = async (directoryPath: string): Promise<string> => {
