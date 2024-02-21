@@ -9,24 +9,24 @@
     <meta name="generator" content="Retype 3.5.0">
 
     <!-- Primary Meta Tags -->
-    <title>Monolith to Microservices and Back</title>
-    <meta name="title" content="Monolith to Microservices and Back">
-    <meta name="description" content="A key value proposition of Differential is that it makes it easy to break up your monolith into services.">
+    <title>Service Discovery</title>
+    <meta name="title" content="Service Discovery">
+    <meta name="description" content="Status: General Availability">
 
     <!-- Canonical -->
-    <link rel="canonical" href="https://docs.differential.dev/advanced/soa/">
+    <link rel="canonical" href="https://docs.differential.dev/advanced/service-discovery/">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://docs.differential.dev/advanced/soa/">
-    <meta property="og:title" content="Monolith to Microservices and Back">
-    <meta property="og:description" content="A key value proposition of Differential is that it makes it easy to break up your monolith into services.">
+    <meta property="og:url" content="https://docs.differential.dev/advanced/service-discovery/">
+    <meta property="og:title" content="Service Discovery">
+    <meta property="og:description" content="Status: General Availability">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://docs.differential.dev/advanced/soa/">
-    <meta property="twitter:title" content="Monolith to Microservices and Back">
-    <meta property="twitter:description" content="A key value proposition of Differential is that it makes it easy to break up your monolith into services.">
+    <meta property="twitter:url" content="https://docs.differential.dev/advanced/service-discovery/">
+    <meta property="twitter:title" content="Service Discovery">
+    <meta property="twitter:description" content="Status: General Availability">
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
@@ -178,98 +178,22 @@
                                 <!-- Rendered if sidebar right is enabled -->
                                 <div id="docs-sidebar-right-toggle"></div>
                                 <!-- Page content  -->
-<doc-anchor-target id="monolith-to-microservices-and-back" class="break-words">
+<doc-anchor-target id="service-discovery" class="break-words">
     <h1>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#monolith-to-microservices-and-back">#</doc-anchor-trigger>
-        <span>Monolith to Microservices and Back</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#service-discovery">#</doc-anchor-trigger>
+        <span>Service Discovery</span>
     </h1>
 </doc-anchor-target>
-<p>A key value proposition of Differential is that it makes it easy to break up your monolith into services. This is a big deal, because breaking up a monolith is traditionally a very high overhead process. Differential makes it easy to break up your monolith into services, and to change the boundaries of your services as your business requirements change.</p>
-<p>It also makes it easy to hit &quot;Abort&quot; and go back to a monolith if you need to.</p>
-<doc-anchor-target id="the-problem">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#the-problem">#</doc-anchor-trigger>
-        <span>The Problem</span>
-    </h2>
-</doc-anchor-target>
-<p>You have a well-architected monolith. You&#x27;ve determined that it&#x27;s time to break it up into 2 or more services. But the overhead of going for a service-oriented/microservices architecture is traditionally very high. You have to:</p>
+<p>Status: <strong>General Availability</strong></p>
+<p>Differential comes with a built-in service registry, so you can call your services by name, without having to worry about IP addresses, ports, or where it&#x27;s deployed. Your services phone-home to Differential control-plane.</p>
+<p>Your services (whether running in your own compute or Differential cloud) always poll the control-plane to:</p>
 <ol>
-<li>Figure out which functionality to break out into a service</li>
-<li>Split up the code</li>
-<li>Decide on a service communication protocol (HTTP, gRPC, tRPC, etc)</li>
-<li>Copy paste boilerplate code for each service and/or write libraries to abstract away the boilerplate</li>
-<li>Set up obervability / health checks / etc for each service</li>
-<li>Write/move the business logic for each service</li>
-<li>Write the service interfaces for each service (e.g. protobufs, OpenAPI, ts-rest/zod)</li>
-<li>Document the interplay of services for other developers</li>
+<li>Advertise their presence</li>
+<li>Advertise their health</li>
+<li>Ask for work</li>
 </ol>
-<p>This is a lot of work, and it&#x27;s not even the fun part of building a product. If business requirements change and you need to change the boundaries of your services, you have to do it all over again.</p>
-<doc-anchor-target id="this-leads-many-engineering-teams-to">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#this-leads-many-engineering-teams-to">#</doc-anchor-trigger>
-        <span>This leads many engineering teams to:</span>
-    </h3>
-</doc-anchor-target>
-<ol>
-<li>Delay breaking up their monoliths when it would be beneficial to do so, or...</li>
-<li>Break it up early and suffer the consequences of a poorly architected services architecture.</li>
-</ol>
-<doc-anchor-target id="the-solution">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#the-solution">#</doc-anchor-trigger>
-        <span>The Solution</span>
-    </h2>
-</doc-anchor-target>
-<p>Differential is an <strong>application code aware service mesh, and a distributed orchestrator</strong>. It is designed to:</p>
-<ol>
-<li>Make it easy to break up your monolith into services</li>
-<li>Make it easy to change the boundaries of your services as your business requirements change</li>
-<li>Make it easy to hit &quot;Abort&quot; and go back to a monolith if you need to</li>
-</ol>
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="comfortable">
-<thead>
-<tr>
-<th>Problem</th>
-<th>Solution</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Figure out which functionality to break out into a service.</td>
-<td><span class="docs-emoji">&#x1F44D;</span> This is the highest-value problem worth solving. Differential helps you focus on this problem.</td>
-</tr>
-<tr>
-<td>Split up the codebase</td>
-<td><span class="docs-emoji">&#x2705;</span> With Differential, you don&#x27;t have to split up your codebase.</td>
-</tr>
-<tr>
-<td>Decide on a service communication protocol (HTTP, gRPC, tRPC, etc.).</td>
-<td><span class="docs-emoji">&#x2705;</span> Differential abstracts this away from you, unless you want to look under the hood. It uses HTTP.</td>
-</tr>
-<tr>
-<td>Copy/Paste boilerplate code for each service and/or write libraries to abstract away the boilerplate.</td>
-<td><span class="docs-emoji">&#x2705;</span> Differential provides you with the tools to keep your code co-located, but deployable as independent services at runtime.</td>
-</tr>
-<tr>
-<td>Set up observability / health checks / monitoring for each service.</td>
-<td><span class="docs-emoji">&#x2705;</span> Differential comes with a dev console which gives you full observability down to the function level. You can see errors, detailed logs and execution times with zero-setup.</td>
-</tr>
-<tr>
-<td>Write/move business logic for each service.</td>
-<td><span class="docs-emoji">&#x2705;</span> Differential services are simply javascript objects that define which functions (a.k.a business logic) belong to which service.</td>
-</tr>
-<tr>
-<td>Write the service interfaces for each service (e.g. protobufs, OpenAPI, ts-rest/zod).</td>
-<td><span class="docs-emoji">&#x2705;</span> Differential infers your service interface from your function types. Your services become end-to-end typesafe. There&#x27;s no need for another interchange format.</td>
-</tr>
-<tr>
-<td>Document the interplay of services for other developers.</td>
-<td><span class="docs-emoji">&#x2705;</span> Differential&#x27;s dev console gives you a full view of your service registry, which functions are registered, and the live status for each.</td>
-</tr>
-</tbody>
-</table>
-</div>
+<p>This allows you to deploy your services anywhere, even across multiple cloud providers and regions, and still have them communicate with each other without any networking configuration.</p>
+<p>It also cuts down the need to secure your services with service to service authentication, as the machines are not directly communicating with each other, or accepting incoming connections. This improves the security posture of your services.</p>
 
                                 
                                 <!-- Required only on API pages -->
@@ -279,20 +203,20 @@
                             
                                 <nav class="flex mt-14">
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../advanced/limitations/">
+                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../advanced/self-hosting/">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                             <span>
                                                 <span class="block text-xs font-normal text-gray-400 dark:text-dark-400">Previous</span>
-                                                <span class="block mt-1">Limitations</span>
+                                                <span class="block mt-1">Self-​hosting</span>
                                             </span>
                                         </a>
                                     </div>
                             
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../advanced/observability/">
+                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../api/">
                                             <span>
                                                 <span class="block text-xs font-normal text-right text-gray-400 dark:text-dark-400">Next</span>
-                                                <span class="block mt-1">Observability</span>
+                                                <span class="block mt-1">Typescript SDK</span>
                                             </span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                         </a>
@@ -336,6 +260,6 @@
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": "Monolith to Microservices and Back", level: 2, icon: "file", hasPrism: false, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": "Service Discovery", level: 2, icon: "file", hasPrism: false, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
 </body>
 </html>
