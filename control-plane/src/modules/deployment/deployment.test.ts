@@ -35,7 +35,7 @@ describe("createDeployment", () => {
     expect(result.clusterId).toEqual(owner.clusterId);
   });
 
-  it("should generate two presigned urls", async () => {
+  it("should generate a presigned url", async () => {
     const result = await createDeployment({
       clusterId: owner.clusterId,
       serviceName: "testService",
@@ -50,12 +50,6 @@ describe("createDeployment", () => {
       owner.clusterId,
       "testService",
       `${result.id}-package`,
-    );
-    expect(getPresignedURL).toHaveBeenCalledWith(
-      "mockedBucket",
-      owner.clusterId,
-      "testService",
-      `${result.id}-definition`,
     );
   });
 });

@@ -477,6 +477,22 @@ export const definition = {
       }),
     },
   },
+  createClientLibrary: {
+    method: "POST",
+    path: "/clusters/:clusterId/client-libraries",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.undefined(),
+    responses: {
+      501: z.undefined(),
+      401: z.undefined(),
+      200: z.object({
+        id: z.string(),
+        packageUploadUrl: z.string(),
+      }),
+    },
+  },
   setClusterSettings: {
     method: "PUT",
     path: "/clusters/:clusterId/settings",

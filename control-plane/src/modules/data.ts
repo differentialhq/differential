@@ -203,9 +203,12 @@ export const deployments = pgTable("deployments", {
   }).notNull(),
 });
 
-export const clientuploads = pgTable("client_uploads", {
+export const assetUploads = pgTable("asset_uploads", {
   id: varchar("id", { length: 1024 }).primaryKey().notNull(),
-  client_upload_path: varchar("client_upload_path", {
+  type: text("type", {
+    enum: ["client_library"],
+  }).notNull(),
+  package_upload_path: varchar("package_upload_path", {
     length: 1024,
   }).notNull(),
   created_at: timestamp("created_at", {

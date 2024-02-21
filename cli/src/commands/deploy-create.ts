@@ -4,11 +4,7 @@ import * as fs from "fs";
 import * as os from "os";
 
 import { CommandModule, argv } from "yargs";
-import {
-  buildClientPackage,
-  buildProject,
-  packageService,
-} from "../lib/package";
+import { buildProject, packageService } from "../lib/package";
 import { uploadPackage } from "../lib/upload";
 import { release } from "../lib/release";
 import { waitForDeploymentStatus } from "../lib/client";
