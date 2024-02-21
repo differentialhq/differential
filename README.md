@@ -6,16 +6,21 @@
 
 # Differential
 
-Differential is an open-source "Durable RPC" framework for TypeScript. It uses a **centralised control-plane** and SDK that give superpowers to your remote function calls.
+Differential is an open-source "Durable RPC" platform. By using a centralised control-plane, Differential transparently handles network faults and machine restarts with retries, all without changing your existing programming paradigm. It is designed to be a drop-in replacement for any function call that you'd like to make distributed and reliable.
 
-- Delightful DX: Write your remote calls as if they were local, with full type safety.
-- Reliable: The control plane transparently handles network faults, machine restarts, retries across all your functions.
-- Batteries Included: Comes with end-to-end encryption, observability, service registry, caching, and more.
-- Open Source and Self-Hostable: Differential is fully open-source and can be self-hosted.
+It also comes with batteries included:
 
-![Alt text](assets/image-3.png)
+- [x] Distributed caching: Cache results of functions with a single line of code, and let all your services share the same cache.
+- [x] Idempotency: Mark functions as idempotent, and Differential will ensure that they are only called once.
+- [x] Rate limiting: Limit the number of times a function can be called globally in a given time period with a simple decorator.
+- [x] End to end encryption: All communication between the control-plane and your services can be encrypted with a single line of code.
+- [x] Observability: Differential comes with a built-in logging and metrics system, so you can see what's happening in your services in real-time.
+- [x] Unopinionated: Differential is designed to be as unopinionated as possible. It works on your own compute, CI/CD, and cloud provider. The only requirement is that workers can connect to the control-plane.
+- [x] Self-hostable: The control-plane can be run on your own infrastructure, and is open-source. You can have full control over your data and infrastructure.
 
 ## Differential in 60 seconds
+
+![Alt text](assets/image-3.png)
 
 ### 1. Write a service that connects to the Differential control-plane
 
@@ -88,23 +93,6 @@ All documentation is hosted at [docs.differential.dev](https://docs.differential
 - [Thinking in Differential](https://docs.differential.dev/getting-started/thinking/)
 - [How it works under the hood](https://docs.differential.dev/advanced/architecture/)
 - [Self-hosting](https://docs.differential.dev/advanced/self-hosting/)
-
-# Features
-
-- [x] [Open-Source Control Plane and Function Orchestration](https://github.com/differentialhq/differential/tree/main/control-plane)
-- [x] [Stable Typescript SDK](https://docs.differential.dev/getting-started/quick-start/)
-- [x] [Differential Cloud Beta](https://forms.fillout.com/t/9M1VhL8Wxyus)
-- [x] [End-to-end Encryption](https://docs.differential.dev/advanced/advanced-usage/#end-to-end-encryption)
-- [x] [Run functions idempotently](https://docs.differential.dev/advanced/advanced-usage/#idempotency)
-- [x] [Observability and tracing at the function level](https://forms.fillout.com/t/9M1VhL8Wxyus)
-- [x] [Service registry](https://forms.fillout.com/t/9M1VhL8Wxyus)
-- [x] [Cache function results globally](https://docs.differential.dev/advanced/advanced-usage/#global-cache)
-- [x] [Self-hosting on your own infrastructure](https://docs.differential.dev/advanced/self-hosting/)
-- [ ] Per-function rate limiting
-- [ ] One-line deployment to AWS Lambda
-- [ ] AI-generated developer documentation
-- [ ] Generate integration tests from telemetry data
-- [ ] Managed API gateways for external access to your functions
 
 ...and more! Join our [Discord](https://discord.gg/WtZkXv74) to stay up to date.
 
