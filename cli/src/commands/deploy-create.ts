@@ -87,24 +87,15 @@ export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
 
       console.log(`📦  Packaging service ${service}`);
 
-      const { packagePath, definitionPath } = await packageService(
-        service,
-        project,
-        outDir,
-      );
+      const { packagePath } = await packageService(service, project, outDir);
 
       console.log(`📦  Packaging client library`);
 
-      const clientPath = await buildClientPackage(project, outDir);
+      //const clientPath = await buildClientPackage(project, outDir);
 
       console.log(`📦  Uploading service ${service}`);
 
-      const deployment = await uploadPackage(
-        packagePath,
-        clientPath,
-        cluster,
-        service,
-      );
+      const deployment = await uploadPackage(packagePath, cluster, service);
 
       console.log(`☁️   Deploying ${service}:${deployment.id} to ${cluster}`);
 

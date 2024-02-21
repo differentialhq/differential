@@ -417,7 +417,6 @@ export const definition = {
       200: z.object({
         id: z.string(),
         packageUploadUrl: z.string(),
-        definitionUploadUrl: z.string(),
         status: z.string(),
       }),
     },
@@ -435,7 +434,6 @@ export const definition = {
       200: z.object({
         id: z.string(),
         packageUploadUrl: z.string(),
-        definitionUploadUrl: z.string(),
         status: z.string(),
       }),
     },
@@ -455,7 +453,6 @@ export const definition = {
         z.object({
           id: z.string(),
           packageUploadUrl: z.string(),
-          definitionUploadUrl: z.string(),
           status: z.string(),
         }),
       ),
@@ -476,7 +473,6 @@ export const definition = {
       200: z.object({
         id: z.string(),
         packageUploadUrl: z.string(),
-        definitionUploadUrl: z.string(),
         status: z.string(),
       }),
     },

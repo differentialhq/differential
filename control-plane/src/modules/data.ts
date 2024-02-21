@@ -192,9 +192,6 @@ export const deployments = pgTable("deployments", {
   package_upload_path: varchar("package_upload_path", {
     length: 1024,
   }).notNull(),
-  definition_upload_path: varchar("definition_upload_url", {
-    length: 1024,
-  }).notNull(),
   meta: json("meta"),
   status: text("status", {
     enum: ["uploading", "ready", "active", "inactive"],
@@ -204,6 +201,19 @@ export const deployments = pgTable("deployments", {
   provider: text("provider", {
     enum: ["lambda", "mock"],
   }).notNull(),
+});
+
+export const clientuploads = pgTable("client_uploads", {
+  id: varchar("id", { length: 1024 }).primaryKey().notNull(),
+  client_upload_path: varchar("client_upload_path", {
+    length: 1024,
+  }).notNull(),
+  created_at: timestamp("created_at", {
+    withTimezone: true,
+    precision: 6,
+  })
+    .defaultNow()
+    .notNull(),
 });
 
 export const deploymentNotification = pgTable("deployment_notifications", {

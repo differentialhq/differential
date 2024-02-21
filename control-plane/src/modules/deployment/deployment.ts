@@ -11,7 +11,6 @@ export type Deployment = {
   clusterId: string;
   service: string;
   packageUploadUrl: string;
-  definitionUploadUrl: string;
   status: string;
   provider: string;
 };
@@ -48,12 +47,12 @@ export const createDeployment = async ({
     serviceName,
     `${id}-package`,
   );
-  const definitionUploadUrl = await getPresignedURL(
-    UPLOAD_BUCKET,
-    clusterId,
-    serviceName,
-    `${id}-definition`,
-  );
+  // const definitionUploadUrl = await getPresignedURL(
+  //   UPLOAD_BUCKET,
+  //   clusterId,
+  //   serviceName,
+  //   `${id}-definition`,
+  // );
 
   const service = (
     await data.db
@@ -82,7 +81,6 @@ export const createDeployment = async ({
         cluster_id: clusterId,
         service: serviceName,
         package_upload_path: packageUploadUrl,
-        definition_upload_path: definitionUploadUrl,
         // Temporary, the expectation is that the deployment will be in the "uploading" while any async work is being done
         status: "ready",
         provider: provider,
@@ -93,7 +91,6 @@ export const createDeployment = async ({
       clusterId: data.deployments.cluster_id,
       service: data.deployments.service,
       packageUploadUrl: data.deployments.package_upload_path,
-      definitionUploadUrl: data.deployments.definition_upload_path,
       status: data.deployments.status,
       provider: data.deployments.provider,
     });
@@ -108,7 +105,6 @@ export const getDeployment = async (id: string): Promise<Deployment> => {
       clusterId: data.deployments.cluster_id,
       service: data.deployments.service,
       packageUploadUrl: data.deployments.package_upload_path,
-      definitionUploadUrl: data.deployments.definition_upload_path,
       status: data.deployments.status,
       provider: data.deployments.provider,
     })
@@ -128,7 +124,6 @@ export const getDeployments = async (
       clusterId: data.deployments.cluster_id,
       service: data.deployments.service,
       packageUploadUrl: data.deployments.package_upload_path,
-      definitionUploadUrl: data.deployments.definition_upload_path,
       status: data.deployments.status,
       provider: data.deployments.provider,
     })
@@ -185,7 +180,6 @@ export const releaseDeployment = async (
         clusterId: data.deployments.cluster_id,
         service: data.deployments.service,
         packageUploadUrl: data.deployments.package_upload_path,
-        definitionUploadUrl: data.deployments.definition_upload_path,
         status: data.deployments.status,
       });
   });
