@@ -2,9 +2,9 @@
 
 Status: **General Availability**
 
-In a cloud environment, machines can fail at any time. Differential transparently handles machine failures, and retries the operation on a healthy worker. This means that you don't have to worry about your service being unavailable due to a machine failure.
+In a cloud environment, machines can fail at any time. Differential transparently handles machine failures by periodically sending heartbeats to the control-plane, quickly catching and retrying failed operations on a healthy worker. This means that you don't have to worry about your service being unavailable due to a machine failure.
 
-Machines periodically send heartbeats to the control-plane. If a machine fails to send any heartbeats within a certain interval (default 90 seconds):
+If a machine fails to send any heartbeats within a definable interval (default 90 seconds):
 
 1. It is marked as unhealthy, and Differential will not send any new requests to it.
 2. The functions in progress are marked as failed, and Differential will retry them on a healthy worker.

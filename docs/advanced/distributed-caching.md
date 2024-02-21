@@ -2,7 +2,7 @@
 
 Status: **General Availability**
 
-When a function returns a value, Differential will store it in the control-plane state. It's then available to be used by other calls, without having to call the function again. This is useful for caching expensive operations, and speeding up your application.
+Differential is useful for caching expensive operations and speeding up you application by storing returned values in the control-plane. It's then available to be used by other calls, without having to call the function again.
 
 Differential supports global caching via a convenience function called `cached`. It takes a function, and a `ttl` in milliseconds and returns a new function that prompts the user to provide a cache key. If the function has already been called with that key, it will return the same result as before.
 

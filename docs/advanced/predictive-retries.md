@@ -4,7 +4,7 @@ Status: **Technical Preview**
 
 Differential can predict transient errors and retry the operations without the developer having to write custom code.
 
-The control-plane has a lot of context on a particular failure when it happens. It knows the function, some metadata about the source, payload, and the error message. It can use this information to predict if the error is transient or not.
+The control-plane has all the required context on a particular failure, when it happens. It knows the function, some metadata about the source, payload, and the error message. It can use this information to predict if the error is transient or not.
 
 If it's predicted to be transient, Differential will retry the operation on a healthy worker before the client even notices. This is especially useful for database deadlocks, network errors, and other transient errors.
 
