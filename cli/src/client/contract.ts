@@ -433,7 +433,6 @@ export const definition = {
       404: z.undefined(),
       200: z.object({
         id: z.string(),
-        packageUploadUrl: z.string(),
         status: z.string(),
       }),
     },
@@ -452,7 +451,6 @@ export const definition = {
       200: z.array(
         z.object({
           id: z.string(),
-          packageUploadUrl: z.string(),
           status: z.string(),
         }),
       ),
@@ -472,7 +470,6 @@ export const definition = {
       404: z.undefined(),
       200: z.object({
         id: z.string(),
-        packageUploadUrl: z.string(),
         status: z.string(),
       }),
     },

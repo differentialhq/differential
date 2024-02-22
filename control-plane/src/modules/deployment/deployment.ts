@@ -15,7 +15,7 @@ export type Deployment = {
   assetUploadId: string;
 };
 
-export type DeploymentWithUrl = Deployment & {
+export type DeploymentWithUploadUrl = Deployment & {
   packageUploadUrl: string;
 };
 
@@ -46,19 +46,22 @@ export const createDeployment = async ({
 }: {
   clusterId: string;
   serviceName: string;
-}): Promise<DeploymentWithUrl> => {
+}): Promise<DeploymentWithUploadUrl> => {
   if (!UPLOAD_BUCKET) {
     throw new Error("Upload bucket not configured");
   }
 
   const id = ulid();
 
-  const object = {
+  const deploymentAsset = {
     bucket: UPLOAD_BUCKET,
     key: `${clusterId}/${serviceName}/service_bundle/${id}`,
   };
 
-  const packageUploadUrl = await getPresignedURL(object.bucket, object.key);
+  const packageUploadUrl = await getPresignedURL(
+    deploymentAsset.bucket,
+    deploymentAsset.key,
+  );
 
   const service = (
     await data.db
@@ -86,8 +89,8 @@ export const createDeployment = async ({
         {
           id: ulid(),
           type: "service_bundle",
-          bucket: object.bucket,
-          key: object.key,
+          bucket: deploymentAsset.bucket,
+          key: deploymentAsset.key,
         },
       ])
       .returning({

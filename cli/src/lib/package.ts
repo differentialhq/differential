@@ -34,7 +34,6 @@ type ProjectDetails = {
 
 type ServicePackageDetails = {
   packagePath: string;
-  definitionPath?: string;
   packageJson: PackageJson;
 };
 

@@ -85,10 +85,6 @@ export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
 
       const { packagePath } = await packageService(service, project, outDir);
 
-      console.log(`📦  Packaging client library`);
-
-      //const clientPath = await buildClientPackage(project, outDir);
-
       console.log(`📦  Uploading service ${service}`);
 
       const deployment = await uploadPackage(packagePath, cluster, service);

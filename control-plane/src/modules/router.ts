@@ -553,20 +553,23 @@ export const router = s.router(contract, {
     }
 
     const id = ulid();
-    const object = {
+    const libraryAsset = {
       bucket: UPLOAD_BUCKET,
       key: `${clusterId}/client_library/${id}`,
     };
 
-    const clientUploadPath = await getPresignedURL(object.bucket, object.key);
+    const clientUploadPath = await getPresignedURL(
+      libraryAsset.bucket,
+      libraryAsset.key,
+    );
 
-    const asset = await data.db
+    await data.db
       .insert(data.assetUploads)
       .values({
         id,
         type: "client_library",
-        bucket: object.bucket,
-        key: object.key,
+        bucket: libraryAsset.bucket,
+        key: libraryAsset.key,
       })
       .returning({
         id: data.assetUploads.id,
