@@ -1,15 +1,14 @@
 import { client } from "@/client/client";
-import { auth } from "@clerk/nextjs";
-import { CreateClusterButton } from "./CreateClusterButton";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { format, formatDistance, formatRelative, subDays } from "date-fns";
+import { auth } from "@clerk/nextjs";
+import { formatRelative } from "date-fns";
+import { CreateClusterButton } from "./CreateClusterButton";
 
 export default async function Page() {
   const { getToken } = await auth();
@@ -52,7 +51,7 @@ export default async function Page() {
             })
             .map((cluster, i) => (
               <a
-                href={`/clusters/${cluster.id}`}
+                href={`/clusters/${cluster.id}/overview`}
                 className="mr-4 mb-4 w-96"
                 key={i}
               >
