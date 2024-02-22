@@ -555,9 +555,7 @@ export const router = s.router(contract, {
     const id = ulid();
     const clientUploadPath = await getPresignedURL(
       UPLOAD_BUCKET,
-      clusterId,
-      "client_library",
-      `${id}-definition`,
+      `${clusterId}/client_library/${id}-definition`,
     );
 
     const asset = await data.db

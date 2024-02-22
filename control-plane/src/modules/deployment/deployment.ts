@@ -10,9 +10,12 @@ export type Deployment = {
   id: string;
   clusterId: string;
   service: string;
-  packageUploadUrl: string;
   status: string;
   provider: string;
+};
+
+export type DeploymentWithUrl = Deployment & {
+  packageUploadUrl: string;
 };
 
 export const s3AssetDetails = (
@@ -34,7 +37,7 @@ export const createDeployment = async ({
 }: {
   clusterId: string;
   serviceName: string;
-}): Promise<Deployment> => {
+}): Promise<DeploymentWithUrl> => {
   if (!UPLOAD_BUCKET) {
     throw new Error("Upload bucket not configured");
   }
@@ -43,16 +46,8 @@ export const createDeployment = async ({
 
   const packageUploadUrl = await getPresignedURL(
     UPLOAD_BUCKET,
-    clusterId,
-    serviceName,
-    `${id}-package`,
+    `${clusterId}/${serviceName}/${id}-package`,
   );
-  // const definitionUploadUrl = await getPresignedURL(
-  //   UPLOAD_BUCKET,
-  //   clusterId,
-  //   serviceName,
-  //   `${id}-definition`,
-  // );
 
   const service = (
     await data.db
@@ -73,29 +68,44 @@ export const createDeployment = async ({
 
   const provider = service?.deployment_provider ?? "mock";
 
-  const deployment = await data.db
-    .insert(data.deployments)
-    .values([
-      {
-        id: id,
-        cluster_id: clusterId,
-        service: serviceName,
-        package_upload_path: packageUploadUrl,
-        // Temporary, the expectation is that the deployment will be in the "uploading" while any async work is being done
-        status: "ready",
-        provider: provider,
-      },
-    ])
-    .returning({
-      id: data.deployments.id,
-      clusterId: data.deployments.cluster_id,
-      service: data.deployments.service,
-      packageUploadUrl: data.deployments.package_upload_path,
-      status: data.deployments.status,
-      provider: data.deployments.provider,
-    });
+  return await data.db.transaction(async (tx) => {
+    const asset = await tx
+      .insert(data.assetUploads)
+      .values([
+        {
+          id: ulid(),
+          type: "service_bundle",
+          package_upload_path: packageUploadUrl,
+        },
+      ])
+      .returning({
+        id: data.assetUploads.id,
+        packageUploadUrl: data.assetUploads.package_upload_path,
+      });
 
-  return deployment[0];
+    const deployment = await tx
+      .insert(data.deployments)
+      .values([
+        {
+          id: id,
+          cluster_id: clusterId,
+          service: serviceName,
+          asset_upload_id: asset[0].id,
+          // Temporary, the expectation is that the deployment will be in the "uploading" while any async work is being done
+          status: "ready",
+          provider: provider,
+        },
+      ])
+      .returning({
+        id: data.deployments.id,
+        clusterId: data.deployments.cluster_id,
+        service: data.deployments.service,
+        status: data.deployments.status,
+        provider: data.deployments.provider,
+      });
+
+    return { ...deployment[0], packageUploadUrl: asset[0].packageUploadUrl };
+  });
 };
 
 export const getDeployment = async (id: string): Promise<Deployment> => {
@@ -104,7 +114,6 @@ export const getDeployment = async (id: string): Promise<Deployment> => {
       id: data.deployments.id,
       clusterId: data.deployments.cluster_id,
       service: data.deployments.service,
-      packageUploadUrl: data.deployments.package_upload_path,
       status: data.deployments.status,
       provider: data.deployments.provider,
     })
@@ -123,7 +132,6 @@ export const getDeployments = async (
       id: data.deployments.id,
       clusterId: data.deployments.cluster_id,
       service: data.deployments.service,
-      packageUploadUrl: data.deployments.package_upload_path,
       status: data.deployments.status,
       provider: data.deployments.provider,
     })
@@ -179,7 +187,6 @@ export const releaseDeployment = async (
         id: data.deployments.id,
         clusterId: data.deployments.cluster_id,
         service: data.deployments.service,
-        packageUploadUrl: data.deployments.package_upload_path,
         status: data.deployments.status,
       });
   });

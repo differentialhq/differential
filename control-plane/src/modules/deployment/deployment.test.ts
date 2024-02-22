@@ -1,5 +1,6 @@
 import { createOwner } from "../test/util";
 import {
+  Deployment,
   createDeployment,
   getDeployment,
   releaseDeployment,
@@ -44,12 +45,10 @@ describe("createDeployment", () => {
     expect(result.id).toBeDefined();
     expect(result.clusterId).toEqual(owner.clusterId);
 
-    expect(getPresignedURL).toHaveBeenCalledTimes(2);
+    expect(getPresignedURL).toHaveBeenCalledTimes(1);
     expect(getPresignedURL).toHaveBeenCalledWith(
       "mockedBucket",
-      owner.clusterId,
-      "testService",
-      `${result.id}-package`,
+      `${owner.clusterId}/testService/${result.id}-package`,
     );
   });
 });
@@ -134,10 +133,12 @@ describe("releaseDeployment", () => {
   });
 
   it("should update deployment status on release", async () => {
-    const deployment = await createDeployment({
+    const deployment = (await createDeployment({
       clusterId: owner.clusterId,
       serviceName: "testService",
-    });
+    })) as Deployment;
+
+    delete (deployment as any)["packageUploadUrl"];
 
     await releaseDeployment(deployment, provider);
 

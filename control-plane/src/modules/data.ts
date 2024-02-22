@@ -189,9 +189,9 @@ export const deployments = pgTable("deployments", {
   })
     .defaultNow()
     .notNull(),
-  package_upload_path: varchar("package_upload_path", {
-    length: 1024,
-  }).notNull(),
+  asset_upload_id: varchar("asset_upload_id", { length: 1024 })
+    .references(() => assetUploads.id)
+    .notNull(),
   meta: json("meta"),
   status: text("status", {
     enum: ["uploading", "ready", "active", "inactive"],
@@ -206,7 +206,7 @@ export const deployments = pgTable("deployments", {
 export const assetUploads = pgTable("asset_uploads", {
   id: varchar("id", { length: 1024 }).primaryKey().notNull(),
   type: text("type", {
-    enum: ["client_library"],
+    enum: ["client_library", "service_bundle"],
   }).notNull(),
   package_upload_path: varchar("package_upload_path", {
     length: 1024,
