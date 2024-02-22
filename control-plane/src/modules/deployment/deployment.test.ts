@@ -133,12 +133,12 @@ describe("releaseDeployment", () => {
   });
 
   it("should update deployment status on release", async () => {
-    const deployment = (await createDeployment({
+    const deployment = await createDeployment({
       clusterId: owner.clusterId,
       serviceName: "testService",
-    })) as Deployment;
+    });
 
-    delete (deployment as any)["packageUploadUrl"];
+    delete (deployment as any).packageUploadUrl;
 
     await releaseDeployment(deployment, provider);
 
@@ -151,6 +151,7 @@ describe("releaseDeployment", () => {
       clusterId: owner.clusterId,
       serviceName: "testService",
     });
+    delete (deployment2 as any).packageUploadUrl;
 
     await releaseDeployment(deployment2, provider);
 

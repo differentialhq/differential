@@ -12,22 +12,31 @@ export type Deployment = {
   service: string;
   status: string;
   provider: string;
+  assetUploadId: string;
 };
 
 export type DeploymentWithUrl = Deployment & {
   packageUploadUrl: string;
 };
 
-export const s3AssetDetails = (
+export const s3AssetDetails = async (
   deployment: Deployment,
-): { S3Bucket: string; S3Key: string } => {
+): Promise<{ S3Bucket: string; S3Key: string }> => {
   if (!UPLOAD_BUCKET) {
     throw new Error("Upload bucket not configured");
   }
 
+  const asset = await data.db
+    .select({
+      key: data.assetUploads.key,
+      bucket: data.assetUploads.bucket,
+    })
+    .from(data.assetUploads)
+    .where(eq(data.assetUploads.id, deployment.assetUploadId));
+
   return {
-    S3Bucket: UPLOAD_BUCKET,
-    S3Key: `${deployment.clusterId}/${deployment.service}/service_bundle/${deployment.id}`,
+    S3Bucket: asset[0].bucket,
+    S3Key: asset[0].key,
   };
 };
 
@@ -44,10 +53,12 @@ export const createDeployment = async ({
 
   const id = ulid();
 
-  const packageUploadUrl = await getPresignedURL(
-    UPLOAD_BUCKET,
-    `${clusterId}/${serviceName}/service_bundle/${id}`,
-  );
+  const object = {
+    bucket: UPLOAD_BUCKET,
+    key: `${clusterId}/${serviceName}/service_bundle/${id}`,
+  };
+
+  const packageUploadUrl = await getPresignedURL(object.bucket, object.key);
 
   const service = (
     await data.db
@@ -75,12 +86,12 @@ export const createDeployment = async ({
         {
           id: ulid(),
           type: "service_bundle",
-          package_upload_path: packageUploadUrl,
+          bucket: object.bucket,
+          key: object.key,
         },
       ])
       .returning({
         id: data.assetUploads.id,
-        packageUploadUrl: data.assetUploads.package_upload_path,
       });
 
     const deployment = await tx
@@ -102,9 +113,10 @@ export const createDeployment = async ({
         service: data.deployments.service,
         status: data.deployments.status,
         provider: data.deployments.provider,
+        assetUploadId: data.deployments.asset_upload_id,
       });
 
-    return { ...deployment[0], packageUploadUrl: asset[0].packageUploadUrl };
+    return { ...deployment[0], packageUploadUrl: packageUploadUrl };
   });
 };
 
@@ -116,6 +128,7 @@ export const getDeployment = async (id: string): Promise<Deployment> => {
       service: data.deployments.service,
       status: data.deployments.status,
       provider: data.deployments.provider,
+      assetUploadId: data.deployments.asset_upload_id,
     })
     .from(data.deployments)
     .where(eq(data.deployments.id, id));
@@ -134,6 +147,7 @@ export const getDeployments = async (
       service: data.deployments.service,
       status: data.deployments.status,
       provider: data.deployments.provider,
+      assetUploadId: data.deployments.asset_upload_id,
     })
     .from(data.deployments)
     .where(
