@@ -48,7 +48,7 @@ describe("createDeployment", () => {
     expect(getPresignedURL).toHaveBeenCalledTimes(1);
     expect(getPresignedURL).toHaveBeenCalledWith(
       "mockedBucket",
-      `${owner.clusterId}/testService/${result.id}-package`,
+      `${owner.clusterId}/testService/service_bundle/${result.id}`,
     );
   });
 });

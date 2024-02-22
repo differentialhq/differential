@@ -27,7 +27,7 @@ export const s3AssetDetails = (
 
   return {
     S3Bucket: UPLOAD_BUCKET,
-    S3Key: `${deployment.clusterId}/${deployment.service}/${deployment.id}-package`,
+    S3Key: `${deployment.clusterId}/${deployment.service}/service_bundle/${deployment.id}`,
   };
 };
 
@@ -46,7 +46,7 @@ export const createDeployment = async ({
 
   const packageUploadUrl = await getPresignedURL(
     UPLOAD_BUCKET,
-    `${clusterId}/${serviceName}/${id}-package`,
+    `${clusterId}/${serviceName}/service_bundle/${id}`,
   );
 
   const service = (
