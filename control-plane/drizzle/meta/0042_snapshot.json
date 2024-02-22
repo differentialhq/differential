@@ -1,11 +1,11 @@
 {
   "version": "5",
   "dialect": "pg",
-  "id": "e7e955c1-97da-425b-80fe-3b39a017bc1a",
+  "id": "cbd07861-92f6-4b68-89f3-c8f522ed2bd9",
   "prevId": "32dda706-32b6-4b16-adc1-98dc56bf0fdd",
   "tables": {
-    "client_uploads": {
-      "name": "client_uploads",
+    "asset_uploads": {
+      "name": "asset_uploads",
       "schema": "",
       "columns": {
         "id": {
@@ -14,8 +14,20 @@
           "primaryKey": true,
           "notNull": true
         },
-        "client_upload_path": {
-          "name": "client_upload_path",
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bucket": {
+          "name": "bucket",
+          "type": "varchar(1024)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "key": {
+          "name": "key",
           "type": "varchar(1024)",
           "primaryKey": false,
           "notNull": true
@@ -201,8 +213,8 @@
           "notNull": true,
           "default": "now()"
         },
-        "package_upload_path": {
-          "name": "package_upload_path",
+        "asset_upload_id": {
+          "name": "asset_upload_id",
           "type": "varchar(1024)",
           "primaryKey": false,
           "notNull": true
@@ -235,6 +247,19 @@
           "tableTo": "clusters",
           "columnsFrom": [
             "cluster_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "deployments_asset_upload_id_asset_uploads_id_fk": {
+          "name": "deployments_asset_upload_id_asset_uploads_id_fk",
+          "tableFrom": "deployments",
+          "tableTo": "asset_uploads",
+          "columnsFrom": [
+            "asset_upload_id"
           ],
           "columnsTo": [
             "id"

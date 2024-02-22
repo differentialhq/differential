@@ -292,29 +292,8 @@
     {
       "idx": 42,
       "version": "5",
-      "when": 1708551208514,
-      "tag": "0042_clumsy_rawhide_kid",
-      "breakpoints": true
-    },
-    {
-      "idx": 43,
-      "version": "5",
-      "when": 1708551836401,
-      "tag": "0043_superb_sabretooth",
-      "breakpoints": true
-    },
-    {
-      "idx": 44,
-      "version": "5",
-      "when": 1708636193054,
-      "tag": "0044_big_moondragon",
-      "breakpoints": true
-    },
-    {
-      "idx": 45,
-      "version": "5",
-      "when": 1708638803169,
-      "tag": "0045_unusual_echo",
+      "when": 1708640616645,
+      "tag": "0042_kind_lester",
       "breakpoints": true
     }
   ]
