@@ -33,6 +33,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
+    "app/clusters/[clusterId]/page.tsx_",
   ],
   "exclude": [
     "node_modules"
