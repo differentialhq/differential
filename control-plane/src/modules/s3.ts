@@ -7,13 +7,11 @@ const s3Client = new S3Client();
 
 export const getPresignedURL = async (
   bucket: string,
-  cluster: string,
-  service: string,
-  version: string,
+  key: string,
 ): Promise<string> => {
   const command = new PutObjectCommand({
     Bucket: bucket,
-    Key: `${cluster}/${service}/${version}`,
+    Key: key,
     ContentType: "application/zip",
   });
 

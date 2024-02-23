@@ -20,7 +20,10 @@ type PackageDependencies = { [key: string]: string };
 type PackageJson = {
   name: string;
   main?: string;
+  version?: string;
   dependencies?: PackageDependencies;
+  peerDependencies?: PackageDependencies;
+  exports?: any;
   scripts?: { [key: string]: string };
 };
 
@@ -31,7 +34,6 @@ type ProjectDetails = {
 
 type ServicePackageDetails = {
   packagePath: string;
-  definitionPath: string;
   packageJson: PackageJson;
 };
 
@@ -60,18 +62,15 @@ export const packageService = async (
   outDir: string,
 ): Promise<ServicePackageDetails> => {
   const packageOut = path.join(outDir, "package");
-  const definitionOut = path.join(outDir, "definition");
 
   const builtPackage = buildPackage(project, service, packageOut);
   if (builtPackage.main === undefined) {
     throw new Error("Could not generate entrypoint for service");
   }
   installDependencies(packageOut);
-  extractServiceTypes(builtPackage.main, packageOut, definitionOut);
 
   return {
     packagePath: await zipDirectory(packageOut),
-    definitionPath: await zipDirectory(definitionOut),
     packageJson: builtPackage,
   };
 };
@@ -115,21 +114,6 @@ const compileProject = (entrypoint: string, outDir: string) => {
   if (emitResult.emitSkipped) {
     throw new Error("Failed to compile package.");
   }
-};
-
-const extractServiceTypes = (
-  entrypoint: string,
-  packageDir: string,
-  outDir: string,
-) => {
-  const typesPath = path.join(
-    packageDir,
-    "types",
-    `${entrypoint.replace(".js", ".d.ts")}`,
-  );
-  fs.mkdirSync(outDir, { recursive: true });
-  fs.copyFileSync(typesPath, path.join(outDir, "service.d.ts"));
-  fs.rmSync(path.join(packageDir, "types"), { recursive: true });
 };
 
 const listPackageDependencies = (basePath: string): PackageDependencies => {
@@ -199,7 +183,7 @@ const evaluateProject = (
   };
 };
 
-const buildPackage = (
+export const buildPackage = (
   project: ProjectDetails,
   service: string,
   outDir: string,
@@ -274,4 +258,73 @@ const zipDirectory = async (directoryPath: string): Promise<string> => {
   const outputZipPath = `${directoryPath}.zip`;
   await zip(directoryPath, outputZipPath);
   return outputZipPath;
+};
+
+export const buildClientPackage = async (
+  project: ProjectDetails,
+  outDir: string,
+): Promise<string> => {
+  const packageOut = path.join(outDir, "package");
+  const clientOut = path.join(outDir, "definition");
+
+  fs.mkdirSync(clientOut, { recursive: true });
+
+  const packageJson: PackageJson = {
+    name: `client`,
+    main: "index.d.ts",
+    version: "0.0.1",
+    peerDependencies: {
+      "@differentialhq/core": "^3.13.1",
+    },
+    exports: {
+      ".": {
+        types: "./index.d.ts",
+      },
+    },
+  };
+
+  const packageJsonPath = path.join(clientOut, "package.json");
+
+  fs.writeFileSync(
+    packageJsonPath,
+    JSON.stringify(packageJson, null, 2),
+    "utf-8",
+  );
+
+  extractServiceTypes(project, packageOut, clientOut);
+  buildClientIndex(project, clientOut);
+
+  return await zipDirectory(clientOut);
+};
+
+const buildClientIndex = (project: ProjectDetails, outDir: string) => {
+  const indexFilePath = path.join(outDir, "index.d.ts");
+
+  for (const service of project.serviceRegistrations.keys()) {
+    fs.appendFileSync(
+      indexFilePath,
+      `import * as ${service}Decleration from './${service}'
+export type ${service} = typeof ${service}Decleration.default
+`,
+      "utf-8",
+    );
+  }
+};
+
+const extractServiceTypes = (
+  project: ProjectDetails,
+  packageDir: string,
+  outDir: string,
+) => {
+  for (let [service, entrypoint] of project.serviceRegistrations.entries()) {
+    entrypoint = path.relative(packageDir, entrypoint);
+    const typesPath = path.join(
+      packageDir,
+      "types",
+      `${entrypoint.replace(".js", ".d.ts")}`,
+    );
+
+    fs.copyFileSync(typesPath, path.join(outDir, `${service}.d.ts`));
+  }
+  fs.rmSync(path.join(packageDir, "types"), { recursive: true });
 };
