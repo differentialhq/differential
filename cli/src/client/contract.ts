@@ -417,7 +417,6 @@ export const definition = {
       200: z.object({
         id: z.string(),
         packageUploadUrl: z.string(),
-        definitionUploadUrl: z.string(),
         status: z.string(),
       }),
     },
@@ -434,8 +433,6 @@ export const definition = {
       404: z.undefined(),
       200: z.object({
         id: z.string(),
-        packageUploadUrl: z.string(),
-        definitionUploadUrl: z.string(),
         status: z.string(),
       }),
     },
@@ -454,8 +451,6 @@ export const definition = {
       200: z.array(
         z.object({
           id: z.string(),
-          packageUploadUrl: z.string(),
-          definitionUploadUrl: z.string(),
           status: z.string(),
         }),
       ),
@@ -475,9 +470,23 @@ export const definition = {
       404: z.undefined(),
       200: z.object({
         id: z.string(),
-        packageUploadUrl: z.string(),
-        definitionUploadUrl: z.string(),
         status: z.string(),
+      }),
+    },
+  },
+  createClientLibrary: {
+    method: "POST",
+    path: "/clusters/:clusterId/client-libraries",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.undefined(),
+    responses: {
+      501: z.undefined(),
+      401: z.undefined(),
+      200: z.object({
+        id: z.string(),
+        packageUploadUrl: z.string(),
       }),
     },
   },

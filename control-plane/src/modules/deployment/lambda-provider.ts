@@ -66,7 +66,7 @@ export class LambdaProvider implements DeploymentProvider {
             ...this.getEnvironmentVariables(deployment),
           },
           Code: {
-            ...s3AssetDetails(deployment),
+            ...(await s3AssetDetails(deployment)),
           },
         }),
       );

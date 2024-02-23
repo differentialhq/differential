@@ -19,7 +19,8 @@ import * as management from "./management";
 import * as eventAggregation from "./observability/event-aggregation";
 import * as events from "./observability/events";
 import * as routingHelpers from "./routing-helpers";
-import { UPLOAD_BUCKET } from "./s3";
+import { UPLOAD_BUCKET, getPresignedURL } from "./s3";
+import { ulid } from "ulid";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -533,6 +534,53 @@ export const router = s.router(contract, {
     return {
       status: 200,
       body: result,
+    };
+  },
+  createClientLibrary: async (request) => {
+    const access = await routingHelpers.validateManagementAccess(request);
+    if (!access) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { clusterId } = request.params;
+
+    if (UPLOAD_BUCKET === undefined) {
+      return {
+        status: 501,
+      };
+    }
+
+    const id = ulid();
+    const libraryAsset = {
+      bucket: UPLOAD_BUCKET,
+      key: `${clusterId}/client_library/${id}`,
+    };
+
+    const clientUploadPath = await getPresignedURL(
+      libraryAsset.bucket,
+      libraryAsset.key,
+    );
+
+    await data.db
+      .insert(data.assetUploads)
+      .values({
+        id,
+        type: "client_library",
+        bucket: libraryAsset.bucket,
+        key: libraryAsset.key,
+      })
+      .returning({
+        id: data.assetUploads.id,
+      });
+
+    return {
+      status: 200,
+      body: {
+        id,
+        packageUploadUrl: clientUploadPath,
+      },
     };
   },
 });
