@@ -1,5 +1,6 @@
 import { createOwner } from "../test/util";
 import {
+  Deployment,
   createDeployment,
   getDeployment,
   releaseDeployment,
@@ -35,7 +36,7 @@ describe("createDeployment", () => {
     expect(result.clusterId).toEqual(owner.clusterId);
   });
 
-  it("should generate two presigned urls", async () => {
+  it("should generate a presigned url", async () => {
     const result = await createDeployment({
       clusterId: owner.clusterId,
       serviceName: "testService",
@@ -44,18 +45,10 @@ describe("createDeployment", () => {
     expect(result.id).toBeDefined();
     expect(result.clusterId).toEqual(owner.clusterId);
 
-    expect(getPresignedURL).toHaveBeenCalledTimes(2);
+    expect(getPresignedURL).toHaveBeenCalledTimes(1);
     expect(getPresignedURL).toHaveBeenCalledWith(
       "mockedBucket",
-      owner.clusterId,
-      "testService",
-      `${result.id}-package`,
-    );
-    expect(getPresignedURL).toHaveBeenCalledWith(
-      "mockedBucket",
-      owner.clusterId,
-      "testService",
-      `${result.id}-definition`,
+      `${owner.clusterId}/testService/service_bundle/${result.id}`,
     );
   });
 });
@@ -145,6 +138,8 @@ describe("releaseDeployment", () => {
       serviceName: "testService",
     });
 
+    delete (deployment as any).packageUploadUrl;
+
     await releaseDeployment(deployment, provider);
 
     expect(await getDeployment(deployment.id)).toEqual({
@@ -156,6 +151,7 @@ describe("releaseDeployment", () => {
       clusterId: owner.clusterId,
       serviceName: "testService",
     });
+    delete (deployment2 as any).packageUploadUrl;
 
     await releaseDeployment(deployment2, provider);
 

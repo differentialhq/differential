@@ -8,7 +8,7 @@ import { buildProject, packageService } from "../lib/package";
 import { uploadPackage } from "../lib/upload";
 import { release } from "../lib/release";
 import { waitForDeploymentStatus } from "../lib/client";
-import { selectCluster, selectService } from "../utils";
+import { selectCluster } from "../utils";
 import { select } from "@inquirer/prompts";
 
 const log = debug("differential:cli:deploy:create");
@@ -83,20 +83,11 @@ export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
 
       console.log(`📦  Packaging service ${service}`);
 
-      const { packagePath, definitionPath } = await packageService(
-        service,
-        project,
-        outDir,
-      );
+      const { packagePath } = await packageService(service, project, outDir);
 
       console.log(`📦  Uploading service ${service}`);
 
-      const deployment = await uploadPackage(
-        packagePath,
-        definitionPath,
-        cluster,
-        service,
-      );
+      const deployment = await uploadPackage(packagePath, cluster, service);
 
       console.log(`☁️   Deploying ${service}:${deployment.id} to ${cluster}`);
 
