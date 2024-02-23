@@ -9,6 +9,12 @@ import * as jobs from "./modules/jobs/jobs";
 import * as events from "./modules/observability/events";
 import * as router from "./modules/router";
 import * as deploymentScheduler from "./modules/deployment/scheduler";
+import * as Sentry from "@sentry/node";
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  // To set a uniform sample rate
+  tracesSampleRate: 0.2,
+});
 
 const app = fastify({
   logger: process.env.ENABLE_FASTIFY_LOGGER === "true",
