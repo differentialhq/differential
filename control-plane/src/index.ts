@@ -9,9 +9,15 @@ import * as jobs from "./modules/jobs/jobs";
 import * as events from "./modules/observability/events";
 import * as router from "./modules/router";
 import * as deploymentScheduler from "./modules/deployment/scheduler";
+import { collectDefaultMetrics, register } from "prom-client";
 
 const app = fastify({
   logger: process.env.ENABLE_FASTIFY_LOGGER === "true",
+});
+
+const metrics = fastify();
+metrics.get("/metrics", (_request, reply) => {
+  return register.metrics();
 });
 
 const s = initServer();
@@ -33,8 +39,13 @@ const start = async () => {
   await events.initialize();
   await deploymentScheduler.start();
 
+  collectDefaultMetrics({
+    prefix: "differential_",
+  });
+
   try {
     await app.listen({ port: 4000, host: "0.0.0.0" });
+    await metrics.listen({ port: 9091, host: "0.0.0.0" });
     console.log("Server listening on port 4000");
   } catch (err) {
     console.log(err);

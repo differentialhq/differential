@@ -22,3 +22,7 @@ primary_region = "lax"
   method = "GET"
   timeout = "2s"
   path = "/live"
+
+[metrics]
+ port = 9091
+ path = "/metrics"
