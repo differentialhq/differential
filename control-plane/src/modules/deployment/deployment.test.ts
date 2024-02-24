@@ -5,15 +5,9 @@ import {
   getDeployment,
   releaseDeployment,
 } from "./deployment";
-import { getPresignedURL } from "../s3";
 import { DeploymentProvider } from "./deployment-provider";
 import * as data from "../data";
 import { eq } from "drizzle-orm";
-
-jest.mock("../s3", () => ({
-  UPLOAD_BUCKET: "mockedBucket",
-  getPresignedURL: jest.fn().mockResolvedValue("mockedPresignedURL"),
-}));
 
 describe("createDeployment", () => {
   let owner: { clusterId: string };
@@ -34,22 +28,6 @@ describe("createDeployment", () => {
 
     expect(result.id).toBeDefined();
     expect(result.clusterId).toEqual(owner.clusterId);
-  });
-
-  it("should generate a presigned url", async () => {
-    const result = await createDeployment({
-      clusterId: owner.clusterId,
-      serviceName: "testService",
-    });
-
-    expect(result.id).toBeDefined();
-    expect(result.clusterId).toEqual(owner.clusterId);
-
-    expect(getPresignedURL).toHaveBeenCalledTimes(1);
-    expect(getPresignedURL).toHaveBeenCalledWith(
-      "mockedBucket",
-      `${owner.clusterId}/testService/service_bundle/${result.id}`,
-    );
   });
 });
 

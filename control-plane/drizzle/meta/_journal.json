@@ -295,6 +295,13 @@
       "when": 1708640616645,
       "tag": "0042_kind_lester",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "5",
+      "when": 1708737200211,
+      "tag": "0043_closed_weapon_omega",
+      "breakpoints": true
     }
   ]
 }
