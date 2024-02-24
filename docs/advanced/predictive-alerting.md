@@ -4,7 +4,7 @@ Status: **In Development**
 
 Differential can predict if a function is failing due to an unrecoverable error that requires a code change, and alert you with reproduction steps.
 
-The control-plane has a lot of context on a particular failure when it happens. It knows the function, some metadata about the source, payload, and the error message. It can use this information to predict if the error is unrecoverable or not.
+The control-plane has all the required context on a particular failure, when it happens. It knows the function, some metadata about the source, payload, and the error message. It can use this information to predict if the error is unrecoverable or not.
 
 If it's predicted to be unrecoverable, Differential will alert you prompting to make the necessary code change. This is especially useful for errors that are hard to reproduce, and require a code change to fix.
 
