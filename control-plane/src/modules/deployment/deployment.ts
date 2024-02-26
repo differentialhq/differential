@@ -1,6 +1,5 @@
 import { ulid } from "ulid";
 import * as data from "../data";
-import { UPLOAD_BUCKET, getPresignedURL } from "../s3";
 import { and, eq, or, sql } from "drizzle-orm";
 import { DeploymentProvider } from "./deployment-provider";
 import NodeCache from "node-cache";
@@ -18,10 +17,6 @@ export type Deployment = {
 export const s3AssetDetails = async (
   deployment: Deployment,
 ): Promise<{ S3Bucket: string; S3Key: string }> => {
-  if (!UPLOAD_BUCKET) {
-    throw new Error("Upload bucket not configured");
-  }
-
   if (!deployment.assetUploadId) {
     throw new Error("Deployment does not have an asset upload");
   }
@@ -47,10 +42,6 @@ export const createDeployment = async ({
   clusterId: string;
   serviceName: string;
 }): Promise<Deployment> => {
-  if (!UPLOAD_BUCKET) {
-    throw new Error("Upload bucket not configured");
-  }
-
   const service = (
     await data.db
       .select({ deployment_provider: data.services.deployment_provider })

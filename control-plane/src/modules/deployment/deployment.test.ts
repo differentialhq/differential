@@ -1,6 +1,5 @@
 import { createOwner } from "../test/util";
 import {
-  Deployment,
   createDeployment,
   getDeployment,
   releaseDeployment,
