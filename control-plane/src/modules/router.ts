@@ -576,11 +576,11 @@ export const router = s.router(contract, {
     const { type, target } = request.body;
 
     try {
-      const presignedUrl = await createAssetUploadWithTarget(
+      const presignedUrl = await createAssetUploadWithTarget({
         target,
         clusterId,
         type,
-      );
+      });
       if (!presignedUrl) {
         return {
           status: 400,
