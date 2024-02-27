@@ -70,7 +70,7 @@ export const packageService = async (
   installDependencies(packageOut);
 
   return {
-    packagePath: await zipDirectory(packageOut),
+    packagePath: packageOut,
     packageJson: builtPackage,
   };
 };
@@ -254,25 +254,32 @@ const getPackageJson = (packagePath: string): PackageJson => {
   return JSON.parse(packageJsonContent);
 };
 
-const zipDirectory = async (directoryPath: string): Promise<string> => {
+export const zipDirectory = async (directoryPath: string): Promise<string> => {
   const outputZipPath = `${directoryPath}.zip`;
   await zip(directoryPath, outputZipPath);
   return outputZipPath;
 };
 
-export const buildClientPackage = async (
-  project: ProjectDetails,
-  outDir: string,
-): Promise<string> => {
+export const buildClientPackage = async ({
+  project,
+  cluster,
+  version,
+  outDir,
+}: {
+  project: ProjectDetails;
+  version: string;
+  cluster: string;
+  outDir: string;
+}): Promise<string> => {
   const packageOut = path.join(outDir, "package");
   const clientOut = path.join(outDir, "definition");
 
   fs.mkdirSync(clientOut, { recursive: true });
 
   const packageJson: PackageJson = {
-    name: `client`,
+    name: `@johnjcsmith/${cluster}`,
     main: "index.d.ts",
-    version: "0.0.1",
+    version: version,
     peerDependencies: {
       "@differentialhq/core": "^3.13.1",
     },
@@ -294,7 +301,7 @@ export const buildClientPackage = async (
   extractServiceTypes(project, packageOut, clientOut);
   buildClientIndex(project, clientOut);
 
-  return await zipDirectory(clientOut);
+  return clientOut;
 };
 
 const buildClientIndex = (project: ProjectDetails, outDir: string) => {
@@ -327,4 +334,18 @@ const extractServiceTypes = (
     fs.copyFileSync(typesPath, path.join(outDir, `${service}.d.ts`));
   }
   fs.rmSync(path.join(packageDir, "types"), { recursive: true });
+};
+
+export const publishViaNpm = async ({
+  path,
+  publicAccess,
+}: {
+  path: string;
+  publicAccess?: boolean;
+}): Promise<void> => {
+  const command = publicAccess ? "npm publish --access public" : "npm publish";
+  childProcess.execSync(command, {
+    cwd: path,
+    stdio: "inherit",
+  });
 };

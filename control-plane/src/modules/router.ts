@@ -21,6 +21,8 @@ import * as events from "./observability/events";
 import * as routingHelpers from "./routing-helpers";
 import { UPLOAD_BUCKET, getPresignedURL } from "./s3";
 import { ulid } from "ulid";
+import { and, eq } from "drizzle-orm";
+import { createAssetUploadWithTarget } from "./assets";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -402,7 +404,7 @@ export const router = s.router(contract, {
     });
 
     return {
-      status: 200,
+      status: 201,
       body: deployment,
     };
   },
@@ -536,7 +538,7 @@ export const router = s.router(contract, {
       body: result,
     };
   },
-  createClientLibrary: async (request) => {
+  createClientLibraryVersion: async (request) => {
     const access = await routingHelpers.validateManagementAccess(request);
     if (!access) {
       return {
@@ -545,42 +547,56 @@ export const router = s.router(contract, {
     }
 
     const { clusterId } = request.params;
-
-    if (UPLOAD_BUCKET === undefined) {
-      return {
-        status: 501,
-      };
-    }
-
-    const id = ulid();
-    const libraryAsset = {
-      bucket: UPLOAD_BUCKET,
-      key: `${clusterId}/client_library/${id}`,
-    };
-
-    const clientUploadPath = await getPresignedURL(
-      libraryAsset.bucket,
-      libraryAsset.key,
-    );
-
-    await data.db
-      .insert(data.assetUploads)
+    const client = await data.db
+      .insert(data.clientLibraryVersions)
       .values({
-        id,
-        type: "client_library",
-        bucket: libraryAsset.bucket,
-        key: libraryAsset.key,
+        id: ulid(),
+        cluster_id: clusterId,
+        version: "1.0.0",
       })
       .returning({
-        id: data.assetUploads.id,
+        id: data.clientLibraryVersions.id,
+        version: data.clientLibraryVersions.version,
       });
 
     return {
-      status: 200,
-      body: {
-        id,
-        packageUploadUrl: clientUploadPath,
-      },
+      status: 201,
+      body: client[0],
     };
+  },
+  createAsset: async (request) => {
+    const access = await routingHelpers.validateManagementAccess(request);
+    if (!access) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { clusterId } = request.params;
+    const { type, target } = request.body;
+
+    try {
+      const presignedUrl = await createAssetUploadWithTarget({
+        target,
+        clusterId,
+        type,
+      });
+      if (!presignedUrl) {
+        return {
+          status: 400,
+        };
+      }
+      return {
+        status: 201,
+        body: {
+          presignedUrl: presignedUrl,
+        },
+      };
+    } catch (e) {
+      console.error(e);
+      return {
+        status: 400,
+      };
+    }
   },
 });

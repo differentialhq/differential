@@ -414,9 +414,8 @@ export const definition = {
     responses: {
       501: z.undefined(),
       401: z.undefined(),
-      200: z.object({
+      201: z.object({
         id: z.string(),
-        packageUploadUrl: z.string(),
         status: z.string(),
       }),
     },
@@ -474,7 +473,7 @@ export const definition = {
       }),
     },
   },
-  createClientLibrary: {
+  createClientLibraryVersion: {
     method: "POST",
     path: "/clusters/:clusterId/client-libraries",
     headers: z.object({
@@ -484,10 +483,28 @@ export const definition = {
     responses: {
       501: z.undefined(),
       401: z.undefined(),
-      200: z.object({
+      201: z.object({
         id: z.string(),
-        packageUploadUrl: z.string(),
+        version: z.string(),
       }),
+    },
+  },
+  createAsset: {
+    method: "POST",
+    path: "/clusters/:clusterId/assets",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      type: z.enum(["client_library", "service_bundle"]),
+      target: z.string(),
+    }),
+    responses: {
+      201: z.object({
+        presignedUrl: z.string(),
+      }),
+      400: z.undefined(),
+      401: z.undefined(),
     },
   },
   setClusterSettings: {

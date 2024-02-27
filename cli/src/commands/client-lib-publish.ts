@@ -2,15 +2,23 @@ import { CommandModule } from "yargs";
 import { selectCluster } from "../utils";
 import * as fs from "fs";
 import * as os from "os";
-import { buildClientPackage, buildProject } from "../lib/package";
-import { uploadClientLib } from "../lib/upload";
+import {
+  buildClientPackage,
+  buildProject,
+  publishViaNpm,
+  zipDirectory,
+} from "../lib/package";
+import { uploadAsset } from "../lib/upload";
 import debug from "debug";
+import { client } from "../lib/client";
 
 const log = debug("differential:cli:client-lib:publish");
 
 interface ClientLibraryPublishArgs {
   entrypoint?: string;
   cluster?: string;
+  npmPublish?: boolean;
+  npmPublic?: boolean;
 }
 export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
   {
@@ -28,8 +36,20 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
             "Path to service entrypoint file (default: package.json#main)",
           demandOption: false,
           type: "string",
+        })
+        .option("npmPublish", {
+          describe:
+            "Publish the client library via system NPM instead of uploading to the cluster",
+          demandOption: false,
+          type: "boolean",
+        })
+        .option("npmPublic", {
+          describe: "Publish the client library to the public NPM registry",
+          demandOption: false,
+          default: false,
+          type: "boolean",
         }),
-    handler: async ({ cluster, entrypoint }) => {
+    handler: async ({ cluster, entrypoint, npmPublish, npmPublic }) => {
       if (!cluster) {
         cluster = await selectCluster();
         if (!cluster) {
@@ -52,12 +72,43 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
         }
 
         console.log(`📦  Packaging client library`);
+        const libraryResponse = await client.createClientLibraryVersion({
+          params: {
+            clusterId: cluster,
+          },
+        });
 
-        const clientPath = await buildClientPackage(project, outDir);
+        if (libraryResponse.status !== 201) {
+          throw new Error(
+            `Failed to create client library: ${libraryResponse.status}`,
+          );
+        }
 
-        console.log(`📦  Uploading service client library`);
+        const library = libraryResponse.body;
+        const clientPath = await buildClientPackage({
+          project,
+          cluster,
+          version: library.version,
+          outDir,
+        });
 
-        await uploadClientLib(clientPath, cluster);
+        if (npmPublish) {
+          console.log(`📦  Publishing client library via NPM`);
+          publishViaNpm({
+            path: clientPath,
+            publicAccess: npmPublic,
+          });
+          return;
+        }
+
+        console.log(`📦  Publishing client library to Differential`);
+
+        await uploadAsset({
+          zipPath: await zipDirectory(clientPath),
+          target: library.id,
+          type: "client_library",
+          cluster,
+        });
 
         console.log(`✅  Published client library to cluster ${cluster}`);
       } finally {

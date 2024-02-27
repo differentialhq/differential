@@ -1,6 +1,5 @@
 import { ulid } from "ulid";
 import * as data from "../data";
-import { UPLOAD_BUCKET, getPresignedURL } from "../s3";
 import { and, eq, or, sql } from "drizzle-orm";
 import { DeploymentProvider } from "./deployment-provider";
 import NodeCache from "node-cache";
@@ -12,18 +11,14 @@ export type Deployment = {
   service: string;
   status: string;
   provider: string;
-  assetUploadId: string;
-};
-
-export type DeploymentWithUploadUrl = Deployment & {
-  packageUploadUrl: string;
+  assetUploadId?: string | null;
 };
 
 export const s3AssetDetails = async (
   deployment: Deployment,
 ): Promise<{ S3Bucket: string; S3Key: string }> => {
-  if (!UPLOAD_BUCKET) {
-    throw new Error("Upload bucket not configured");
+  if (!deployment.assetUploadId) {
+    throw new Error("Deployment does not have an asset upload");
   }
 
   const asset = await data.db
@@ -46,23 +41,7 @@ export const createDeployment = async ({
 }: {
   clusterId: string;
   serviceName: string;
-}): Promise<DeploymentWithUploadUrl> => {
-  if (!UPLOAD_BUCKET) {
-    throw new Error("Upload bucket not configured");
-  }
-
-  const id = ulid();
-
-  const deploymentAsset = {
-    bucket: UPLOAD_BUCKET,
-    key: `${clusterId}/${serviceName}/service_bundle/${id}`,
-  };
-
-  const packageUploadUrl = await getPresignedURL(
-    deploymentAsset.bucket,
-    deploymentAsset.key,
-  );
-
+}): Promise<Deployment> => {
   const service = (
     await data.db
       .select({ deployment_provider: data.services.deployment_provider })
@@ -82,45 +61,27 @@ export const createDeployment = async ({
 
   const provider = service?.deployment_provider ?? "mock";
 
-  return await data.db.transaction(async (tx) => {
-    const asset = await tx
-      .insert(data.assetUploads)
-      .values([
-        {
-          id: ulid(),
-          type: "service_bundle",
-          bucket: deploymentAsset.bucket,
-          key: deploymentAsset.key,
-        },
-      ])
-      .returning({
-        id: data.assetUploads.id,
-      });
+  const deployment = await data.db
+    .insert(data.deployments)
+    .values([
+      {
+        id: ulid(),
+        cluster_id: clusterId,
+        service: serviceName,
+        // Temporary, the expectation is that the deployment will be in the "uploading" while any async work is being done
+        status: "ready",
+        provider: provider,
+      },
+    ])
+    .returning({
+      id: data.deployments.id,
+      clusterId: data.deployments.cluster_id,
+      service: data.deployments.service,
+      status: data.deployments.status,
+      provider: data.deployments.provider,
+    });
 
-    const deployment = await tx
-      .insert(data.deployments)
-      .values([
-        {
-          id: id,
-          cluster_id: clusterId,
-          service: serviceName,
-          asset_upload_id: asset[0].id,
-          // Temporary, the expectation is that the deployment will be in the "uploading" while any async work is being done
-          status: "ready",
-          provider: provider,
-        },
-      ])
-      .returning({
-        id: data.deployments.id,
-        clusterId: data.deployments.cluster_id,
-        service: data.deployments.service,
-        status: data.deployments.status,
-        provider: data.deployments.provider,
-        assetUploadId: data.deployments.asset_upload_id,
-      });
-
-    return { ...deployment[0], packageUploadUrl: packageUploadUrl };
-  });
+  return deployment[0];
 };
 
 export const getDeployment = async (id: string): Promise<Deployment> => {
@@ -131,7 +92,6 @@ export const getDeployment = async (id: string): Promise<Deployment> => {
       service: data.deployments.service,
       status: data.deployments.status,
       provider: data.deployments.provider,
-      assetUploadId: data.deployments.asset_upload_id,
     })
     .from(data.deployments)
     .where(eq(data.deployments.id, id));

@@ -4,32 +4,42 @@ import { client } from "./client";
 
 const log = debug("differential:cli:upload");
 
-export const uploadPackage = async (
-  packagePath: string,
-  clusterId: string,
-  serviceName: string,
-): Promise<{ id: string }> => {
-  log("Uploading package", { packagePath });
+export const uploadAsset = async ({
+  zipPath,
+  target,
+  type,
+  cluster,
+}: {
+  zipPath: string;
+  target: string;
+  type: "client_library" | "service_bundle";
+  cluster: string;
+}): Promise<void> => {
+  log(`Uploading asset`);
 
-  const deployment = await client.createDeployment({
+  const upload = await client.createAsset({
+    body: {
+      type,
+      target,
+    },
     params: {
-      clusterId,
-      serviceName,
+      clusterId: cluster,
     },
   });
 
-  if (deployment.status !== 200) {
+  log("Response from createAsset", upload);
+
+  if (upload.status !== 201) {
     throw new Error(
-      "Failed to upload package. Please check provided options and cluster configuration.",
+      "Failed to upload asset. Please check provided options and cluster configuration.",
     );
   }
 
-  const { packageUploadUrl, id } = deployment.body;
-  log("Created deployment", { id });
+  const { presignedUrl } = upload.body;
 
-  const response = await fetch(packageUploadUrl, {
+  const response = await fetch(presignedUrl, {
     method: "PUT",
-    body: readFileSync(packagePath),
+    body: readFileSync(zipPath),
     headers: {
       "Content-Type": "application/zip",
     },
@@ -37,51 +47,7 @@ export const uploadPackage = async (
 
   if (response.status !== 200) {
     throw new Error(
-      "Failed to upload package. Please check provided options and cluster configuration.",
+      "Failed to upload asset. Please check provided options and cluster configuration.",
     );
   }
-
-  log("Uploaded deployment assets", { id });
-
-  return deployment.body;
-};
-
-export const uploadClientLib = async (
-  packagePath: string,
-  clusterId: string,
-): Promise<{ id: string }> => {
-  log("Uploading client lib", { packagePath });
-
-  const library = await client.createClientLibrary({
-    params: {
-      clusterId,
-    },
-  });
-
-  if (library.status !== 200) {
-    throw new Error(
-      "Failed to upload client library. Please check provided options and cluster configuration.",
-    );
-  }
-
-  const { packageUploadUrl, id } = library.body;
-  log("Created client library", { id });
-
-  const response = await fetch(packageUploadUrl, {
-    method: "PUT",
-    body: readFileSync(packagePath),
-    headers: {
-      "Content-Type": "application/zip",
-    },
-  });
-
-  if (response.status !== 200) {
-    throw new Error(
-      "Failed to upload client library. Please check provided options and cluster configuration.",
-    );
-  }
-
-  log("Uploaded client library assets", { id });
-
-  return library.body;
 };
