@@ -264,20 +264,23 @@ export const buildClientPackage = async ({
   project,
   cluster,
   version,
+  scope,
   outDir,
 }: {
   project: ProjectDetails;
   version: string;
+  scope?: string;
   cluster: string;
   outDir: string;
 }): Promise<string> => {
   const packageOut = path.join(outDir, "package");
   const clientOut = path.join(outDir, "definition");
+  scope = scope?.replace("@", "");
 
   fs.mkdirSync(clientOut, { recursive: true });
 
   const packageJson: PackageJson = {
-    name: `@johnjcsmith/${cluster}`,
+    name: scope ? `@${scope}/client` : "client",
     main: "index.d.ts",
     version: version,
     peerDependencies: {

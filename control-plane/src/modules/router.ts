@@ -23,6 +23,7 @@ import { UPLOAD_BUCKET, getPresignedURL } from "./s3";
 import { ulid } from "ulid";
 import { and, eq } from "drizzle-orm";
 import { createAssetUploadWithTarget } from "./assets";
+import { incrementVersion, previousVersion } from "./versioning";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -547,12 +548,23 @@ export const router = s.router(contract, {
     }
 
     const { clusterId } = request.params;
+    const { increment } = request.body;
+
+    const previous = await previousVersion({ clusterId });
+    const version = incrementVersion({ version: previous, increment });
+
+    console.log("Creating client library version", {
+      version,
+      previous,
+      increment,
+    });
+
     const client = await data.db
       .insert(data.clientLibraryVersions)
       .values({
         id: ulid(),
         cluster_id: clusterId,
-        version: "1.0.0",
+        version: version,
       })
       .returning({
         id: data.clientLibraryVersions.id,
