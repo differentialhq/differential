@@ -280,7 +280,7 @@ export const buildClientPackage = async ({
   fs.mkdirSync(clientOut, { recursive: true });
 
   const packageJson: PackageJson = {
-    name: scope ? `@${scope}/client` : "client",
+    name: scope ? `@${scope}/${cluster}` : cluster,
     main: "index.d.ts",
     version: version,
     peerDependencies: {
