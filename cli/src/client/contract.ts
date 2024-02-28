@@ -479,7 +479,12 @@ export const definition = {
     headers: z.object({
       authorization: z.string(),
     }),
-    body: z.undefined(),
+    body: z.object({
+      increment: z
+        .enum(["patch", "minor", "major"])
+        .optional()
+        .default("patch"),
+    }),
     responses: {
       501: z.undefined(),
       401: z.undefined(),
