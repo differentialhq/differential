@@ -3,6 +3,30 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.14.0](https://github.com/differentialhq/differential/compare/v3.13.1...v3.14.0) (2024-02-29)
+
+### Bug Fixes
+
+- Add error catcher for isAlive call ([d78a768](https://github.com/differentialhq/differential/commit/d78a768ae03c303aae75a2748066412748f03c38))
+- Auto-retry jobs when machine stalls ([#139](https://github.com/differentialhq/differential/issues/139)) ([7ceb438](https://github.com/differentialhq/differential/commit/7ceb438ec686d11709a027c6117c61c6380c56fb))
+- Better navigation for admin console ([#145](https://github.com/differentialhq/differential/issues/145)) ([72ba17e](https://github.com/differentialhq/differential/commit/72ba17e6ad3ef4988a3fc6a7dbe8763b13fd9d37))
+
+### Features
+
+- Cleanup asset upload behaviour ([#148](https://github.com/differentialhq/differential/issues/148)) ([09746bc](https://github.com/differentialhq/differential/commit/09746bcd7ecff987324653f3db633bf1dae19ca5))
+- **cli:** Add cluster management commands ([#133](https://github.com/differentialhq/differential/issues/133)) ([b1be567](https://github.com/differentialhq/differential/commit/b1be56720f66f0eef15bffcec28a8d7ba66b3192))
+- **cli:** Allow arbitrary service name ([#137](https://github.com/differentialhq/differential/issues/137)) ([ce652e4](https://github.com/differentialhq/differential/commit/ce652e48bb7d207ae31728b52fbf34c2e456f54f))
+- **cli:** Deployment list command ([#135](https://github.com/differentialhq/differential/issues/135)) ([0dc08df](https://github.com/differentialhq/differential/commit/0dc08dfdab9c69ec8a0c85a7b33264612f3821b8))
+- Client library building ([#144](https://github.com/differentialhq/differential/issues/144)) ([ff2b103](https://github.com/differentialhq/differential/commit/ff2b103f2ba74271e8a2f5a7ad4a09146fc99ef4))
+- Client library version increments ([#151](https://github.com/differentialhq/differential/issues/151)) ([435076c](https://github.com/differentialhq/differential/commit/435076c1d65201e00a90062f1cc3ed200b2c1385))
+- Expose internal metrics to prometheus ([#146](https://github.com/differentialhq/differential/issues/146)) ([b504afb](https://github.com/differentialhq/differential/commit/b504afb4e4b2a7e69f47dfd0ee45221637c52ce7))
+- Extended CLI token ([#136](https://github.com/differentialhq/differential/issues/136)) ([c035e46](https://github.com/differentialhq/differential/commit/c035e46ead280c3feaf42868daacbea5bc94332a))
+- Service registration discovery ([#140](https://github.com/differentialhq/differential/issues/140)) ([dcfd29e](https://github.com/differentialhq/differential/commit/dcfd29efe3ded17bdf10c9d7785ca0190415bdc8))
+
+### Reverts
+
+- Revert "fix: Adding advisory locks to cron (#123)" ([eebb03e](https://github.com/differentialhq/differential/commit/eebb03e000dfda043ef02890d4d19652627cabff)), closes [#123](https://github.com/differentialhq/differential/issues/123)
+
 ## [3.13.1](https://github.com/differentialhq/differential/compare/v3.13.0...v3.13.1) (2024-02-15)
 
 ### Bug Fixes
