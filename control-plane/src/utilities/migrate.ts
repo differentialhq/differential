@@ -1,9 +1,11 @@
-import "./env";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import * as data from "../modules/data";
+import "./env";
 
 (async function runMigrations() {
   console.log("Migrating database...");
+
+  console.log(process.env.DATABASE_URL);
 
   try {
     await migrate(data.db, { migrationsFolder: "./drizzle" });
