@@ -11,12 +11,15 @@ import {
 import { uploadAsset } from "../lib/upload";
 import debug from "debug";
 import { client } from "../lib/client";
+import { select } from "@inquirer/prompts";
 
 const log = debug("differential:cli:client-lib:publish");
 
 interface ClientLibraryPublishArgs {
   entrypoint?: string;
   cluster?: string;
+  increment?: string;
+  packageScope?: string;
   npmPublish?: boolean;
   npmPublic?: boolean;
 }
@@ -37,6 +40,17 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
           demandOption: false,
           type: "string",
         })
+        .option("increment", {
+          describe: "Version increment (major, minor, patch)",
+          demandOption: false,
+          choices: ["major", "minor", "patch"],
+          type: "string",
+        })
+        .option("packageScope", {
+          describe: "Scope to publish the client library under",
+          demandOption: false,
+          type: "string",
+        })
         .option("npmPublish", {
           describe:
             "Publish the client library via system NPM instead of uploading to the cluster",
@@ -49,13 +63,35 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
           default: false,
           type: "boolean",
         }),
-    handler: async ({ cluster, entrypoint, npmPublish, npmPublic }) => {
+    handler: async ({
+      cluster,
+      entrypoint,
+      packageScope,
+      increment,
+      npmPublish,
+      npmPublic,
+    }) => {
       if (!cluster) {
         cluster = await selectCluster();
         if (!cluster) {
           console.log("No cluster selected");
           return;
         }
+      }
+
+      if (!increment) {
+        increment = await select({
+          message: "Select version increment",
+          choices: [
+            { name: "Major", value: "major" },
+            { name: "Minor", value: "minor" },
+            { name: "Patch", value: "patch" },
+          ],
+        });
+      }
+
+      if (npmPublish && !packageScope) {
+        throw new Error("Cannot publish to NPM without a package scope");
       }
 
       const tmpDir = fs.mkdtempSync(os.tmpdir());
@@ -76,6 +112,9 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
           params: {
             clusterId: cluster,
           },
+          body: {
+            increment: increment as "major" | "minor" | "patch",
+          },
         });
 
         if (libraryResponse.status !== 201) {
@@ -88,18 +127,10 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
         const clientPath = await buildClientPackage({
           project,
           cluster,
+          scope: packageScope,
           version: library.version,
           outDir,
         });
-
-        if (npmPublish) {
-          console.log(`📦  Publishing client library via NPM`);
-          publishViaNpm({
-            path: clientPath,
-            publicAccess: npmPublic,
-          });
-          return;
-        }
 
         console.log(`📦  Publishing client library to Differential`);
 
@@ -110,7 +141,17 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
           cluster,
         });
 
-        console.log(`✅  Published client library to cluster ${cluster}`);
+        console.log(
+          `✅  Published client library ${library.version} to cluster ${cluster}`,
+        );
+
+        if (npmPublish) {
+          console.log(`📦  Publishing client library via NPM`);
+          await publishViaNpm({
+            path: clientPath,
+            publicAccess: npmPublic,
+          });
+        }
       } finally {
         log("Cleaning up temporary directory", { tmpDir });
         fs.rmSync(tmpDir, { recursive: true });
