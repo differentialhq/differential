@@ -19,9 +19,9 @@ import * as management from "./management";
 import * as eventAggregation from "./observability/event-aggregation";
 import * as events from "./observability/events";
 import * as routingHelpers from "./routing-helpers";
-import { UPLOAD_BUCKET, getPresignedURL } from "./s3";
+import { UPLOAD_BUCKET, streamFile } from "./s3";
 import { ulid } from "ulid";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNotNull } from "drizzle-orm";
 import { createAssetUploadWithTarget } from "./assets";
 import { incrementVersion, previousVersion } from "./versioning";
 
@@ -576,6 +576,34 @@ export const router = s.router(contract, {
       body: client[0],
     };
   },
+  getClientLibraryVersions: async (request) => {
+    const access = await routingHelpers.validateManagementAccess(request);
+    if (!access) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { clusterId } = request.params;
+
+    const clients = await data.db
+      .select({
+        id: data.clientLibraryVersions.id,
+        version: data.clientLibraryVersions.version,
+      })
+      .from(data.clientLibraryVersions)
+      .where(
+        and(
+          eq(data.clientLibraryVersions.cluster_id, clusterId),
+          isNotNull(data.clientLibraryVersions.asset_upload_id),
+        ),
+      );
+
+    return {
+      status: 200,
+      body: clients,
+    };
+  },
   createAsset: async (request) => {
     const access = await routingHelpers.validateManagementAccess(request);
     if (!access) {
@@ -610,5 +638,99 @@ export const router = s.router(contract, {
         status: 400,
       };
     }
+  },
+  npmRegistry: async (request) => {
+    console.log("info", request.params);
+    //TODO Authentication
+
+    const { packageName } = request.params;
+    const [scope, name] = packageName.split("/");
+
+    if (scope !== "@differential") {
+      return {
+        status: 404,
+      };
+    }
+
+    const versions = await data.db
+      .select({
+        version: data.clientLibraryVersions.version,
+        id: data.clientLibraryVersions.id,
+      })
+      .from(data.clientLibraryVersions)
+      .where(eq(data.clientLibraryVersions.cluster_id, name));
+
+    if (versions.length === 0) {
+      return {
+        status: 404,
+      };
+    }
+
+    let renderedVersions: Record<string, any> = {};
+    for (const v of versions) {
+      renderedVersions[v.version] = {
+        name: packageName,
+        version: v.version,
+        dist: {
+          tarball: `http://localhost:4000/packages/npm/${scope}%2f${name}/${v.version}.tgz`,
+        },
+      };
+    }
+
+    const latest = await previousVersion({ clusterId: name });
+
+    return {
+      status: 201,
+      body: {
+        name: packageName,
+        "dist-tags": {
+          latest: latest,
+        },
+        versions: renderedVersions,
+      },
+    };
+  },
+  npmRegistryDownload: async (request) => {
+    console.log("Download", request.params);
+    //TODO Authentication
+
+    const { packageName, version } = request.params;
+    const [scope, name] = packageName.split("/");
+    const versionSans = version.replace(".tgz", "");
+    if (scope !== "@differential") {
+      return {
+        status: 404,
+      };
+    }
+    const library = await data.db
+      .select()
+      .from(data.clientLibraryVersions)
+      .innerJoin(
+        data.assetUploads,
+        eq(data.clientLibraryVersions.asset_upload_id, data.assetUploads.id),
+      )
+      .where(
+        and(
+          eq(data.clientLibraryVersions.cluster_id, name),
+          eq(data.clientLibraryVersions.version, versionSans),
+          eq(data.assetUploads.type, "client_library"),
+        ),
+      );
+    console.log(library);
+    if (library.length === 0) {
+      return {
+        status: 404,
+      };
+    }
+    const { key, bucket } = library[0].asset_uploads;
+    console.log("Downloading", key, bucket);
+    return {
+      status: 200,
+      headers: {
+        "Content-Type": "application/gzip",
+        "Content-Disposition": `attachment; filename="${name}-${version}.tgz"`,
+      },
+      body: await streamFile(bucket, key),
+    };
   },
 });

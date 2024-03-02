@@ -16,6 +16,7 @@ export const definition = {
     headers: z.object({
       authorization: z.string(),
       "x-machine-id": z.string(),
+      "x-deployment-id": z.string().optional(),
     }),
     body: z.object({
       limit: z.coerce.number().default(1),
@@ -91,11 +92,35 @@ export const definition = {
       401: z.undefined(),
     },
   },
+  getJobStatuses: {
+    method: "POST",
+    path: "/batch-jobs-status-request",
+    body: z.object({
+      jobIds: z.array(z.string()).max(1000),
+      ttl: z.coerce.number().min(5000).max(20000).default(20000),
+    }),
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      200: z.array(
+        z.object({
+          id: z.string(),
+          status: z.enum(["pending", "running", "success", "failure"]),
+          result: z.string().nullable(),
+          resultType: z.enum(["resolution", "rejection"]).nullable(),
+        }),
+      ),
+      401: z.undefined(),
+    },
+  },
   persistJobResult: {
     method: "POST",
     path: "/jobs/:jobId/result",
     headers: z.object({
       authorization: z.string(),
+      "x-machine-id": z.string(),
+      "x-deployment-id": z.string().optional(),
     }),
     pathParams: z.object({
       jobId: z.string(),
@@ -339,6 +364,7 @@ export const definition = {
     headers: z.object({
       authorization: z.string(),
       "x-machine-id": z.string(),
+      "x-deployment-id": z.string().optional(),
     }),
     responses: {
       204: z.undefined(),
@@ -388,10 +414,8 @@ export const definition = {
     responses: {
       501: z.undefined(),
       401: z.undefined(),
-      200: z.object({
+      201: z.object({
         id: z.string(),
-        packageUploadUrl: z.string(),
-        definitionUploadUrl: z.string(),
         status: z.string(),
       }),
     },
@@ -408,10 +432,28 @@ export const definition = {
       404: z.undefined(),
       200: z.object({
         id: z.string(),
-        packageUploadUrl: z.string(),
-        definitionUploadUrl: z.string(),
         status: z.string(),
       }),
+    },
+  },
+  getDeployments: {
+    method: "GET",
+    path: "/clusters/:clusterId/service/:serviceName/deployments",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    query: z.object({
+      status: z.enum(["uploading", "ready", "active", "inactive"]).optional(),
+      limit: z.coerce.number().min(1).max(100).default(10),
+    }),
+    responses: {
+      200: z.array(
+        z.object({
+          id: z.string(),
+          status: z.string(),
+        }),
+      ),
+      401: z.undefined(),
     },
   },
   releaseDeployment: {
@@ -427,10 +469,65 @@ export const definition = {
       404: z.undefined(),
       200: z.object({
         id: z.string(),
-        packageUploadUrl: z.string(),
-        definitionUploadUrl: z.string(),
         status: z.string(),
       }),
+    },
+  },
+  createClientLibraryVersion: {
+    method: "POST",
+    path: "/clusters/:clusterId/client-libraries",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      increment: z
+        .enum(["patch", "minor", "major"])
+        .optional()
+        .default("patch"),
+    }),
+    responses: {
+      501: z.undefined(),
+      401: z.undefined(),
+      201: z.object({
+        id: z.string(),
+        version: z.string(),
+      }),
+    },
+  },
+  getClientLibraryVersions: {
+    method: "GET",
+    path: "/clusters/:clusterId/client-libraries",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({}),
+    responses: {
+      501: z.undefined(),
+      401: z.undefined(),
+      200: z.array(
+        z.object({
+          id: z.string(),
+          version: z.string(),
+        }),
+      ),
+    },
+  },
+  createAsset: {
+    method: "POST",
+    path: "/clusters/:clusterId/assets",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      type: z.enum(["client_library", "service_bundle"]),
+      target: z.string(),
+    }),
+    responses: {
+      201: z.object({
+        presignedUrl: z.string(),
+      }),
+      400: z.undefined(),
+      401: z.undefined(),
     },
   },
   setClusterSettings: {
