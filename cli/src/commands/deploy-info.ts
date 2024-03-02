@@ -1,5 +1,6 @@
 import { CommandModule } from "yargs";
 import { client } from "../lib/client";
+import { cloudEnabledCheck } from "../lib/auth";
 
 interface DeployInfoArgs {
   cluster: string;
@@ -27,6 +28,10 @@ export const DeployInfo: CommandModule<{}, DeployInfoArgs> = {
         type: "string",
       }),
   handler: async ({ cluster, service, deployment }) => {
+    if (!(await cloudEnabledCheck(cluster))) {
+      return;
+    }
+
     const d = await client.getDeployment({
       params: {
         clusterId: cluster,

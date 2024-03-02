@@ -2,12 +2,13 @@ import { CommandModule } from "yargs";
 import { selectCluster } from "../utils";
 import * as fs from "fs";
 import * as os from "os";
-import { buildClientPackage, buildProject, zipDirectory } from "../lib/package";
+import { buildClientPackage, buildProject } from "../lib/package";
 import { uploadAsset } from "../lib/upload";
 import debug from "debug";
 import { client } from "../lib/client";
 import { select } from "@inquirer/prompts";
 import { CLIENT_PACKAGE_SCOPE } from "../constants";
+import { cloudEnabledCheck } from "../lib/auth";
 
 const log = debug("differential:cli:client-lib:publish");
 
@@ -46,6 +47,10 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
           console.log("No cluster selected");
           return;
         }
+      }
+
+      if (!(await cloudEnabledCheck(cluster))) {
+        return;
       }
 
       if (!increment) {

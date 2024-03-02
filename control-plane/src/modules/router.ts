@@ -22,6 +22,7 @@ import * as routingHelpers from "./routing-helpers";
 import { UPLOAD_BUCKET, getObject } from "./s3";
 import { createAssetUploadWithTarget } from "./assets";
 import * as clientLib from "./packages/client-lib";
+import { operationalCluster } from "./cluster";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -383,7 +384,8 @@ export const router = s.router(contract, {
   },
   createDeployment: async (request) => {
     const access = await routingHelpers.validateManagementRequest(request);
-    if (!access) {
+    const { cloudEnabled } = await operationalCluster(request.params.clusterId);
+    if (!access || !cloudEnabled) {
       return {
         status: 401,
       };
@@ -447,7 +449,8 @@ export const router = s.router(contract, {
   },
   releaseDeployment: async (request) => {
     const access = await routingHelpers.validateManagementRequest(request);
-    if (!access) {
+    const { cloudEnabled } = await operationalCluster(request.params.clusterId);
+    if (!access || !cloudEnabled) {
       return {
         status: 401,
       };
@@ -513,6 +516,7 @@ export const router = s.router(contract, {
       status: 200,
       body: {
         predictiveRetriesEnabled: settings.predictiveRetriesEnabled ?? false,
+        cloudEnabled: settings.cloudEnabled ?? false,
       },
     };
   },
@@ -539,7 +543,8 @@ export const router = s.router(contract, {
   },
   createClientLibraryVersion: async (request) => {
     const access = await routingHelpers.validateManagementRequest(request);
-    if (!access) {
+    const { cloudEnabled } = await operationalCluster(request.params.clusterId);
+    if (!access || !cloudEnabled) {
       return {
         status: 401,
       };
