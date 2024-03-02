@@ -50,27 +50,8 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
           describe: "Scope to publish the client library under",
           demandOption: false,
           type: "string",
-        })
-        .option("npmPublish", {
-          describe:
-            "Publish the client library via system NPM instead of uploading to the cluster",
-          demandOption: false,
-          type: "boolean",
-        })
-        .option("npmPublic", {
-          describe: "Publish the client library to the public NPM registry",
-          demandOption: false,
-          default: false,
-          type: "boolean",
         }),
-    handler: async ({
-      cluster,
-      entrypoint,
-      packageScope,
-      increment,
-      npmPublish,
-      npmPublic,
-    }) => {
+    handler: async ({ cluster, entrypoint, packageScope, increment }) => {
       if (!cluster) {
         cluster = await selectCluster();
         if (!cluster) {
@@ -88,10 +69,6 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
             { name: "Patch", value: "patch" },
           ],
         });
-      }
-
-      if (npmPublish && !packageScope) {
-        throw new Error("Cannot publish to NPM without a package scope");
       }
 
       const tmpDir = fs.mkdtempSync(os.tmpdir());
@@ -144,14 +121,6 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
         console.log(
           `✅  Published client library ${library.version} to cluster ${cluster}`,
         );
-
-        if (npmPublish) {
-          console.log(`📦  Publishing client library via NPM`);
-          await publishViaNpm({
-            path: clientPath,
-            publicAccess: npmPublic,
-          });
-        }
       } finally {
         log("Cleaning up temporary directory", { tmpDir });
         fs.rmSync(tmpDir, { recursive: true });
