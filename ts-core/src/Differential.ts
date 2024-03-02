@@ -451,6 +451,11 @@ export class Differential {
       jobPollWaitTime?: number;
     },
   ) {
+    if (apiSecret && process.env.DIFFERENTIAL_API_SECRET) {
+      console.warn(
+        "API Secret was provided as an argument and environment variable. Constructor argument will be used.",
+      );
+    }
     apiSecret = apiSecret || process.env.DIFFERENTIAL_API_SECRET;
     if (!apiSecret) {
       throw new DifferentialError("No API Secret provided.");
