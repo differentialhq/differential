@@ -641,6 +641,7 @@ export const router = s.router(contract, {
   },
   npmRegistry: async (request) => {
     console.log("info", request.params);
+    console.log("headers", request.headers);
     //TODO Authentication
 
     const fullPackageName = request.params.packageName;
@@ -686,6 +687,7 @@ export const router = s.router(contract, {
   },
   npmRegistryDownload: async (request) => {
     console.log("Download", request.params);
+    console.log("headers", request.headers);
     //TODO Authentication
 
     const [_scope, name] = request.params.packageName.split("/");

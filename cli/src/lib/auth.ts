@@ -4,7 +4,13 @@ import fs from "fs";
 
 import http from "http";
 import { openBrowser } from "../utils";
-import { CONSOLE_URL } from "../constants";
+import {
+  CONSOLE_URL,
+  API_URL,
+  CLIENT_PACKAGE_SCOPE,
+  NPM_REGISTRY_URL,
+} from "../constants";
+import * as childProcess from "child_process";
 
 const TOKEN_PATH = path.join(os.homedir(), ".differential", "credentials");
 export const storeToken = (token: string) => {
@@ -14,6 +20,12 @@ export const storeToken = (token: string) => {
     fs.mkdirSync(dir, { recursive: true });
   }
   fs.writeFileSync(TOKEN_PATH, token);
+  setNpmConfig(`${CLIENT_PACKAGE_SCOPE}:registry`, NPM_REGISTRY_URL);
+  setNpmConfig(`${API_URL.replace(/^https:/, "")}:_authToken`, token);
+};
+
+const setNpmConfig = async (key: string, value: string) => {
+  childProcess.execSync(`npm config set ${key}=${value}`);
 };
 
 export const getToken = () => {
