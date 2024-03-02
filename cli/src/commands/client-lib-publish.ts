@@ -2,12 +2,7 @@ import { CommandModule } from "yargs";
 import { selectCluster } from "../utils";
 import * as fs from "fs";
 import * as os from "os";
-import {
-  buildClientPackage,
-  buildProject,
-  publishViaNpm,
-  zipDirectory,
-} from "../lib/package";
+import { buildClientPackage, buildProject, zipDirectory } from "../lib/package";
 import { uploadAsset } from "../lib/upload";
 import debug from "debug";
 import { client } from "../lib/client";
@@ -19,9 +14,6 @@ interface ClientLibraryPublishArgs {
   entrypoint?: string;
   cluster?: string;
   increment?: string;
-  packageScope?: string;
-  npmPublish?: boolean;
-  npmPublic?: boolean;
 }
 export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
   {
@@ -45,13 +37,8 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
           demandOption: false,
           choices: ["major", "minor", "patch"],
           type: "string",
-        })
-        .option("packageScope", {
-          describe: "Scope to publish the client library under",
-          demandOption: false,
-          type: "string",
         }),
-    handler: async ({ cluster, entrypoint, packageScope, increment }) => {
+    handler: async ({ cluster, entrypoint, increment }) => {
       if (!cluster) {
         cluster = await selectCluster();
         if (!cluster) {
@@ -83,6 +70,10 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
         if (project.serviceRegistrations.size === 0) {
           throw new Error("No service registrations found in project");
         }
+        console.log("🔍   Found the following service registrations:");
+        for (const [name, path] of project.serviceRegistrations.entries()) {
+          console.log(`     - ${name}`);
+        }
 
         console.log(`📦  Packaging client library`);
         const libraryResponse = await client.createClientLibraryVersion({
@@ -104,7 +95,7 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
         const clientPath = await buildClientPackage({
           project,
           cluster,
-          scope: packageScope,
+          scope: "@differential-client",
           version: library.version,
           outDir,
         });
@@ -112,14 +103,15 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
         console.log(`📦  Publishing client library to Differential`);
 
         await uploadAsset({
-          zipPath: await zipDirectory(clientPath),
+          path: clientPath,
+          contentType: "application/gzip",
           target: library.id,
           type: "client_library",
           cluster,
         });
 
         console.log(
-          `✅  Published client library ${library.version} to cluster ${cluster}`,
+          `✅  Published  @differential-client/${cluster}@${library.version} to Differential packages `,
         );
       } finally {
         log("Cleaning up temporary directory", { tmpDir });

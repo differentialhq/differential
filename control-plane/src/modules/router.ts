@@ -643,14 +643,8 @@ export const router = s.router(contract, {
     console.log("info", request.params);
     //TODO Authentication
 
-    const { packageName } = request.params;
-    const [scope, name] = packageName.split("/");
-
-    if (scope !== "@differential") {
-      return {
-        status: 404,
-      };
-    }
+    const fullPackageName = request.params.packageName;
+    const [scope, name] = fullPackageName.split("/");
 
     const versions = await data.db
       .select({
@@ -669,7 +663,7 @@ export const router = s.router(contract, {
     let renderedVersions: Record<string, any> = {};
     for (const v of versions) {
       renderedVersions[v.version] = {
-        name: packageName,
+        name: fullPackageName,
         version: v.version,
         dist: {
           tarball: `http://localhost:4000/packages/npm/${scope}%2f${name}/${v.version}.tgz`,
@@ -682,7 +676,7 @@ export const router = s.router(contract, {
     return {
       status: 201,
       body: {
-        name: packageName,
+        name: fullPackageName,
         "dist-tags": {
           latest: latest,
         },
@@ -694,14 +688,9 @@ export const router = s.router(contract, {
     console.log("Download", request.params);
     //TODO Authentication
 
-    const { packageName, version } = request.params;
-    const [scope, name] = packageName.split("/");
-    const versionSans = version.replace(".tgz", "");
-    if (scope !== "@differential") {
-      return {
-        status: 404,
-      };
-    }
+    const [_scope, name] = request.params.packageName.split("/");
+    const version = request.params.version.replace(".tgz", "");
+
     const library = await data.db
       .select()
       .from(data.clientLibraryVersions)
@@ -712,7 +701,7 @@ export const router = s.router(contract, {
       .where(
         and(
           eq(data.clientLibraryVersions.cluster_id, name),
-          eq(data.clientLibraryVersions.version, versionSans),
+          eq(data.clientLibraryVersions.version, version),
           eq(data.assetUploads.type, "client_library"),
         ),
       );

@@ -104,7 +104,8 @@ export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
       console.log(`📦  Uploading service ${service}`);
 
       await uploadAsset({
-        zipPath: await zipDirectory(packagePath),
+        path: await zipDirectory(packagePath),
+        contentType: "application/zip",
         target: deployment.id,
         type: "service_bundle",
         cluster,
