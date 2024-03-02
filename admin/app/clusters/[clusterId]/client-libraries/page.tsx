@@ -8,7 +8,9 @@ import { formatRelative } from "date-fns";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
+import { clipboardSvg } from "@/components/ui/clipboard-button";
 
+const SCOPE = "@differential.dev";
 export default function Page({ params }: { params: { clusterId: string } }) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
 
@@ -67,8 +69,8 @@ export default function Page({ params }: { params: { clusterId: string } }) {
               return {
                 version: version.version,
                 published_at: formatRelative(version.uploadedAt, new Date()),
-                package: `@differential-client/${params.clusterId}@${version.version}`,
-                package_install: `npm install @differential-client/${params.clusterId}@${version.version}`,
+                package: `${SCOPE}/${params.clusterId}@${version.version}`,
+                package_install: `npm install ${SCOPE}/${params.clusterId}@${version.version}`,
               };
             })}
             noDataMessage="No client libraries have been published for this cluster."
@@ -87,7 +89,7 @@ export default function Page({ params }: { params: { clusterId: string } }) {
               },
               {
                 accessorKey: "package_install",
-                header: "Copy Package Install",
+                header: "Package Install",
                 cell: (row) => (
                   <Button
                     size="sm"
@@ -99,20 +101,7 @@ export default function Page({ params }: { params: { clusterId: string } }) {
                     }}
                     color="blue"
                   >
-                    {/* Clipboard icon svg */}
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M5 4a2 2 0 012-2h6a2 2 0 012 2v2h2a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h2V4zm2 2v2h6V6H7zm0 4v2h6v-2H7zm0 4v2h6v-2H7zm8-8h-2v2h2V6zm0 4h-2v2h2v-2zm0 4h-2v2h2v-2z"
-                        fill="currentColor"
-                      />
-                    </svg>
+                    {clipboardSvg()}
                   </Button>
                 ),
               },
