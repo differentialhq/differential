@@ -7,6 +7,7 @@ import { uploadAsset } from "../lib/upload";
 import debug from "debug";
 import { client } from "../lib/client";
 import { select } from "@inquirer/prompts";
+import { CLIENT_PACKAGE_SCOPE } from "../constants";
 
 const log = debug("differential:cli:client-lib:publish");
 
@@ -18,7 +19,7 @@ interface ClientLibraryPublishArgs {
 export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
   {
     command: "publish",
-    describe: "Publish a client library",
+    describe: "Publish a client library to Differential",
     builder: (yargs) =>
       yargs
         .option("cluster", {
@@ -71,7 +72,7 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
           throw new Error("No service registrations found in project");
         }
         console.log("🔍   Found the following service registrations:");
-        for (const [name, path] of project.serviceRegistrations.entries()) {
+        for (const [name] of project.serviceRegistrations.entries()) {
           console.log(`     - ${name}`);
         }
 
@@ -92,10 +93,12 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
         }
 
         const library = libraryResponse.body;
+        const fullPackageName = `${CLIENT_PACKAGE_SCOPE}/${cluster}@${library.version}`;
+
         const clientPath = await buildClientPackage({
           project,
           cluster,
-          scope: "@differential-client",
+          scope: CLIENT_PACKAGE_SCOPE,
           version: library.version,
           outDir,
         });
@@ -110,9 +113,7 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
           cluster,
         });
 
-        console.log(
-          `✅  Published  @differential-client/${cluster}@${library.version} to Differential packages `,
-        );
+        console.log(`✅  Published ${fullPackageName} to Differential`);
       } finally {
         log("Cleaning up temporary directory", { tmpDir });
         fs.rmSync(tmpDir, { recursive: true });

@@ -3,4 +3,4 @@ export const CONSOLE_URL =
 export const API_URL =
   process.env.DIFFERENTIAL_API_URL || "https://api.differential.dev";
 export const NPM_REGISTRY_URL = `${API_URL}/packages/npm/`;
-export const CLIENT_PACKAGE_SCOPE = "@differential-client";
+export const CLIENT_PACKAGE_SCOPE = "@differential.dev";

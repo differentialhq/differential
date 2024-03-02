@@ -22,7 +22,13 @@ export const getPresignedURL = async (
   return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 };
 
-export const streamFile = async (bucket: string, key: string): Promise<any> => {
+export const getObject = async ({
+  bucket,
+  key,
+}: {
+  bucket: string;
+  key: string;
+}): Promise<any> => {
   const command = new GetObjectCommand({
     Bucket: bucket,
     Key: key,
@@ -30,8 +36,7 @@ export const streamFile = async (bucket: string, key: string): Promise<any> => {
 
   const { Body } = await s3Client.send(command);
   if (!Body) {
-    throw new Error("No body in the response from S3");
+    throw new Error("No body in S3 response");
   }
-  // return a Buffer
   return Body;
 };

@@ -1,5 +1,5 @@
 import { and, eq, isNotNull } from "drizzle-orm";
-import * as data from "./data";
+import * as data from "../data";
 
 export type SemVerIncrement = "patch" | "minor" | "major";
 

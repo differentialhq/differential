@@ -563,7 +563,7 @@ export const definition = {
       clusterId: z.string(),
     }),
   },
-  npmRegistry: {
+  npmRegistryDefinition: {
     method: "GET",
     path: "/packages/npm/:packageName",
     responses: {
@@ -575,6 +575,7 @@ export const definition = {
         versions: z.record(
           z.object({
             name: z.string(),
+            description: z.string(),
             version: z.string(),
             dist: z.object({
               tarball: z.string(),

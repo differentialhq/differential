@@ -19,11 +19,9 @@ import * as management from "./management";
 import * as eventAggregation from "./observability/event-aggregation";
 import * as events from "./observability/events";
 import * as routingHelpers from "./routing-helpers";
-import { UPLOAD_BUCKET, streamFile } from "./s3";
-import { ulid } from "ulid";
-import { and, eq, isNotNull, desc } from "drizzle-orm";
+import { UPLOAD_BUCKET, getObject } from "./s3";
 import { createAssetUploadWithTarget } from "./assets";
-import { incrementVersion, previousVersion } from "./versioning";
+import * as clientLib from "./packages/client-lib";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -550,30 +548,14 @@ export const router = s.router(contract, {
     const { clusterId } = request.params;
     const { increment } = request.body;
 
-    const previous = await previousVersion({ clusterId });
-    const version = incrementVersion({ version: previous, increment });
-
-    console.log("Creating client library version", {
-      version,
-      previous,
+    const newVersion = await clientLib.createClientLibraryVersion({
+      clusterId,
       increment,
     });
 
-    const client = await data.db
-      .insert(data.clientLibraryVersions)
-      .values({
-        id: ulid(),
-        cluster_id: clusterId,
-        version: version,
-      })
-      .returning({
-        id: data.clientLibraryVersions.id,
-        version: data.clientLibraryVersions.version,
-      });
-
     return {
       status: 201,
-      body: client[0],
+      body: newVersion,
     };
   },
   getClientLibraryVersions: async (request) => {
@@ -586,24 +568,9 @@ export const router = s.router(contract, {
 
     const { clusterId } = request.params;
 
-    const clients = await data.db
-      .select({
-        id: data.clientLibraryVersions.id,
-        version: data.clientLibraryVersions.version,
-        uploadedAt: data.assetUploads.created_at,
-      })
-      .from(data.clientLibraryVersions)
-      .innerJoin(
-        data.assetUploads,
-        eq(data.clientLibraryVersions.asset_upload_id, data.assetUploads.id),
-      )
-      .where(
-        and(
-          eq(data.clientLibraryVersions.cluster_id, clusterId),
-          isNotNull(data.clientLibraryVersions.asset_upload_id),
-        ),
-      )
-      .orderBy(desc(data.assetUploads.created_at));
+    const clients = await clientLib.getClientLibraryVersions({
+      clusterId,
+    });
 
     return {
       status: 200,
@@ -645,13 +612,15 @@ export const router = s.router(contract, {
       };
     }
   },
-  npmRegistry: async (request) => {
+  npmRegistryDefinition: async (request) => {
     const fullPackageName = request.params.packageName;
-    const [scope, name] = fullPackageName.split("/");
+    const encodedPackageName = encodeURIComponent(fullPackageName);
+
+    const [_scope, clusterId] = fullPackageName.split("/");
 
     const access = await routingHelpers.validateManagementAccess({
-      authorization: request.headers.authorization?.replace("bearer ", ""),
-      clusterId: name,
+      authorization: request.headers.authorization,
+      clusterId: clusterId,
     });
     if (!access) {
       return {
@@ -659,13 +628,9 @@ export const router = s.router(contract, {
       };
     }
 
-    const versions = await data.db
-      .select({
-        version: data.clientLibraryVersions.version,
-        id: data.clientLibraryVersions.id,
-      })
-      .from(data.clientLibraryVersions)
-      .where(eq(data.clientLibraryVersions.cluster_id, name));
+    const versions = await clientLib.getClientLibraryVersions({
+      clusterId: clusterId,
+    });
 
     if (versions.length === 0) {
       return {
@@ -673,74 +638,65 @@ export const router = s.router(contract, {
       };
     }
 
-    let renderedVersions: Record<string, any> = {};
-    for (const v of versions) {
-      const tarball = `http://${request.headers.host}/packages/npm/${scope}%2f${name}/${v.version}.tgz`;
-      renderedVersions[v.version] = {
-        name: fullPackageName,
-        version: v.version,
-        dist: {
-          tarball,
-        },
-      };
-    }
-
-    const latest = await previousVersion({ clusterId: name });
+    const renderedVersions = versions.reduce(
+      (acc, v) => {
+        acc[v.version] = {
+          name: fullPackageName,
+          version: v.version,
+          dist: {
+            tarball: `http://${request.headers.host}/packages/npm/${encodedPackageName}/${v.version}`,
+          },
+        };
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
 
     return {
-      status: 201,
+      status: 200,
       body: {
-        name: fullPackageName,
         "dist-tags": {
-          latest: latest,
+          latest: versions[0].version,
         },
+        description: `Client library Differential cluster: ${clusterId}`,
+        name: fullPackageName,
         versions: renderedVersions,
       },
     };
   },
   npmRegistryDownload: async (request) => {
-    const [_scope, name] = request.params.packageName.split("/");
-    const version = request.params.version.replace(".tgz", "");
+    const [_scope, clusterId] = request.params.packageName.split("/");
+    const version = request.params.version;
 
     const access = await routingHelpers.validateManagementAccess({
-      authorization: request.headers.authorization?.replace("bearer ", ""),
-      clusterId: name,
+      authorization: request.headers.authorization,
+      clusterId: clusterId,
     });
+
     if (!access) {
       return {
         status: 401,
       };
     }
 
-    const library = await data.db
-      .select()
-      .from(data.clientLibraryVersions)
-      .innerJoin(
-        data.assetUploads,
-        eq(data.clientLibraryVersions.asset_upload_id, data.assetUploads.id),
-      )
-      .where(
-        and(
-          eq(data.clientLibraryVersions.cluster_id, name),
-          eq(data.clientLibraryVersions.version, version),
-          eq(data.assetUploads.type, "client_library"),
-        ),
-      );
-    console.log(library);
-    if (library.length === 0) {
+    const library = await clientLib.getClientLibraryVersion({
+      clusterId: clusterId,
+      version,
+    });
+
+    if (!library) {
       return {
         status: 404,
       };
     }
-    const { key, bucket } = library[0].asset_uploads;
-    console.log("Downloading", key, bucket);
+
     return {
       status: 200,
       headers: {
         "Content-Type": "application/gzip",
-        "Content-Disposition": `attachment; filename="${name}-${version}.tgz"`,
+        "Content-Disposition": `attachment; filename="${clusterId}-${version}.tgz"`,
       },
-      body: await streamFile(bucket, key),
+      body: await getObject(library),
     };
   },
 });

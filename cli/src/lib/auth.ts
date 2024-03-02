@@ -12,6 +12,7 @@ import {
 import * as childProcess from "child_process";
 
 const TOKEN_PATH = path.join(os.homedir(), ".differential", "credentials");
+
 export const storeToken = (token: string) => {
   const TOKEN_PATH = path.join(os.homedir(), ".differential", "credentials");
   const dir = path.dirname(TOKEN_PATH);
@@ -19,11 +20,17 @@ export const storeToken = (token: string) => {
     fs.mkdirSync(dir, { recursive: true });
   }
   fs.writeFileSync(TOKEN_PATH, token);
-  setNpmConfig(`${CLIENT_PACKAGE_SCOPE}:registry`, NPM_REGISTRY_URL);
-  setNpmConfig(
-    `${NPM_REGISTRY_URL.replace(/^http(s?):/, "")}:_authToken`,
-    token,
-  );
+};
+
+const refreshNpmToken = async () => {
+  const token = getToken();
+  if (token) {
+    setNpmConfig(`${CLIENT_PACKAGE_SCOPE}:registry`, NPM_REGISTRY_URL);
+    setNpmConfig(
+      `${NPM_REGISTRY_URL.replace(/^http(s?):/, "")}:_authToken`,
+      token,
+    );
+  }
 };
 
 const setNpmConfig = async (key: string, value: string) => {
@@ -50,6 +57,7 @@ export const startTokenFlow = () => {
       ).searchParams.get("token");
       if (token) {
         storeToken(token);
+        refreshNpmToken();
         console.log("The Differential CLI has been authenticated.");
         const body = `
       <html>
