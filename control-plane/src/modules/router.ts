@@ -252,7 +252,7 @@ export const router = s.router(contract, {
     };
   },
   getClusterDetailsForUser: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -277,7 +277,7 @@ export const router = s.router(contract, {
     };
   },
   getClusterServiceDetailsForUser: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -307,7 +307,7 @@ export const router = s.router(contract, {
     };
   },
   getMetrics: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -362,7 +362,7 @@ export const router = s.router(contract, {
     };
   },
   getActivity: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -384,7 +384,7 @@ export const router = s.router(contract, {
     };
   },
   createDeployment: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -410,7 +410,7 @@ export const router = s.router(contract, {
     };
   },
   getDeployment: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -432,7 +432,7 @@ export const router = s.router(contract, {
     };
   },
   getDeployments: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -448,7 +448,7 @@ export const router = s.router(contract, {
     };
   },
   releaseDeployment: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -479,7 +479,7 @@ export const router = s.router(contract, {
     };
   },
   setClusterSettings: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -500,7 +500,7 @@ export const router = s.router(contract, {
     };
   },
   getClusterSettings: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -540,7 +540,7 @@ export const router = s.router(contract, {
     };
   },
   createClientLibraryVersion: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -577,7 +577,7 @@ export const router = s.router(contract, {
     };
   },
   getClientLibraryVersions: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -605,7 +605,7 @@ export const router = s.router(contract, {
     };
   },
   createAsset: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -640,12 +640,19 @@ export const router = s.router(contract, {
     }
   },
   npmRegistry: async (request) => {
-    console.log("info", request.params);
-    console.log("headers", request.headers);
-    //TODO Authentication
-
     const fullPackageName = request.params.packageName;
     const [scope, name] = fullPackageName.split("/");
+
+    console.log("headers", request.headers);
+    const access = await routingHelpers.validateManagementAccess({
+      authorization: request.headers.authorization?.replace("bearer ", ""),
+      clusterId: name,
+    });
+    if (!access) {
+      return {
+        status: 401,
+      };
+    }
 
     const versions = await data.db
       .select({
@@ -686,12 +693,18 @@ export const router = s.router(contract, {
     };
   },
   npmRegistryDownload: async (request) => {
-    console.log("Download", request.params);
-    console.log("headers", request.headers);
-    //TODO Authentication
-
     const [_scope, name] = request.params.packageName.split("/");
     const version = request.params.version.replace(".tgz", "");
+
+    const access = await routingHelpers.validateManagementAccess({
+      authorization: request.headers.authorization?.replace("bearer ", ""),
+      clusterId: name,
+    });
+    if (!access) {
+      return {
+        status: 401,
+      };
+    }
 
     const library = await data.db
       .select()

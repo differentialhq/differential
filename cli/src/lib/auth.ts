@@ -6,7 +6,6 @@ import http from "http";
 import { openBrowser } from "../utils";
 import {
   CONSOLE_URL,
-  API_URL,
   CLIENT_PACKAGE_SCOPE,
   NPM_REGISTRY_URL,
 } from "../constants";
@@ -21,7 +20,10 @@ export const storeToken = (token: string) => {
   }
   fs.writeFileSync(TOKEN_PATH, token);
   setNpmConfig(`${CLIENT_PACKAGE_SCOPE}:registry`, NPM_REGISTRY_URL);
-  setNpmConfig(`${API_URL.replace(/^https:/, "")}:_authToken`, token);
+  setNpmConfig(
+    `${NPM_REGISTRY_URL.replace(/^http(s?):/, "")}:_authToken`,
+    token,
+  );
 };
 
 const setNpmConfig = async (key: string, value: string) => {
