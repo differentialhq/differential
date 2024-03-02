@@ -507,6 +507,7 @@ export const definition = {
         z.object({
           id: z.string(),
           version: z.string(),
+          uploadedAt: z.date(),
         }),
       ),
     },

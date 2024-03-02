@@ -500,7 +500,6 @@ export const definition = {
     headers: z.object({
       authorization: z.string(),
     }),
-    body: z.object({}),
     responses: {
       501: z.undefined(),
       401: z.undefined(),
@@ -508,6 +507,7 @@ export const definition = {
         z.object({
           id: z.string(),
           version: z.string(),
+          uploadedAt: z.date(),
         }),
       ),
     },
@@ -562,6 +562,36 @@ export const definition = {
     pathParams: z.object({
       clusterId: z.string(),
     }),
+  },
+  npmRegistry: {
+    method: "GET",
+    path: "/packages/npm/:packageName",
+    responses: {
+      501: z.undefined(),
+      404: z.undefined(),
+      200: z.object({
+        "dist-tags": z.record(z.string()),
+        name: z.string(),
+        versions: z.record(
+          z.object({
+            name: z.string(),
+            version: z.string(),
+            dist: z.object({
+              tarball: z.string(),
+            }),
+          }),
+        ),
+      }),
+    },
+  },
+  npmRegistryDownload: {
+    method: "GET",
+    path: "/packages/npm/:packageName/:version",
+    responses: {
+      501: z.undefined(),
+      404: z.undefined(),
+      200: z.any(),
+    },
   },
 } as const;
 

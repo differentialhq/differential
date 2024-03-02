@@ -21,7 +21,7 @@ import * as events from "./observability/events";
 import * as routingHelpers from "./routing-helpers";
 import { UPLOAD_BUCKET, streamFile } from "./s3";
 import { ulid } from "ulid";
-import { and, eq, isNotNull } from "drizzle-orm";
+import { and, eq, isNotNull, desc } from "drizzle-orm";
 import { createAssetUploadWithTarget } from "./assets";
 import { incrementVersion, previousVersion } from "./versioning";
 
@@ -590,14 +590,20 @@ export const router = s.router(contract, {
       .select({
         id: data.clientLibraryVersions.id,
         version: data.clientLibraryVersions.version,
+        uploadedAt: data.assetUploads.created_at,
       })
       .from(data.clientLibraryVersions)
+      .innerJoin(
+        data.assetUploads,
+        eq(data.clientLibraryVersions.asset_upload_id, data.assetUploads.id),
+      )
       .where(
         and(
           eq(data.clientLibraryVersions.cluster_id, clusterId),
           isNotNull(data.clientLibraryVersions.asset_upload_id),
         ),
-      );
+      )
+      .orderBy(desc(data.assetUploads.created_at));
 
     return {
       status: 200,
@@ -643,7 +649,6 @@ export const router = s.router(contract, {
     const fullPackageName = request.params.packageName;
     const [scope, name] = fullPackageName.split("/");
 
-    console.log("headers", request.headers);
     const access = await routingHelpers.validateManagementAccess({
       authorization: request.headers.authorization?.replace("bearer ", ""),
       clusterId: name,
@@ -670,11 +675,12 @@ export const router = s.router(contract, {
 
     let renderedVersions: Record<string, any> = {};
     for (const v of versions) {
+      const tarball = `http://${request.headers.host}/packages/npm/${scope}%2f${name}/${v.version}.tgz`;
       renderedVersions[v.version] = {
         name: fullPackageName,
         version: v.version,
         dist: {
-          tarball: `http://localhost:4000/packages/npm/${scope}%2f${name}/${v.version}.tgz`,
+          tarball,
         },
       };
     }
