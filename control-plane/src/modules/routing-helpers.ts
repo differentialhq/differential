@@ -1,6 +1,6 @@
 import * as management from "./management";
 
-export const validateManagementAccess = async (request: {
+export const validateManagementRequest = async (request: {
   headers: {
     authorization: string;
   };
@@ -8,12 +8,29 @@ export const validateManagementAccess = async (request: {
     clusterId: string;
   };
 }): Promise<boolean> => {
-  const managementToken = request.headers.authorization.split(" ")[1];
+  return validateManagementAccess({
+    authorization: request.headers.authorization,
+    clusterId: request.params.clusterId,
+  });
+};
+
+export const validateManagementAccess = async ({
+  authorization,
+  clusterId,
+}: {
+  authorization?: string;
+  clusterId: string;
+}): Promise<boolean> => {
+  if (!authorization) {
+    return false;
+  }
+
+  const managementToken = authorization.split(" ")[1];
 
   try {
     const clusterAccess = await management.hasAccessToCluster({
       managementToken,
-      clusterId: request.params.clusterId,
+      clusterId,
     });
     return clusterAccess;
   } catch {

@@ -19,11 +19,9 @@ import * as management from "./management";
 import * as eventAggregation from "./observability/event-aggregation";
 import * as events from "./observability/events";
 import * as routingHelpers from "./routing-helpers";
-import { UPLOAD_BUCKET, getPresignedURL } from "./s3";
-import { ulid } from "ulid";
-import { and, eq } from "drizzle-orm";
+import { UPLOAD_BUCKET, getObject } from "./s3";
 import { createAssetUploadWithTarget } from "./assets";
-import { incrementVersion, previousVersion } from "./versioning";
+import * as clientLib from "./packages/client-lib";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -252,7 +250,7 @@ export const router = s.router(contract, {
     };
   },
   getClusterDetailsForUser: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -277,7 +275,7 @@ export const router = s.router(contract, {
     };
   },
   getClusterServiceDetailsForUser: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -307,7 +305,7 @@ export const router = s.router(contract, {
     };
   },
   getMetrics: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -362,7 +360,7 @@ export const router = s.router(contract, {
     };
   },
   getActivity: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -384,7 +382,7 @@ export const router = s.router(contract, {
     };
   },
   createDeployment: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -410,7 +408,7 @@ export const router = s.router(contract, {
     };
   },
   getDeployment: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -432,7 +430,7 @@ export const router = s.router(contract, {
     };
   },
   getDeployments: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -448,7 +446,7 @@ export const router = s.router(contract, {
     };
   },
   releaseDeployment: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -479,7 +477,7 @@ export const router = s.router(contract, {
     };
   },
   setClusterSettings: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -500,7 +498,7 @@ export const router = s.router(contract, {
     };
   },
   getClusterSettings: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -540,7 +538,7 @@ export const router = s.router(contract, {
     };
   },
   createClientLibraryVersion: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -550,34 +548,37 @@ export const router = s.router(contract, {
     const { clusterId } = request.params;
     const { increment } = request.body;
 
-    const previous = await previousVersion({ clusterId });
-    const version = incrementVersion({ version: previous, increment });
-
-    console.log("Creating client library version", {
-      version,
-      previous,
+    const newVersion = await clientLib.createClientLibraryVersion({
+      clusterId,
       increment,
     });
 
-    const client = await data.db
-      .insert(data.clientLibraryVersions)
-      .values({
-        id: ulid(),
-        cluster_id: clusterId,
-        version: version,
-      })
-      .returning({
-        id: data.clientLibraryVersions.id,
-        version: data.clientLibraryVersions.version,
-      });
-
     return {
       status: 201,
-      body: client[0],
+      body: newVersion,
+    };
+  },
+  getClientLibraryVersions: async (request) => {
+    const access = await routingHelpers.validateManagementRequest(request);
+    if (!access) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { clusterId } = request.params;
+
+    const clients = await clientLib.getClientLibraryVersions({
+      clusterId,
+    });
+
+    return {
+      status: 200,
+      body: clients,
     };
   },
   createAsset: async (request) => {
-    const access = await routingHelpers.validateManagementAccess(request);
+    const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
       return {
         status: 401,
@@ -610,5 +611,92 @@ export const router = s.router(contract, {
         status: 400,
       };
     }
+  },
+  npmRegistryDefinition: async (request) => {
+    const fullPackageName = request.params.packageName;
+    const encodedPackageName = encodeURIComponent(fullPackageName);
+
+    const [_scope, clusterId] = fullPackageName.split("/");
+
+    const access = await routingHelpers.validateManagementAccess({
+      authorization: request.headers.authorization,
+      clusterId: clusterId,
+    });
+    if (!access) {
+      return {
+        status: 401,
+      };
+    }
+
+    const versions = await clientLib.getClientLibraryVersions({
+      clusterId: clusterId,
+    });
+
+    if (versions.length === 0) {
+      return {
+        status: 404,
+      };
+    }
+
+    const renderedVersions = versions.reduce(
+      (acc, v) => {
+        acc[v.version] = {
+          name: fullPackageName,
+          version: v.version,
+          dist: {
+            tarball: `http://${request.headers.host}/packages/npm/${encodedPackageName}/${v.version}`,
+          },
+        };
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
+
+    return {
+      status: 200,
+      body: {
+        "dist-tags": {
+          latest: versions[0].version,
+        },
+        description: `Client library Differential cluster: ${clusterId}`,
+        name: fullPackageName,
+        versions: renderedVersions,
+      },
+    };
+  },
+  npmRegistryDownload: async (request) => {
+    const [_scope, clusterId] = request.params.packageName.split("/");
+    const version = request.params.version;
+
+    const access = await routingHelpers.validateManagementAccess({
+      authorization: request.headers.authorization,
+      clusterId: clusterId,
+    });
+
+    if (!access) {
+      return {
+        status: 401,
+      };
+    }
+
+    const library = await clientLib.getClientLibraryVersion({
+      clusterId: clusterId,
+      version,
+    });
+
+    if (!library) {
+      return {
+        status: 404,
+      };
+    }
+
+    return {
+      status: 200,
+      headers: {
+        "Content-Type": "application/gzip",
+        "Content-Disposition": `attachment; filename="${clusterId}-${version}.tgz"`,
+      },
+      body: await getObject(library),
+    };
   },
 });

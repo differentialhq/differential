@@ -5,13 +5,15 @@ import { client } from "./client";
 const log = debug("differential:cli:upload");
 
 export const uploadAsset = async ({
-  zipPath,
+  path,
   target,
+  contentType,
   type,
   cluster,
 }: {
-  zipPath: string;
+  path: string;
   target: string;
+  contentType: string;
   type: "client_library" | "service_bundle";
   cluster: string;
 }): Promise<void> => {
@@ -39,9 +41,9 @@ export const uploadAsset = async ({
 
   const response = await fetch(presignedUrl, {
     method: "PUT",
-    body: readFileSync(zipPath),
+    body: readFileSync(path),
     headers: {
-      "Content-Type": "application/zip",
+      "Content-Type": contentType,
     },
   });
 

@@ -2,16 +2,12 @@ import { CommandModule } from "yargs";
 import { selectCluster } from "../utils";
 import * as fs from "fs";
 import * as os from "os";
-import {
-  buildClientPackage,
-  buildProject,
-  publishViaNpm,
-  zipDirectory,
-} from "../lib/package";
+import { buildClientPackage, buildProject, zipDirectory } from "../lib/package";
 import { uploadAsset } from "../lib/upload";
 import debug from "debug";
 import { client } from "../lib/client";
 import { select } from "@inquirer/prompts";
+import { CLIENT_PACKAGE_SCOPE } from "../constants";
 
 const log = debug("differential:cli:client-lib:publish");
 
@@ -19,14 +15,11 @@ interface ClientLibraryPublishArgs {
   entrypoint?: string;
   cluster?: string;
   increment?: string;
-  packageScope?: string;
-  npmPublish?: boolean;
-  npmPublic?: boolean;
 }
 export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
   {
     command: "publish",
-    describe: "Publish a client library",
+    describe: "Publish a client library to Differential",
     builder: (yargs) =>
       yargs
         .option("cluster", {
@@ -45,32 +38,8 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
           demandOption: false,
           choices: ["major", "minor", "patch"],
           type: "string",
-        })
-        .option("packageScope", {
-          describe: "Scope to publish the client library under",
-          demandOption: false,
-          type: "string",
-        })
-        .option("npmPublish", {
-          describe:
-            "Publish the client library via system NPM instead of uploading to the cluster",
-          demandOption: false,
-          type: "boolean",
-        })
-        .option("npmPublic", {
-          describe: "Publish the client library to the public NPM registry",
-          demandOption: false,
-          default: false,
-          type: "boolean",
         }),
-    handler: async ({
-      cluster,
-      entrypoint,
-      packageScope,
-      increment,
-      npmPublish,
-      npmPublic,
-    }) => {
+    handler: async ({ cluster, entrypoint, increment }) => {
       if (!cluster) {
         cluster = await selectCluster();
         if (!cluster) {
@@ -90,10 +59,6 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
         });
       }
 
-      if (npmPublish && !packageScope) {
-        throw new Error("Cannot publish to NPM without a package scope");
-      }
-
       const tmpDir = fs.mkdtempSync(os.tmpdir());
       try {
         const outDir = `${tmpDir}/out`;
@@ -105,6 +70,10 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
         console.log("🔍   Finding service registrations");
         if (project.serviceRegistrations.size === 0) {
           throw new Error("No service registrations found in project");
+        }
+        console.log("🔍   Found the following service registrations:");
+        for (const [name] of project.serviceRegistrations.entries()) {
+          console.log(`     - ${name}`);
         }
 
         console.log(`📦  Packaging client library`);
@@ -124,10 +93,12 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
         }
 
         const library = libraryResponse.body;
+        const fullPackageName = `${CLIENT_PACKAGE_SCOPE}/${cluster}@${library.version}`;
+
         const clientPath = await buildClientPackage({
           project,
           cluster,
-          scope: packageScope,
+          scope: CLIENT_PACKAGE_SCOPE,
           version: library.version,
           outDir,
         });
@@ -135,23 +106,14 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
         console.log(`📦  Publishing client library to Differential`);
 
         await uploadAsset({
-          zipPath: await zipDirectory(clientPath),
+          path: clientPath,
+          contentType: "application/gzip",
           target: library.id,
           type: "client_library",
           cluster,
         });
 
-        console.log(
-          `✅  Published client library ${library.version} to cluster ${cluster}`,
-        );
-
-        if (npmPublish) {
-          console.log(`📦  Publishing client library via NPM`);
-          await publishViaNpm({
-            path: clientPath,
-            publicAccess: npmPublic,
-          });
-        }
+        console.log(`✅  Published ${fullPackageName} to Differential`);
       } finally {
         log("Cleaning up temporary directory", { tmpDir });
         fs.rmSync(tmpDir, { recursive: true });

@@ -33,6 +33,16 @@ export function Navigation({ clusterId }: { clusterId: string }) {
       >
         <Link href={`/clusters/${clusterId}/advanced`}>Advanced Settings</Link>
       </Button>
+      <Button
+        asChild
+        variant={
+          currentPath.includes("client-libraries") ? "link" : "secondary"
+        }
+      >
+        <Link href={`/clusters/${clusterId}/client-libraries`}>
+          Client Libraries
+        </Link>
+      </Button>
     </div>
   );
 }

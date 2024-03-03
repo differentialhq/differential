@@ -12,13 +12,7 @@ export const Auth: CommandModule = {
         startTokenFlow();
       },
     }),
-  handler: async ({ command }) => {
-    switch (command) {
-      case "login":
-        console.log("Authenticating the Differential CLI...");
-        break;
-      default:
-        showHelp();
-    }
+  handler: async () => {
+    showHelp();
   },
 };

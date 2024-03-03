@@ -303,8 +303,9 @@ export const buildClientPackage = async ({
 
   extractServiceTypes(project, packageOut, clientOut);
   buildClientIndex(project, clientOut);
+  const result = npmPack(clientOut);
 
-  return clientOut;
+  return result;
 };
 
 const buildClientIndex = (project: ProjectDetails, outDir: string) => {
@@ -339,16 +340,13 @@ const extractServiceTypes = (
   fs.rmSync(path.join(packageDir, "types"), { recursive: true });
 };
 
-export const publishViaNpm = async ({
-  path,
-  publicAccess,
-}: {
-  path: string;
-  publicAccess?: boolean;
-}): Promise<void> => {
-  const command = publicAccess ? "npm publish --access public" : "npm publish";
-  childProcess.execSync(command, {
-    cwd: path,
-    stdio: "inherit",
-  });
+const npmPack = (packageDir: string): string => {
+  const result = childProcess
+    .execSync(`npm pack --quiet`, {
+      cwd: packageDir,
+    })
+    .toString()
+    .trim();
+
+  return path.join(packageDir, result);
 };

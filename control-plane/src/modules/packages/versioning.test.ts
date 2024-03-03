@@ -1,6 +1,6 @@
 import { ulid } from "ulid";
-import * as data from "./data";
-import { createOwner } from "./test/util";
+import * as data from "../data";
+import { createOwner } from "../test/util";
 import {
   previousVersion,
   incrementVersion,
