@@ -35,3 +35,19 @@ export const operationalCluster = async (
 
   return results[0];
 };
+
+export const getCluster = async (clusterId: string) => {
+  const [cluster] = await data.db
+    .select({
+      id: data.clusters.id,
+      apiSecret: data.clusters.api_secret,
+    })
+    .from(data.clusters)
+    .where(eq(data.clusters.id, clusterId));
+
+  if (!cluster) {
+    throw new Error(`Cluster not found: ${clusterId}`);
+  }
+
+  return cluster;
+};

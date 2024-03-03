@@ -12,6 +12,7 @@ import {
 } from "@aws-sdk/client-lambda";
 import { Deployment, s3AssetDetails } from "./deployment";
 import { DeploymentProvider, fetchConfig } from "./deployment-provider";
+import { getCluster } from "../cluster";
 
 type LambdaProviderConfig = {
   createOptions: Pick<
@@ -63,7 +64,7 @@ export class LambdaProvider implements DeploymentProvider {
           Publish: true,
           FunctionName: functionName,
           Environment: {
-            ...this.getEnvironmentVariables(deployment),
+            ...(await this.getEnvironmentVariables(deployment)),
           },
           Code: {
             ...(await s3AssetDetails(deployment)),
@@ -112,7 +113,7 @@ export class LambdaProvider implements DeploymentProvider {
         deployment,
         new UpdateFunctionConfigurationCommand({
           Environment: {
-            ...this.getEnvironmentVariables(deployment),
+            ...(await this.getEnvironmentVariables(deployment)),
           },
           FunctionName: functionName,
         }),
@@ -213,11 +214,13 @@ export class LambdaProvider implements DeploymentProvider {
     }
   }
 
-  private getEnvironmentVariables(deployment: Deployment) {
+  private async getEnvironmentVariables(deployment: Deployment) {
+    const cluster = await getCluster(deployment.clusterId);
     return {
       Variables: {
         DIFFERENTIAL_DEPLOYMENT_ID: deployment.id,
         DIFFERENTIAL_DEPLOYMENT_PROVIDER: this.name(),
+        DIFFERENTIAL_API_SECRET: cluster.apiSecret,
       },
     };
   }

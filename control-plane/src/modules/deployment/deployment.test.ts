@@ -115,20 +115,18 @@ describe("releaseDeployment", () => {
       serviceName: "testService",
     });
 
-    delete (deployment as any).packageUploadUrl;
-
     await releaseDeployment(deployment, provider);
 
     expect(await getDeployment(deployment.id)).toEqual({
       ...deployment,
       status: "active",
+      assetUploadId: null,
     });
 
     const deployment2 = await createDeployment({
       clusterId: owner.clusterId,
       serviceName: "testService",
     });
-    delete (deployment2 as any).packageUploadUrl;
 
     await releaseDeployment(deployment2, provider);
 
@@ -136,10 +134,12 @@ describe("releaseDeployment", () => {
     expect(await getDeployment(deployment.id)).toEqual({
       ...deployment,
       status: "inactive",
+      assetUploadId: null,
     });
     expect(await getDeployment(deployment2.id)).toEqual({
       ...deployment2,
       status: "active",
+      assetUploadId: null,
     });
   });
 });

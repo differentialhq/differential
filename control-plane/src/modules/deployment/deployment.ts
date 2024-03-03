@@ -92,6 +92,7 @@ export const getDeployment = async (id: string): Promise<Deployment> => {
       service: data.deployments.service,
       status: data.deployments.status,
       provider: data.deployments.provider,
+      assetUploadId: data.deployments.asset_upload_id,
     })
     .from(data.deployments)
     .where(eq(data.deployments.id, id));
