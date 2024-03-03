@@ -102,7 +102,7 @@ export default function Page({ params }: { params: { clusterId: string } }) {
       >
         <div className="flex flex-col space-y-1">
           <div className="font-bold flex space-x-2">
-            <p>Differntial Cloud</p>
+            <p>Differential Cloud</p>
             <Badge variant="secondary">Private Beta</Badge>
           </div>
           <p className="text-gray-400">
