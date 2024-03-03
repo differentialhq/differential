@@ -10,8 +10,26 @@ import {
   NPM_REGISTRY_URL,
 } from "../constants";
 import * as childProcess from "child_process";
+import { client } from "./client";
 
 const TOKEN_PATH = path.join(os.homedir(), ".differential", "credentials");
+const CLOUD_WAITLIST_URL = "https://forms.fillout.com/t/9M1VhL8Wxyus";
+
+export const cloudEnabledCheck = async (
+  clusterId: string,
+): Promise<boolean> => {
+  const settings = await client.getClusterSettings({ params: { clusterId } });
+
+  if (settings.status === 200 && settings.body.cloudEnabled) {
+    return true;
+  }
+
+  console.error(
+    "This feature requires Differential Cloud which is currently in private beta.",
+  );
+  console.error(`To join the waitlist, please visit ${CLOUD_WAITLIST_URL}`);
+  return false;
+};
 
 export const storeToken = (token: string) => {
   const TOKEN_PATH = path.join(os.homedir(), ".differential", "credentials");

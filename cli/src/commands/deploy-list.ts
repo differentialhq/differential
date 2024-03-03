@@ -1,6 +1,7 @@
 import { CommandModule } from "yargs";
 import { client } from "../lib/client";
 import { selectCluster, selectService } from "../utils";
+import { cloudEnabledCheck } from "../lib/auth";
 
 interface DeployListArgs {
   cluster?: string;
@@ -29,6 +30,10 @@ export const DeployList: CommandModule<{}, DeployListArgs> = {
         console.log("No cluster selected");
         return;
       }
+    }
+
+    if (!(await cloudEnabledCheck(cluster))) {
+      return;
     }
 
     if (!service) {

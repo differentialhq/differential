@@ -10,6 +10,7 @@ import { release } from "../lib/release";
 import { client, waitForDeploymentStatus } from "../lib/client";
 import { selectCluster } from "../utils";
 import { select } from "@inquirer/prompts";
+import { cloudEnabledCheck } from "../lib/auth";
 
 const log = debug("differential:cli:deploy:create");
 
@@ -48,6 +49,10 @@ export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
         console.log("No cluster selected");
         return;
       }
+    }
+
+    if (!(await cloudEnabledCheck(cluster))) {
+      return;
     }
 
     const tmpDir = fs.mkdtempSync(os.tmpdir());

@@ -253,6 +253,7 @@ export const getClusterSettings = async (clusterId: string) => {
   const [settings] = await data.db
     .select({
       predictiveRetriesEnabled: data.clusters.predictive_retries_enabled,
+      cloudEnabled: data.clusters.cloud_enabled,
     })
     .from(data.clusters)
     .where(eq(data.clusters.id, clusterId));

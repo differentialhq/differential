@@ -10,6 +10,7 @@ describe("management", () => {
 
       expect(initial).toStrictEqual({
         predictiveRetriesEnabled: false,
+        cloudEnabled: false,
       });
 
       await setClusterSettings(owner.clusterId, {
@@ -20,6 +21,7 @@ describe("management", () => {
 
       expect(updated).toStrictEqual({
         predictiveRetriesEnabled: true,
+        cloudEnabled: false,
       });
     });
   });

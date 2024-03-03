@@ -556,6 +556,7 @@ export const definition = {
     responses: {
       200: z.object({
         predictiveRetriesEnabled: z.boolean(),
+        cloudEnabled: z.boolean(),
       }),
       401: z.undefined(),
     },
