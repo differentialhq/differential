@@ -1,9 +1,9 @@
+import { and, eq, or, sql } from "drizzle-orm";
+import NodeCache from "node-cache";
 import { ulid } from "ulid";
 import * as data from "../data";
-import { and, eq, or, sql } from "drizzle-orm";
+import { storeServiceDefinition } from "../service-definitions";
 import { DeploymentProvider } from "./deployment-provider";
-import NodeCache from "node-cache";
-import { storeServiceDefinitionBG } from "../service-definitions";
 
 export type Deployment = {
   id: string;
@@ -56,7 +56,7 @@ export const createDeployment = async ({
 
   if (!service) {
     console.log("Service not found, creating service definition");
-    storeServiceDefinitionBG(serviceName, { name: serviceName }, { clusterId });
+    storeServiceDefinition(serviceName, { name: serviceName }, { clusterId });
   }
 
   const provider = service?.deployment_provider ?? "mock";

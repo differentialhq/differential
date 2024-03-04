@@ -4,9 +4,8 @@ import * as data from "../data";
 import * as events from "../observability/events";
 import {
   ServiceDefinition,
-  storeServiceDefinitionBG,
+  storeServiceDefinition,
 } from "../service-definitions";
-import { backgrounded } from "../util";
 import { jobDurations } from "./job-metrics";
 import { selfHealJobs } from "./persist-result";
 
@@ -46,11 +45,10 @@ export const nextJobs = async ({
     RETURNING id, target_fn, target_args`,
   );
 
-  storeMachineInfoBG(machineId, ip, owner, deploymentId);
-
-  if (definition) {
-    storeServiceDefinitionBG(service, definition, owner);
-  }
+  await Promise.all([
+    storeMachineInfo(machineId, ip, owner, deploymentId),
+    definition ? storeServiceDefinition(service, definition, owner) : undefined,
+  ]);
 
   if (results.rowCount === 0) {
     end();
@@ -171,7 +169,7 @@ export const getJobStatuses = async ({
   return jobs;
 };
 
-const storeMachineInfoBG = backgrounded(async function storeMachineInfo(
+export async function storeMachineInfo(
   machineId: string,
   ip: string,
   owner: { clusterId: string },
@@ -202,7 +200,7 @@ const storeMachineInfoBG = backgrounded(async function storeMachineInfo(
     });
 
   end();
-});
+}
 
 export const start = () =>
   cron.registerCron(selfHealJobs, { interval: 1000 * 10 }); // 10 seconds

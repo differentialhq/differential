@@ -13,6 +13,9 @@ describe("verifyManagementToken", () => {
     });
 
     delete process.env.IGNORE_EXPIRATION;
+
+    // wait for the jwks request to finish
+    await new Promise((resolve) => setTimeout(resolve, 3000));
   });
 
   it("should throw on a malformed token", async () => {
