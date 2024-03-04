@@ -7,6 +7,7 @@ import {
   storeServiceDefinitionBG,
 } from "../service-definitions";
 import { backgrounded } from "../util";
+import { jobDurations } from "./job-metrics";
 import { selfHealJobs } from "./persist-result";
 
 export { createJob } from "./create-job";
@@ -29,6 +30,8 @@ export const nextJobs = async ({
   ip: string;
   definition?: ServiceDefinition;
 }) => {
+  const end = jobDurations.startTimer({ operation: "nextJobs" });
+
   const results = await data.db.execute(
     sql`UPDATE 
       jobs SET status = 'running', 
@@ -50,6 +53,7 @@ export const nextJobs = async ({
   }
 
   if (results.rowCount === 0) {
+    end();
     return [];
   }
 
@@ -78,6 +82,7 @@ export const nextJobs = async ({
     });
   });
 
+  end();
   return jobs;
 };
 
@@ -88,6 +93,8 @@ export const getJobStatus = async ({
   jobId: string;
   owner: { clusterId: string };
 }) => {
+  const end = jobDurations.startTimer({ operation: "getJobStatus" });
+
   const [job] = await data.db
     .select({
       service: data.jobs.service,
@@ -113,6 +120,7 @@ export const getJobStatus = async ({
     });
   }
 
+  end();
   return job;
 };
 
@@ -123,7 +131,10 @@ export const getJobStatuses = async ({
   jobIds: string[];
   owner: { clusterId: string };
 }) => {
+  const end = jobDurations.startTimer({ operation: "getJobStatuses" });
+
   if (jobIds.length === 0) {
+    end();
     return [];
   }
 
@@ -156,6 +167,7 @@ export const getJobStatuses = async ({
     });
   });
 
+  end();
   return jobs;
 };
 
@@ -165,6 +177,8 @@ const storeMachineInfoBG = backgrounded(async function storeMachineInfo(
   owner: { clusterId: string },
   deploymentId?: string,
 ) {
+  const end = jobDurations.startTimer({ operation: "storeMachineInfo" });
+
   await data.db
     .insert(data.machines)
     .values({
@@ -186,6 +200,8 @@ const storeMachineInfoBG = backgrounded(async function storeMachineInfo(
         eq(data.machines.id, machineId),
       ),
     });
+
+  end();
 });
 
 export const start = () =>
