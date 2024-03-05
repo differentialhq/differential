@@ -1,8 +1,8 @@
+import crypto from "crypto";
 import { and, eq } from "drizzle-orm";
 import NodeCache from "node-cache";
 import { z } from "zod";
 import * as data from "./data";
-import { backgrounded } from "./util";
 
 const cache = new NodeCache({
   stdTTL: 5,
@@ -45,27 +45,37 @@ export const serviceDefinitionsSchema = z.array(
   }),
 );
 
-export const storeServiceDefinitionBG = backgrounded(
-  async function storeServiceDefinition(
-    service: string,
-    definition: ServiceDefinition,
-    owner: { clusterId: string },
-  ) {
-    await data.db
-      .insert(data.services)
-      .values({
-        service,
+export async function storeServiceDefinition(
+  service: string,
+  definition: ServiceDefinition,
+  owner: { clusterId: string },
+) {
+  const definitionSha = crypto
+    .createHash("sha256")
+    .update(JSON.stringify(definition))
+    .digest("hex");
+  const key = `${service}-${owner.clusterId}`;
+
+  if (cache.get(key) === definitionSha) {
+    return;
+  }
+
+  await data.db
+    .insert(data.services)
+    .values({
+      service,
+      definition,
+      cluster_id: owner.clusterId,
+    })
+    .onConflictDoUpdate({
+      target: [data.services.service, data.services.cluster_id],
+      set: {
         definition,
-        cluster_id: owner.clusterId,
-      })
-      .onConflictDoUpdate({
-        target: [data.services.service, data.services.cluster_id],
-        set: {
-          definition,
-        },
-      });
-  },
-);
+      },
+    });
+
+  cache.set(key, definitionSha);
+}
 
 export async function getServiceDefinitions(owner: { clusterId: string }) {
   if (cache.has(owner.clusterId)) {

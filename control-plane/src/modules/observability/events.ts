@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
+import { Counter } from "prom-client";
 import { ulid } from "ulid";
 import * as data from "../data";
-import { Counter } from "prom-client";
 
 export type EventTypes =
   | "jobCreated"
