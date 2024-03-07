@@ -230,6 +230,6 @@ export class LambdaProvider implements DeploymentProvider {
   }
 
   private buildFunctionName(deployment: Deployment): string {
-    return `${deployment.clusterId}-${deployment.service}`;
+    return `differential-deployment-${deployment.clusterId}-${deployment.service}`;
   }
 }
