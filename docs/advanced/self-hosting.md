@@ -84,3 +84,50 @@ const differential = new Differential("MY_API_SECRET", {
 ```
 
 And that's it!
+
+## Additional infrastructure resources
+
+Some Differential features require additional infrastructure resources, these include:
+
+- Client library registry
+- Cloud deployments
+
+In order to take advantage of these features, you will need to provision the associated resources and provide the control-plane with access.
+
+### Previsioning CloudFormation resources
+
+Infrastructure as code (IaC) definitions for all additional resources, as well as instructions for provisioning them reside in [./infrastructure](https://github.com/differentialhq/differential/tree/main/infrastructure).
+
+### Providing the control-plane with AWS access
+
+The stack created in the previous step, provisions an [IAM User](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users.html) with the name `DifferentialControlPlane` that has [IAM](https://aws.amazon.com/iam/) permissions to interact with resources hosted in AWS.
+
+Create an Access Key using the AWS CLI's [create-access-key](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/iam/create-access-key.html) command which can be used by the control-plane.
+
+1. Create the access key for `DifferentialControlPlane`
+
+```sh
+aws iam create-access-key --user-name DifferentialControlPlane
+```
+
+2. Take note of the `AccessKeyId` and `SecretAccessKey`
+
+```json
+{
+  "AccessKey": {
+    "UserName": "DifferentialControlPlane",
+    "AccessKeyId": "xxxxxxxxxxxxxxxxxxxx",
+    "Status": "Active",
+    "SecretAccessKey": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "CreateDate": "2024-00-00T00:00:00+00:00"
+  }
+}
+```
+
+3. Add the `AccessKeyId` and `SecretAccessKey` as [Fly.io secrets](https://fly.io/docs/reference/secrets/)
+
+```sh
+# From wihin `./control-plane`
+fly secrets set AWS_ACCESS_KEY_ID=xxx
+fly secrets set AWS_SECRET_ACCESS_KEY=xxx
+```
