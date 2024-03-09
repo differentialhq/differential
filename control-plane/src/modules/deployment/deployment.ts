@@ -12,6 +12,7 @@ export type Deployment = {
   status: string;
   provider: string;
   assetUploadId?: string | null;
+  createdAt: Date;
 };
 
 export const s3AssetDetails = async (
@@ -79,6 +80,8 @@ export const createDeployment = async ({
       service: data.deployments.service,
       status: data.deployments.status,
       provider: data.deployments.provider,
+      createdAt: data.deployments.created_at,
+      assetUploadId: data.deployments.asset_upload_id,
     });
 
   return deployment[0];
@@ -93,6 +96,7 @@ export const getDeployment = async (id: string): Promise<Deployment> => {
       status: data.deployments.status,
       provider: data.deployments.provider,
       assetUploadId: data.deployments.asset_upload_id,
+      createdAt: data.deployments.created_at,
     })
     .from(data.deployments)
     .where(eq(data.deployments.id, id));
@@ -102,8 +106,15 @@ export const getDeployment = async (id: string): Promise<Deployment> => {
 
 export const getDeployments = async (
   cluster: string,
-  service: string,
+  service?: string,
 ): Promise<Deployment[]> => {
+  const whereClause = service
+    ? and(
+        eq(data.deployments.cluster_id, cluster),
+        eq(data.deployments.service, service),
+      )
+    : eq(data.deployments.cluster_id, cluster);
+
   const deployment = await data.db
     .select({
       id: data.deployments.id,
@@ -112,14 +123,10 @@ export const getDeployments = async (
       status: data.deployments.status,
       provider: data.deployments.provider,
       assetUploadId: data.deployments.asset_upload_id,
+      createdAt: data.deployments.created_at,
     })
     .from(data.deployments)
-    .where(
-      and(
-        eq(data.deployments.cluster_id, cluster),
-        eq(data.deployments.service, service),
-      ),
-    )
+    .where(whereClause)
     .orderBy(
       sql`case when ${data.deployments.status} = 'active' then 1 else 2 end`,
     );

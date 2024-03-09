@@ -8,6 +8,7 @@ import {
   ServiceDefinition,
   parseServiceDefinition,
 } from "./service-definitions";
+import { getDeployments } from "./deployment/deployment";
 
 type Job = {
   id: string;
@@ -116,6 +117,9 @@ export const getClusterDetailsForUser = async ({
   createdAt: Date;
   machines: Array<Machine>;
   jobs: Array<Job>;
+  deployments: Array<{
+    id: string;
+  }>;
   definitions: Array<ServiceDefinition>;
 }> => {
   const clusters = await data.db
@@ -173,11 +177,14 @@ export const getClusterDetailsForUser = async ({
       ),
     );
 
+  const deployments = await getDeployments(clusterId);
+
   return {
     id: clusters[0].id,
     apiSecret: clusters[0].apiSecret,
     createdAt: clusters[0].createdAt,
     definitions: parseServiceDefinition(clusters.map((c) => c.definitions)),
+    deployments,
     machines,
     jobs,
   };
