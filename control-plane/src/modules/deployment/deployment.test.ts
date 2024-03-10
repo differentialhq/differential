@@ -1,19 +1,12 @@
 import { createOwner } from "../test/util";
 import {
-  Deployment,
   createDeployment,
   getDeployment,
   releaseDeployment,
 } from "./deployment";
-import { getPresignedURL } from "../s3";
 import { DeploymentProvider } from "./deployment-provider";
 import * as data from "../data";
 import { eq } from "drizzle-orm";
-
-jest.mock("../s3", () => ({
-  UPLOAD_BUCKET: "mockedBucket",
-  getPresignedURL: jest.fn().mockResolvedValue("mockedPresignedURL"),
-}));
 
 describe("createDeployment", () => {
   let owner: { clusterId: string };
@@ -34,22 +27,6 @@ describe("createDeployment", () => {
 
     expect(result.id).toBeDefined();
     expect(result.clusterId).toEqual(owner.clusterId);
-  });
-
-  it("should generate a presigned url", async () => {
-    const result = await createDeployment({
-      clusterId: owner.clusterId,
-      serviceName: "testService",
-    });
-
-    expect(result.id).toBeDefined();
-    expect(result.clusterId).toEqual(owner.clusterId);
-
-    expect(getPresignedURL).toHaveBeenCalledTimes(1);
-    expect(getPresignedURL).toHaveBeenCalledWith(
-      "mockedBucket",
-      `${owner.clusterId}/testService/service_bundle/${result.id}`,
-    );
   });
 });
 
@@ -138,20 +115,18 @@ describe("releaseDeployment", () => {
       serviceName: "testService",
     });
 
-    delete (deployment as any).packageUploadUrl;
-
     await releaseDeployment(deployment, provider);
 
     expect(await getDeployment(deployment.id)).toEqual({
       ...deployment,
       status: "active",
+      assetUploadId: null,
     });
 
     const deployment2 = await createDeployment({
       clusterId: owner.clusterId,
       serviceName: "testService",
     });
-    delete (deployment2 as any).packageUploadUrl;
 
     await releaseDeployment(deployment2, provider);
 
@@ -159,10 +134,12 @@ describe("releaseDeployment", () => {
     expect(await getDeployment(deployment.id)).toEqual({
       ...deployment,
       status: "inactive",
+      assetUploadId: null,
     });
     expect(await getDeployment(deployment2.id)).toEqual({
       ...deployment2,
       status: "active",
+      assetUploadId: null,
     });
   });
 });

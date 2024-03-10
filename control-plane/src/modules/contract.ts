@@ -414,9 +414,8 @@ export const definition = {
     responses: {
       501: z.undefined(),
       401: z.undefined(),
-      200: z.object({
+      201: z.object({
         id: z.string(),
-        packageUploadUrl: z.string(),
         status: z.string(),
       }),
     },
@@ -474,20 +473,61 @@ export const definition = {
       }),
     },
   },
-  createClientLibrary: {
+  createClientLibraryVersion: {
     method: "POST",
     path: "/clusters/:clusterId/client-libraries",
     headers: z.object({
       authorization: z.string(),
     }),
-    body: z.undefined(),
+    body: z.object({
+      increment: z
+        .enum(["patch", "minor", "major"])
+        .optional()
+        .default("patch"),
+    }),
     responses: {
       501: z.undefined(),
       401: z.undefined(),
-      200: z.object({
+      201: z.object({
         id: z.string(),
-        packageUploadUrl: z.string(),
+        version: z.string(),
       }),
+    },
+  },
+  getClientLibraryVersions: {
+    method: "GET",
+    path: "/clusters/:clusterId/client-libraries",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      501: z.undefined(),
+      401: z.undefined(),
+      200: z.array(
+        z.object({
+          id: z.string(),
+          version: z.string(),
+          uploadedAt: z.date(),
+        }),
+      ),
+    },
+  },
+  createAsset: {
+    method: "POST",
+    path: "/clusters/:clusterId/assets",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      type: z.enum(["client_library", "service_bundle"]),
+      target: z.string(),
+    }),
+    responses: {
+      201: z.object({
+        presignedUrl: z.string(),
+      }),
+      400: z.undefined(),
+      401: z.undefined(),
     },
   },
   setClusterSettings: {
@@ -516,12 +556,44 @@ export const definition = {
     responses: {
       200: z.object({
         predictiveRetriesEnabled: z.boolean(),
+        cloudEnabled: z.boolean(),
       }),
       401: z.undefined(),
     },
     pathParams: z.object({
       clusterId: z.string(),
     }),
+  },
+  npmRegistryDefinition: {
+    method: "GET",
+    path: "/packages/npm/:packageName",
+    responses: {
+      501: z.undefined(),
+      404: z.undefined(),
+      200: z.object({
+        "dist-tags": z.record(z.string()),
+        name: z.string(),
+        versions: z.record(
+          z.object({
+            name: z.string(),
+            description: z.string(),
+            version: z.string(),
+            dist: z.object({
+              tarball: z.string(),
+            }),
+          }),
+        ),
+      }),
+    },
+  },
+  npmRegistryDownload: {
+    method: "GET",
+    path: "/packages/npm/:packageName/:version",
+    responses: {
+      501: z.undefined(),
+      404: z.undefined(),
+      200: z.any(),
+    },
   },
 } as const;
 

@@ -138,9 +138,6 @@ describe("nextJobs", () => {
       definition,
     });
 
-    // delay to allow for background write
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
     const stored = await getServiceDefinitions(owner);
 
     expect(stored).toStrictEqual([definition]);
@@ -171,9 +168,6 @@ describe("selfHealJobs", () => {
         functions: [fnDefinition],
       },
     });
-
-    // wait for the background job to write the service definition
-    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const saved = await functionDefinition(owner, "testService", targetFn);
 
@@ -242,9 +236,6 @@ describe("selfHealJobs", () => {
         functions: [fnDefinition],
       },
     });
-
-    // wait for the background job to write the service definition
-    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const saved = await functionDefinition(owner, "testService", targetFn);
 
@@ -419,11 +410,15 @@ describe("persistJobResult", () => {
       service,
     });
 
-    // wait 2s
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const machineStallTimeout = 1;
+
+    // wait 1s for the machine to stall
+    await new Promise((resolve) =>
+      setTimeout(resolve, machineStallTimeout * 1000),
+    );
 
     // self heal jobs with machine stall timeout of 1s
-    const healedJobs = await selfHealJobs({ machineStallTimeout: 1 });
+    const healedJobs = await selfHealJobs({ machineStallTimeout });
 
     expect(
       healedJobs.stalledMachines.some(

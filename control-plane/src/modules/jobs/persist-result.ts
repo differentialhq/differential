@@ -3,6 +3,7 @@ import * as cluster from "../cluster";
 import * as data from "../data";
 import * as events from "../observability/events";
 import * as predictor from "../predictor/predictor";
+import { jobDurations } from "./job-metrics";
 
 type PersistResultParams = {
   result: string;
@@ -65,6 +66,8 @@ export async function persistJobResult({
   machineId,
   deploymentId,
 }: PersistResultParams) {
+  const end = jobDurations.startTimer({ operation: "persistJobResult" });
+
   const predictedToBeRetryableResult = (await shouldPredictRetry({
     resultType,
     jobId,
@@ -123,6 +126,8 @@ export async function persistJobResult({
       1,
     );
   }
+
+  end();
 }
 
 async function updateJobWithRetryableResult({

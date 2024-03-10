@@ -17,7 +17,7 @@ RUN apt-get update -qq && \
     apt-get install -y python-is-python3 pkg-config build-essential 
 
 # Install node modules
-COPY --link package.json package-lock.json .
+COPY --link package.json package-lock.json ./
 RUN npm install
 
 # Copy application code

@@ -70,7 +70,7 @@ export const packageService = async (
   installDependencies(packageOut);
 
   return {
-    packagePath: await zipDirectory(packageOut),
+    packagePath: packageOut,
     packageJson: builtPackage,
   };
 };
@@ -254,25 +254,35 @@ const getPackageJson = (packagePath: string): PackageJson => {
   return JSON.parse(packageJsonContent);
 };
 
-const zipDirectory = async (directoryPath: string): Promise<string> => {
+export const zipDirectory = async (directoryPath: string): Promise<string> => {
   const outputZipPath = `${directoryPath}.zip`;
   await zip(directoryPath, outputZipPath);
   return outputZipPath;
 };
 
-export const buildClientPackage = async (
-  project: ProjectDetails,
-  outDir: string,
-): Promise<string> => {
+export const buildClientPackage = async ({
+  project,
+  cluster,
+  version,
+  scope,
+  outDir,
+}: {
+  project: ProjectDetails;
+  version: string;
+  scope?: string;
+  cluster: string;
+  outDir: string;
+}): Promise<string> => {
   const packageOut = path.join(outDir, "package");
   const clientOut = path.join(outDir, "definition");
+  scope = scope?.replace("@", "");
 
   fs.mkdirSync(clientOut, { recursive: true });
 
   const packageJson: PackageJson = {
-    name: `client`,
+    name: scope ? `@${scope}/${cluster}` : cluster,
     main: "index.d.ts",
-    version: "0.0.1",
+    version: version,
     peerDependencies: {
       "@differentialhq/core": "^3.13.1",
     },
@@ -293,8 +303,9 @@ export const buildClientPackage = async (
 
   extractServiceTypes(project, packageOut, clientOut);
   buildClientIndex(project, clientOut);
+  const result = npmPack(clientOut);
 
-  return await zipDirectory(clientOut);
+  return result;
 };
 
 const buildClientIndex = (project: ProjectDetails, outDir: string) => {
@@ -327,4 +338,15 @@ const extractServiceTypes = (
     fs.copyFileSync(typesPath, path.join(outDir, `${service}.d.ts`));
   }
   fs.rmSync(path.join(packageDir, "types"), { recursive: true });
+};
+
+const npmPack = (packageDir: string): string => {
+  const result = childProcess
+    .execSync(`npm pack --quiet`, {
+      cwd: packageDir,
+    })
+    .toString()
+    .trim();
+
+  return path.join(packageDir, result);
 };

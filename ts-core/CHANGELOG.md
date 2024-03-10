@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.14.0](https://github.com/differentialhq/differential/compare/v3.13.1...v3.14.0) (2024-02-29)
+
+### Bug Fixes
+
+- Auto-retry jobs when machine stalls ([#139](https://github.com/differentialhq/differential/issues/139)) ([7ceb438](https://github.com/differentialhq/differential/commit/7ceb438ec686d11709a027c6117c61c6380c56fb))
+
 ## [3.13.1](https://github.com/differentialhq/differential/compare/v3.13.0...v3.13.1) (2024-02-15)
 
 ### Bug Fixes

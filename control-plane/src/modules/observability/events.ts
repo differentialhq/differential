@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { Counter } from "prom-client";
 import { ulid } from "ulid";
 import * as data from "../data";
 
@@ -39,6 +40,12 @@ type Event = {
   };
 };
 
+const counter = new Counter({
+  name: "differential_events_total",
+  help: "Internal event counter",
+  labelNames: ["clusterId", "serviceName", "type"],
+});
+
 type InsertableEvent = Event & {
   createdAt: Date;
 };
@@ -51,6 +58,16 @@ class EventWriterBuffer {
 
   public push(event: InsertableEvent) {
     this.buffer.push(event);
+
+    counter.inc(
+      {
+        type: event.type,
+        clusterId: event.clusterId,
+        serviceName: event.service,
+      },
+      1,
+    );
+
     if (this.flushTimeout === null) {
       this.flushTimeout = setTimeout(() => this.flush(), this.flushInterval);
     }

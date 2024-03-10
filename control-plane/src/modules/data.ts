@@ -34,6 +34,7 @@ export const pool = new Pool({
       },
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 5_000,
+  allowExitOnIdle: process.env.ALLOW_EXIT_ON_IDLE === "true",
 });
 
 pool.on("error", (err) => {
@@ -189,9 +190,9 @@ export const deployments = pgTable("deployments", {
   })
     .defaultNow()
     .notNull(),
-  asset_upload_id: varchar("asset_upload_id", { length: 1024 })
-    .references(() => assetUploads.id)
-    .notNull(),
+  asset_upload_id: varchar("asset_upload_id", { length: 1024 }).references(
+    () => assetUploads.id,
+  ),
   meta: json("meta"),
   status: text("status", {
     enum: ["uploading", "ready", "active", "inactive"],
@@ -202,6 +203,28 @@ export const deployments = pgTable("deployments", {
     enum: ["lambda", "mock"],
   }).notNull(),
 });
+
+export const clientLibraryVersions = pgTable(
+  "client_library_versions",
+  {
+    id: varchar("id", { length: 1024 }).notNull(),
+    cluster_id: varchar("cluster_id")
+      .references(() => clusters.id)
+      .notNull(),
+    version: varchar("version", { length: 1024 }).notNull(),
+    asset_upload_id: varchar("asset_upload_id", { length: 1024 }).references(
+      () => assetUploads.id,
+    ),
+  },
+  (table) => ({
+    pk: primaryKey(table.cluster_id, table.id),
+    unique: {
+      uniqueVersion: {
+        columns: [table.cluster_id, table.version],
+      },
+    },
+  }),
+);
 
 export const assetUploads = pgTable("asset_uploads", {
   id: varchar("id", { length: 1024 }).primaryKey().notNull(),

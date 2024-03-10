@@ -4,12 +4,13 @@ import * as fs from "fs";
 import * as os from "os";
 
 import { CommandModule, argv } from "yargs";
-import { buildProject, packageService } from "../lib/package";
-import { uploadPackage } from "../lib/upload";
+import { buildProject, packageService, zipDirectory } from "../lib/package";
+import { uploadAsset } from "../lib/upload";
 import { release } from "../lib/release";
-import { waitForDeploymentStatus } from "../lib/client";
+import { client, waitForDeploymentStatus } from "../lib/client";
 import { selectCluster } from "../utils";
 import { select } from "@inquirer/prompts";
+import { cloudEnabledCheck } from "../lib/auth";
 
 const log = debug("differential:cli:deploy:create");
 
@@ -50,6 +51,10 @@ export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
       }
     }
 
+    if (!(await cloudEnabledCheck(cluster))) {
+      return;
+    }
+
     const tmpDir = fs.mkdtempSync(os.tmpdir());
     try {
       const outDir = `${tmpDir}/out`;
@@ -85,9 +90,31 @@ export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
 
       const { packagePath } = await packageService(service, project, outDir);
 
+      console.log(`☁️l  Creating deployment for service ${service}`);
+
+      const response = await client.createDeployment({
+        params: {
+          clusterId: cluster,
+          serviceName: service,
+        },
+      });
+
+      if (response.status !== 201) {
+        throw new Error(
+          "Failed to create deployment. Please check provided options and cluster configuration.",
+        );
+      }
+      const deployment = response.body;
+
       console.log(`📦  Uploading service ${service}`);
 
-      const deployment = await uploadPackage(packagePath, cluster, service);
+      await uploadAsset({
+        path: await zipDirectory(packagePath),
+        contentType: "application/zip",
+        target: deployment.id,
+        type: "service_bundle",
+        cluster,
+      });
 
       console.log(`☁️   Deploying ${service}:${deployment.id} to ${cluster}`);
 

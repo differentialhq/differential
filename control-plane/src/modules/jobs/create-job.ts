@@ -4,6 +4,7 @@ import * as clusters from "../cluster";
 import * as data from "../data";
 import * as events from "../observability/events";
 import { functionDefinition } from "../service-definitions";
+import { jobDurations } from "./job-metrics";
 
 type CreateJobParams = {
   service: string;
@@ -26,6 +27,8 @@ export const createJob = async (params: {
   idempotencyKey?: string;
   cacheKey?: string;
 }) => {
+  const end = jobDurations.startTimer({ operation: "createJob" });
+
   const serviceDefinition = await functionDefinition(
     params.owner,
     params.service,
@@ -56,6 +59,7 @@ export const createJob = async (params: {
       jobId: id,
     });
 
+    end();
     return { id };
   } else if (params.cacheKey) {
     const { id } = await createJobStrategies.cached({
@@ -70,6 +74,7 @@ export const createJob = async (params: {
       jobId: id,
     });
 
+    end();
     return { id };
   } else {
     const { id } = await createJobStrategies.default({
@@ -84,6 +89,7 @@ export const createJob = async (params: {
       jobId: id,
     });
 
+    end();
     return { id };
   }
 };

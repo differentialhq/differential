@@ -4,9 +4,33 @@ import fs from "fs";
 
 import http from "http";
 import { openBrowser } from "../utils";
-import { CONSOLE_URL } from "../constants";
+import {
+  CONSOLE_URL,
+  CLIENT_PACKAGE_SCOPE,
+  NPM_REGISTRY_URL,
+} from "../constants";
+import * as childProcess from "child_process";
+import { client } from "./client";
 
 const TOKEN_PATH = path.join(os.homedir(), ".differential", "credentials");
+const CLOUD_WAITLIST_URL = "https://forms.fillout.com/t/9M1VhL8Wxyus";
+
+export const cloudEnabledCheck = async (
+  clusterId: string,
+): Promise<boolean> => {
+  const settings = await client.getClusterSettings({ params: { clusterId } });
+
+  if (settings.status === 200 && settings.body.cloudEnabled) {
+    return true;
+  }
+
+  console.error(
+    "This feature requires Differential Cloud which is currently in private beta.",
+  );
+  console.error(`To join the waitlist, please visit ${CLOUD_WAITLIST_URL}`);
+  return false;
+};
+
 export const storeToken = (token: string) => {
   const TOKEN_PATH = path.join(os.homedir(), ".differential", "credentials");
   const dir = path.dirname(TOKEN_PATH);
@@ -14,6 +38,21 @@ export const storeToken = (token: string) => {
     fs.mkdirSync(dir, { recursive: true });
   }
   fs.writeFileSync(TOKEN_PATH, token);
+};
+
+const refreshNpmToken = async () => {
+  const token = getToken();
+  if (token) {
+    setNpmConfig(`${CLIENT_PACKAGE_SCOPE}:registry`, NPM_REGISTRY_URL);
+    setNpmConfig(
+      `${NPM_REGISTRY_URL.replace(/^http(s?):/, "")}:_authToken`,
+      token,
+    );
+  }
+};
+
+const setNpmConfig = async (key: string, value: string) => {
+  childProcess.execSync(`npm config set ${key}=${value}`);
 };
 
 export const getToken = () => {
@@ -36,6 +75,7 @@ export const startTokenFlow = () => {
       ).searchParams.get("token");
       if (token) {
         storeToken(token);
+        refreshNpmToken();
         console.log("The Differential CLI has been authenticated.");
         const body = `
       <html>
