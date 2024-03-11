@@ -8,7 +8,7 @@ import {
 } from "./deployment";
 import { DeploymentProvider } from "./deployment-provider";
 import { getCluster } from "../cluster";
-import { CloudFormationManager } from "./cf-manager";
+import { CloudFormationManager } from "./cfn-manager";
 import {
   AlreadyExistsException,
   Parameter,
