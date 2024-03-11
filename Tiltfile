@@ -2,7 +2,10 @@ k8s_yaml('control-plane/postgres.dev.yaml')
 k8s_resource('postgres', port_forwards=5432)
 
 k8s_yaml('control-plane/kubernetes.dev.yaml')
-k8s_resource('control-plane', port_forwards=4000, resource_deps=['postgres'])
+k8s_resource('control-plane', port_forwards=[
+  port_forward(4000, 4000, "api"),
+  port_forward(9091, 9091, 'metrics')
+], resource_deps=['postgres'])
 
 docker_build('control-plane-image', 'control-plane', dockerfile='control-plane/Dockerfile.dev', live_update=[
   sync('./control-plane/src', '/app/src'),

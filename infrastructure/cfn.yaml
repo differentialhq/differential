@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  AssetUploadBucketName:
+    Type: String
+    Description: Name for the S3 bucket used for asset uploads
+
+Resources:
+  AssetUploadBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref AssetUploadBucketName
+
+  AssetReadWritePolicy:
+      Type: AWS::IAM::Policy
+      Properties:
+        PolicyName: AssetReadWritePolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - "s3:PutObject"
+                - "s3:GetObject"
+                - "s3:DeleteObject"
+              Resource: !Sub "arn:aws:s3:::${AssetUploadBucket}/*"
+        Users:
+          - !Ref ControlPlaneUser
+
+  LambdaManagementPolicy:
+      Type: AWS::IAM::Policy
+      Properties:
+        PolicyName: LambdaManagementPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - "lambda:CreateFunction"
+                - "lambda:UpdateFunctionCode"
+                - "lambda:UpdateFunctionConfiguration"
+                - "lambda:PutFunctionConcurrency"
+                - "lambda:PutFunctionEventInvokeConfig"
+                - "lambda:TagResource"
+                - "lambda:InvokeFunction"
+              Resource: "arn:aws:lambda:*:*:function:differential-deployment-*"
+            - Effect: Allow
+              Action: iam:PassRole
+              Resource: !GetAtt DeploymentLambdaRuntimeRole.Arn
+        Users:
+          - !Ref ControlPlaneUser
+
+  DeploymentLambdaRuntimeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: DeploymentLambdaRuntimeRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: DeploymentLambdaRuntimePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "arn:aws:logs:*:*:*"
+
+  ControlPlaneUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: "DifferentialControlPlane"
