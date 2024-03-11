@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs";
 import { ChevronLeft } from "lucide-react";
 import { ServiceLiveTables } from "./ServiceLiveTables";
 import { ServiceMetrics } from "./ServiceMetrics";
+import { ServiceDeployments } from "./ServiceDeployments";
 
 export default async function Page({
   params,
@@ -46,6 +47,12 @@ export default async function Page({
       </div>
 
       <ServiceMetrics
+        clusterId={params.clusterId}
+        serviceName={params.serviceName}
+      />
+
+      <ServiceDeployments
+        token={token}
         clusterId={params.clusterId}
         serviceName={params.serviceName}
       />
