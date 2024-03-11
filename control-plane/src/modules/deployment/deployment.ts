@@ -159,21 +159,6 @@ export const releaseDeployment = async (
         ),
       );
 
-    // Cancel any other "uploading" deployments
-    await tx
-      .update(data.deployments)
-      .set({
-        status: "cancelled",
-      })
-      .where(
-        and(
-          eq(data.deployments.cluster_id, deployment.clusterId),
-          eq(data.deployments.service, deployment.service),
-          eq(data.deployments.status, "uploading"),
-          ne(data.deployments.id, deployment.id),
-        ),
-      );
-
     // Update the deployment with metadata from the provider (stackId, etx)
     update = await tx
       .update(data.deployments)

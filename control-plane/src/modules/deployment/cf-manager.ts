@@ -9,14 +9,14 @@ import { getObject, CFN_BUCKET } from "../s3";
 import { Readable } from "stream";
 
 type CloudFormationStack = {
-  StackId: string;
+  stackId: string;
 };
 
 type StackChangeResult = CloudFormationStack & {
-  Pending: boolean;
-  Success: boolean;
-  Status: string;
-  Reason?: string;
+  pending: boolean;
+  success: boolean;
+  status: string;
+  reason?: string;
 };
 
 export class CloudFormationManager {
@@ -70,7 +70,7 @@ export class CloudFormationManager {
     if (!response.StackId) {
       throw new Error("Failed to create CloudFormation stack");
     }
-    return { StackId: response.StackId };
+    return { stackId: response.StackId };
   }
 
   async update({
@@ -94,7 +94,7 @@ export class CloudFormationManager {
     if (!response.StackId) {
       throw new Error("Failed to update CloudFormation stack");
     }
-    return { StackId: response.StackId };
+    return { stackId: response.StackId };
   }
 
   async getChangeResult(stackId: string): Promise<StackChangeResult> {
@@ -115,10 +115,10 @@ export class CloudFormationManager {
         case "CREATE_COMPLETE":
         case "UPDATE_COMPLETE":
           return {
-            Pending: false,
-            Success: true,
-            StackId: response.Stacks[0].StackId,
-            Status: response.Stacks[0].StackStatus,
+            pending: false,
+            success: true,
+            stackId: response.Stacks[0].StackId,
+            status: response.Stacks[0].StackStatus,
           };
         case "CREATE_FAILED":
         case "UPDATE_FAILED":
@@ -127,18 +127,18 @@ export class CloudFormationManager {
         case "UPDATE_ROLLBACK_COMPLETE":
         case "UPDATE_ROLLBACK_FAILED":
           return {
-            Pending: false,
-            Success: false,
-            StackId: response.Stacks[0].StackId,
-            Status: response.Stacks[0].StackStatus,
-            Reason: response.Stacks[0].StackStatusReason,
+            pending: false,
+            success: false,
+            stackId: response.Stacks[0].StackId,
+            status: response.Stacks[0].StackStatus,
+            reason: response.Stacks[0].StackStatusReason,
           };
         default:
           return {
-            Pending: true,
-            Success: false,
-            StackId: response.Stacks[0].StackId,
-            Status: response.Stacks[0].StackStatus,
+            pending: true,
+            success: false,
+            stackId: response.Stacks[0].StackId,
+            status: response.Stacks[0].StackStatus,
           };
       }
     } else {

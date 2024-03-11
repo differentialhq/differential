@@ -15,6 +15,8 @@ import {
 } from "@aws-sdk/client-cloudformation";
 import { registerCron } from "../cron";
 
+const LAMBDA_CFN_TEMPLATE_KEY = "lambda-cfn.yaml";
+
 export class LambdaCfnProvider implements DeploymentProvider {
   private lambdaClient = new LambdaClient();
   private cfnManager = new CloudFormationManager();
@@ -27,7 +29,7 @@ export class LambdaCfnProvider implements DeploymentProvider {
     return 10000;
   }
 
-  // Defaults are currently being set in the lambda-cfn.yaml file.
+  // Defaults are currently being set in the CloudFormation template.
   // In the future, we may want to allow these to be overridden by the
   // provider configuration.
   public schema(): ZodSchema<void> {
@@ -42,7 +44,7 @@ export class LambdaCfnProvider implements DeploymentProvider {
     try {
       await this.cfnManager.create({
         stackName: functionName,
-        templateKey: "lambda-cfn.yaml",
+        templateKey: LAMBDA_CFN_TEMPLATE_KEY,
         params: await this.cfnParams(deployment),
       });
     } catch (error: any) {
@@ -71,7 +73,7 @@ export class LambdaCfnProvider implements DeploymentProvider {
 
     const result = await this.cfnManager.update({
       stackName: functionName,
-      templateKey: "lambda-cfn.yaml",
+      templateKey: LAMBDA_CFN_TEMPLATE_KEY,
       params: await this.cfnParams(deployment),
     });
     return result;
@@ -115,17 +117,20 @@ export class LambdaCfnProvider implements DeploymentProvider {
       async () => {
         const deployments = await getAllPendingDeployments("lambda");
         for (const deployment of deployments) {
-          console.log("Checking deployment result", deployment);
           const result = await this.cfnManager.getChangeResult(
             this.buildFunctionName(deployment),
           );
-          console.log("Deployment result", result);
-          if (result.Pending) {
+          // TODO: Cleanup pending deployments that have stalled
+          if (result.pending) {
             continue;
           }
+          console.log("Updating deployment with CFN result", {
+            deployment,
+            result,
+          });
           await updateDeploymentResult(
             deployment,
-            result.Success ? "active" : "failed",
+            result.success ? "active" : "failed",
             result,
           );
         }
