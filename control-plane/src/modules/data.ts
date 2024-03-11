@@ -195,7 +195,7 @@ export const deployments = pgTable("deployments", {
   ),
   meta: json("meta"),
   status: text("status", {
-    enum: ["uploading", "ready", "active", "inactive"],
+    enum: ["uploading", "active", "inactive", "failed", "cancelled"],
   })
     .default("uploading")
     .notNull(),

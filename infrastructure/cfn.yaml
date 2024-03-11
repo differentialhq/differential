@@ -4,11 +4,20 @@ Parameters:
     Type: String
     Description: Name for the S3 bucket used for asset uploads
 
+  CfnTemplateBucketName:
+    Type: String
+    Description: Name for the S3 bucket used for CFN template storage
+
 Resources:
   AssetUploadBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref AssetUploadBucketName
+
+  CfnTemplateBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref CfnTemplateBucketName
 
   AssetReadWritePolicy:
       Type: AWS::IAM::Policy
