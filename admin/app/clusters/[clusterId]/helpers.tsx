@@ -44,3 +44,16 @@ export function functionStatusToCircle(status: string) {
       return <DeadGrayCircle />;
   }
 }
+
+export function deploymentStatusToCircle(status: string) {
+  // "uploading", "ready", "active", "inactive"
+  switch (status) {
+    case "uploading":
+    case "ready":
+      return <LiveAmberCircle />;
+    case "active":
+      return <LiveGreenCircle />;
+    default:
+      return <DeadGrayCircle />;
+  }
+}

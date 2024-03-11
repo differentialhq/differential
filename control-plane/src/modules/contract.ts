@@ -260,6 +260,11 @@ export const definition = {
               .optional(),
           }),
         ),
+        deployments: z.array(
+          z.object({
+            id: z.string(),
+          }),
+        ),
       }),
       401: z.undefined(),
       404: z.undefined(),
@@ -417,6 +422,10 @@ export const definition = {
       201: z.object({
         id: z.string(),
         status: z.string(),
+        clusterId: z.string(),
+        service: z.string(),
+        provider: z.string(),
+        createdAt: z.date(),
       }),
     },
   },
@@ -433,6 +442,10 @@ export const definition = {
       200: z.object({
         id: z.string(),
         status: z.string(),
+        clusterId: z.string(),
+        service: z.string(),
+        provider: z.string(),
+        createdAt: z.date(),
       }),
     },
   },
@@ -451,6 +464,10 @@ export const definition = {
         z.object({
           id: z.string(),
           status: z.string(),
+          clusterId: z.string(),
+          service: z.string(),
+          provider: z.string(),
+          createdAt: z.date(),
         }),
       ),
       401: z.undefined(),
@@ -470,6 +487,10 @@ export const definition = {
       200: z.object({
         id: z.string(),
         status: z.string(),
+        clusterId: z.string(),
+        service: z.string(),
+        provider: z.string(),
+        createdAt: z.date(),
       }),
     },
   },
