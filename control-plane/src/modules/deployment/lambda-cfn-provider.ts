@@ -111,16 +111,22 @@ export class LambdaCfnProvider implements DeploymentProvider {
     }
   }
 
-  // Scheduled job which checks for pending deployments and updates their status based on the result of the CloudFormation stack
+  // Scheduled job which checks for pending deployments and updates their status based on the result of the CloudFormation stack.
   public async startPollingDeployments() {
     registerCron(
       async () => {
         const deployments = await getAllPendingDeployments("lambda");
         for (const deployment of deployments) {
-          const result = await this.cfnManager.getChangeResult(
-            this.buildFunctionName(deployment),
-          );
-          // TODO: Cleanup pending deployments that have stalled
+          let result;
+          try {
+            result = await this.cfnManager.getChangeResult(
+              this.buildFunctionName(deployment),
+            );
+          } catch (e) {
+            console.error("Failed to get CFN result", { error: e, deployment });
+            continue;
+          }
+
           if (result.pending) {
             continue;
           }

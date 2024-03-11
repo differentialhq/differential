@@ -229,6 +229,7 @@ export const getAllPendingDeployments = async (
       status: data.deployments.status,
       provider: data.deployments.provider,
       assetUploadId: data.deployments.asset_upload_id,
+      createdAt: data.deployments.created_at,
     })
     .from(data.deployments)
     .where(
