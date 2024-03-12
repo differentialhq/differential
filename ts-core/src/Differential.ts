@@ -3,11 +3,7 @@ import debug from "debug";
 import { contract } from "./contract";
 import { DifferentialError } from "./errors";
 import { Events } from "./events";
-import {
-  extractDifferentialConfig,
-  isFunctionIdempotent,
-  retryConfigForFunction,
-} from "./functions";
+import { extractDifferentialConfig, retryConfigForFunction } from "./functions";
 import { ResultsPoller } from "./results-poller";
 import { pack, unpack } from "./serialize";
 import { deserializeError, serializeError } from "./serialize-error";
@@ -69,7 +65,6 @@ const createClient = ({
 type ServiceRegistryFunction = {
   fn: AsyncFunction;
   name: string;
-  idempotent: boolean;
   retryConfig?: {
     maxAttempts: number;
     timeoutIntervalSeconds: number;
@@ -146,9 +141,8 @@ class PollingAgent {
     // TODO: cache this
     const functions = Object.entries(functionRegistry)
       .filter(([, { name }]) => name === this.service.name)
-      .map(([functionName, { idempotent, retryConfig }]) => ({
+      .map(([functionName, { retryConfig }]) => ({
         name: functionName,
-        idempotent,
         retryConfig,
       }));
 
@@ -592,7 +586,6 @@ export class Differential {
     functionRegistry[name] = {
       fn: fn,
       name: serviceName,
-      idempotent: isFunctionIdempotent(fn),
       retryConfig: retryConfigForFunction(fn),
     };
   }
@@ -789,7 +782,6 @@ export class Differential {
         service,
         targetFn: fn as string,
         targetArgs: pack(originalArgs),
-        idempotencyKey: differentialConfig.$idempotencyKey,
         cacheKey: differentialConfig.$cacheKey,
       },
       headers: {

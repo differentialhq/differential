@@ -26,7 +26,6 @@ export const definition = {
         .array(
           z.object({
             name: z.string(),
-            idempotent: z.boolean().optional(),
             rate: z
               .object({
                 per: z.enum(["minute", "hour"]),
@@ -66,7 +65,6 @@ export const definition = {
       targetArgs: z.string(),
       pool: z.string().optional(),
       service: z.string().default("unknown"),
-      idempotencyKey: z.string().optional(),
       cacheKey: z.string().optional(),
     }),
   },
@@ -247,7 +245,6 @@ export const definition = {
               .array(
                 z.object({
                   name: z.string(),
-                  idempotent: z.boolean().optional(),
                   rate: z
                     .object({
                       per: z.enum(["minute", "hour"]),
@@ -299,7 +296,6 @@ export const definition = {
               .array(
                 z.object({
                   name: z.string(),
-                  idempotent: z.boolean().optional(),
                   rate: z
                     .object({
                       per: z.enum(["minute", "hour"]),

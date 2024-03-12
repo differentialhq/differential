@@ -1,7 +1,7 @@
 import { countService } from "./count";
 import { d } from "./d";
 
-describe("Idempotency", () => {
+describe.skip("Idempotency", () => {
   it("should call the functions only once", async () => {
     await countService.start();
 

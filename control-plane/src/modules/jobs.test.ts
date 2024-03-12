@@ -74,43 +74,6 @@ describe("nextJobs", () => {
     ]);
   });
 
-  it("should respect idempotency", async () => {
-    const ik = Math.random().toString();
-    const owner = await createOwner();
-    const service = "minimal";
-    const targetFn = "foo";
-
-    const { id: id1 } = await createJob({
-      targetFn,
-      targetArgs: "1",
-      owner,
-      service,
-      idempotencyKey: ik,
-    });
-
-    const { id: id2 } = await createJob({
-      targetFn,
-      targetArgs: "2",
-      owner,
-      service,
-      idempotencyKey: ik,
-    });
-
-    expect(id1).toBe(id2);
-
-    const result = await nextJobs({
-      owner,
-      limit: 10,
-      machineId: mockMachineId,
-      ip: mockIp,
-      service,
-    });
-
-    expect(result.length).toBe(1);
-    expect(result[0].targetFn).toBe(targetFn);
-    expect(result[0].targetArgs).toBe("1");
-  });
-
   it("should persist the service definition", async () => {
     const service = `service-def`;
 
@@ -119,7 +82,6 @@ describe("nextJobs", () => {
       functions: [
         {
           name: Math.random().toString(),
-          idempotent: true,
           rate: {
             per: "minute" as const,
             limit: 1000,
@@ -335,7 +297,6 @@ describe("persistJobResult", () => {
       functions: [
         {
           name: "testTargetFn",
-          idempotent: false,
           maxAttempts: 2,
         },
       ],

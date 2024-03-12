@@ -1,4 +1,3 @@
-import { idempotent } from "../../functions";
 import { d } from "./d";
 
 let callCount = 0;
@@ -13,6 +12,6 @@ export const count = async (echo: string) => {
 export const countService = d.service({
   name: "count",
   functions: {
-    count: idempotent(count),
+    count: count,
   },
 });

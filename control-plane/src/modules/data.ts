@@ -63,7 +63,6 @@ export const jobs = pgTable(
     deployment_id: varchar("deployment_id", { length: 1024 }),
     target_fn: varchar("target_fn", { length: 1024 }).notNull(),
     target_args: text("target_args").notNull(),
-    idempotency_key: varchar("idempotency_key", { length: 1024 }).notNull(),
     cache_key: varchar("cache_key", { length: 1024 }),
     status: text("status", {
       enum: ["pending", "running", "success", "failure"], // job failure is actually a stalled state. TODO: rename it
@@ -90,7 +89,7 @@ export const jobs = pgTable(
     predictive_retry_count: integer("predictive_retry_count").default(0),
   },
   (table) => ({
-    pk: primaryKey(table.owner_hash, table.target_fn, table.idempotency_key),
+    pk: primaryKey(table.owner_hash, table.target_fn, table.id),
   }),
 );
 
