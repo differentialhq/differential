@@ -37,7 +37,7 @@ Create a file named d.ts which will be used to initialize Differential. This fil
 
 import { Differential } from "@differentialhq/core";
 
-// Initialize Differential with your API secret. 
+// Initialize Differential with your API secret.
 // Get yours at https://console.differential.dev.
 export const d = new Differential("YOUR_API_SECRET");
 ```
@@ -113,4 +113,4 @@ tsx service-consumer.ts
 
 - [Monolith](./src/tests/monolith/) contains an example of a monolith application broken into multiple services.
 - [End to end encryption](./src/tests/e2ee/) contains an example of how to use Differential's end to end encryption.
-- [Idempotency](./src/tests/idempotency/) contains an example of how to use Differential's idempotency.
+- [Caching](./src/tests/chaching/) contains an example of how to use Differential's distributed caching.

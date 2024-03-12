@@ -8,7 +8,7 @@ This repo contains the source code for the Differential control plane. Control p
 
 - Queue with exactly-once processing semantics
 - Service & function registry
-- Utilities for running functions in a distributed environment (caching, idempotency, etc)
+- Utilities for running functions in a distributed environment
 - APIs for interacting with the control plane
 - APIs for ingesting metrics and logs
 

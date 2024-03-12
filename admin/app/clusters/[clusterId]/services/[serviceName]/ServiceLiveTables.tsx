@@ -75,11 +75,6 @@ export function ServiceLiveTables({
             data={
               data.definition?.functions?.map((s) => ({
                 Function: s.name,
-                Idempotent: s.idempotent ? "Yes" : "No",
-                "Rate Limit":
-                  s.rate === null || s.rate === undefined
-                    ? "N/A"
-                    : `${s.rate?.limit}/${s.rate?.per}`,
                 "Cache TTL":
                   s.cacheTTL === null || s.cacheTTL === undefined
                     ? "N/A"
