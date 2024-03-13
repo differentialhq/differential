@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Differential service configuration
+
+Parameters:
+  ClusterId:
+    Type: String
+    Description: Differential Cluster Id
+
+  ServiceName:
+    Type: String
+    Description: Differential Service name
+
+  DeploymentId:
+    Type: String
+    Description: Differential Deployment Id
+
+  FunctionName:
+    Type: String
+    Description: The Lambda function name
+
+  Runtime:
+    Type: String
+    Description: The Lambda runtime
+    Default: nodejs20.x
+
+  UploadBucketName:
+    Type: String
+    Description: The S3 Upload bucket name
+
+  UploadBucketKey:
+    Type: String
+    Description: The S3 Upload bucket key
+
+  APISecret:
+    Type: String
+    NoEcho: true
+    Description: Differential API key for handler
+
+  Handler:
+    Type: String
+    Description: The name of the method that Lambda calls to run the function
+    Default: "differential-index.handler"
+
+  Timeout:
+    Type: String
+    Description: The Lambda function timeout
+    Default: "60"
+
+  ReservedConcurrency:
+    Type: String
+    Description: The Lambda function reserved concurrency
+    Default: "1"
+
+  ExecutionRole:
+    Type: String
+    Description: Lambda execution role
+    Default: ""
+
+Conditions:
+  IsExecutionRoleEmpty:
+    "Fn::Equals":
+      - !Ref "ExecutionRole"
+      - ""
+
+Resources:
+  DifferentialService:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref FunctionName
+      Handler: !Ref Handler
+      Role:
+        'Fn::If':
+          - IsExecutionRoleEmpty
+          - !Sub 'arn:aws:iam::${AWS::AccountId}:role/DeploymentLambdaRuntimeRole'
+          - !Ref ExecutionRole
+      Runtime: !Ref Runtime
+      ReservedConcurrentExecutions: !Ref ReservedConcurrency
+      Timeout: !Ref Timeout
+      Environment:
+        Variables:
+          DIFFERENTIAL_DEPLOYMENT_ID: !Ref DeploymentId
+          DIFFERENTIAL_DEPLOYMENT_PROVIDER: lambda
+          DIFFERENTIAL_API_SECRET: !Ref APISecret
+      Code:
+        S3Bucket: !Ref UploadBucketName
+        S3Key: !Ref UploadBucketKey
+      Tags:
+        - Key: clusterId
+          Value: !Ref ClusterId
+        - Key: service
+          Value: !Ref ServiceName
+
+  DifferentialServiceInvokeConfig:
+    Type: AWS::Lambda::EventInvokeConfig
+    Properties:
+      FunctionName: !Ref FunctionName
+      Qualifier: "$LATEST"
+      MaximumRetryAttempts: 0

@@ -52,7 +52,7 @@ describe("getDeployment", () => {
     expect(result.id).toEqual(id);
     expect(result.clusterId).toEqual(owner.clusterId);
     expect(result.service).toEqual("testService");
-    expect(result.status).toEqual("ready");
+    expect(result.status).toEqual("uploading");
   });
 });
 
@@ -62,8 +62,8 @@ describe("releaseDeployment", () => {
   const provider: DeploymentProvider = {
     name: () => "mockProvider",
     schema: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
+    create: jest.fn(async () => ({})),
+    update: jest.fn(async () => ({})),
     notify: jest.fn(),
     minimumNotificationInterval: jest.fn(),
   };
@@ -109,19 +109,16 @@ describe("releaseDeployment", () => {
     expect(provider.create).toHaveBeenCalledTimes(0);
   });
 
-  it("should update deployment status on release", async () => {
+  it("should mark existing deployment status inactive on release", async () => {
     const deployment = await createDeployment({
       clusterId: owner.clusterId,
       serviceName: "testService",
     });
 
-    await releaseDeployment(deployment, provider);
-
-    expect(await getDeployment(deployment.id)).toEqual({
-      ...deployment,
-      status: "active",
-      assetUploadId: null,
-    });
+    await data.db
+      .update(data.deployments)
+      .set({ status: "active" })
+      .where(eq(data.deployments.id, deployment.id));
 
     const deployment2 = await createDeployment({
       clusterId: owner.clusterId,
@@ -130,15 +127,10 @@ describe("releaseDeployment", () => {
 
     await releaseDeployment(deployment2, provider);
 
-    // Deployment 2 is now active and deployment 1 is inactive
+    // Deployment 1 should be inactive
     expect(await getDeployment(deployment.id)).toEqual({
       ...deployment,
       status: "inactive",
-      assetUploadId: null,
-    });
-    expect(await getDeployment(deployment2.id)).toEqual({
-      ...deployment2,
-      status: "active",
       assetUploadId: null,
     });
   });

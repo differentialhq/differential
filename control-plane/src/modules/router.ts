@@ -465,12 +465,6 @@ export const router = s.router(contract, {
       };
     }
 
-    if (deployment.status !== "ready") {
-      return {
-        status: 400,
-      };
-    }
-
     return {
       status: 200,
       body: await releaseDeployment(

@@ -1,4 +1,4 @@
-import { and, eq, or, sql } from "drizzle-orm";
+import { and, eq, ne, or, sql } from "drizzle-orm";
 import NodeCache from "node-cache";
 import { ulid } from "ulid";
 import * as data from "../data";
@@ -60,7 +60,7 @@ export const createDeployment = async ({
     storeServiceDefinition(serviceName, { name: serviceName }, { clusterId });
   }
 
-  const provider = service?.deployment_provider ?? "mock";
+  const provider = service?.deployment_provider ?? "lambda";
 
   const deployment = await data.db
     .insert(data.deployments)
@@ -70,7 +70,7 @@ export const createDeployment = async ({
         cluster_id: clusterId,
         service: serviceName,
         // Temporary, the expectation is that the deployment will be in the "uploading" while any async work is being done
-        status: "ready",
+        status: "uploading",
         provider: provider,
       },
     ])
@@ -143,11 +143,9 @@ export const releaseDeployment = async (
     ? await provider.update(deployment)
     : await provider.create(deployment);
 
-  // This should happen outside of the request
-  // as we should be waiting / checking that the resource has been published before we update the deployment status
-
   let update;
   await data.db.transaction(async (tx) => {
+    // Mark existing active deployment as inactive
     await tx
       .update(data.deployments)
       .set({
@@ -161,10 +159,10 @@ export const releaseDeployment = async (
         ),
       );
 
+    // Update the deployment with metadata from the provider (stackId, etx)
     update = await tx
       .update(data.deployments)
       .set({
-        status: "active",
         meta: meta,
       })
       .where(eq(data.deployments.id, deployment.id))
@@ -218,6 +216,50 @@ export const findActiveDeployment = async (
 
   deploymentCache.set(cacheKey, deployments[0]);
   return deployments[0];
+};
+
+export const getAllPendingDeployments = async (
+  provider: "lambda" | "mock",
+): Promise<Deployment[]> => {
+  const deployments = await data.db
+    .select({
+      id: data.deployments.id,
+      clusterId: data.deployments.cluster_id,
+      service: data.deployments.service,
+      status: data.deployments.status,
+      provider: data.deployments.provider,
+      assetUploadId: data.deployments.asset_upload_id,
+      createdAt: data.deployments.created_at,
+    })
+    .from(data.deployments)
+    .where(
+      and(
+        eq(data.deployments.status, "uploading"),
+        eq(data.deployments.provider, provider),
+      ),
+    );
+
+  return deployments;
+};
+
+export const updateDeploymentResult = async (
+  deployment: Deployment,
+  status: "active" | "failed",
+  meta?: any,
+) => {
+  await data.db
+    .update(data.deployments)
+    .set({
+      status: status,
+      meta: meta,
+    })
+    .where(eq(data.deployments.id, deployment.id))
+    .returning({
+      id: data.deployments.id,
+      clusterId: data.deployments.cluster_id,
+      service: data.deployments.service,
+      status: data.deployments.status,
+    });
 };
 
 const previouslyReleased = async (deployment: Deployment): Promise<boolean> => {

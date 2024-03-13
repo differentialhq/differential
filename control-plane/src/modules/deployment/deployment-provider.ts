@@ -2,11 +2,14 @@ import { ZodSchema } from "zod";
 import { Deployment } from "./deployment";
 import * as data from "../data";
 import { eq } from "drizzle-orm";
-import { LambdaProvider } from "./lambda-provider";
 import { MockProvider } from "./mock-deployment-provider";
+import { LambdaCfnProvider } from "./lambda-cfn-provider";
 
 const mockProvider = new MockProvider();
-const lambdaProvider = new LambdaProvider();
+const lambdaProvider = new LambdaCfnProvider();
+
+lambdaProvider.startPollingDeployments();
+
 export const getDeploymentProvider = (provider: string): DeploymentProvider => {
   switch (provider) {
     case "lambda":
