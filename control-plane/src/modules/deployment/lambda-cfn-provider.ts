@@ -115,6 +115,10 @@ export class LambdaCfnProvider implements DeploymentProvider {
   public async startPollingDeployments() {
     registerCron(
       async () => {
+        if (!process.env.DEPLOYMENT_SCHEDULING_ENABLED) {
+          return;
+        }
+
         const deployments = await getAllPendingDeployments("lambda");
         for (const deployment of deployments) {
           let result;

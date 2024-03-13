@@ -21,19 +21,17 @@ type StackChangeResult = CloudFormationStack & {
 
 export class CloudFormationManager {
   private readonly cloudFormationClient: CloudFormationClient;
-  private readonly templateBucketName: string;
 
   constructor() {
     this.cloudFormationClient = new CloudFormationClient();
-    if (CFN_BUCKET === undefined) {
-      throw new Error("CFN_BUCKET environment variable is not set");
-    }
-    this.templateBucketName = CFN_BUCKET;
   }
 
   private async getTemplateBody(templateKey: string): Promise<string> {
+    if (CFN_BUCKET === undefined) {
+      throw new Error("CFN_BUCKET environment variable is not set");
+    }
     const object = await getObject({
-      bucket: this.templateBucketName,
+      bucket: CFN_BUCKET,
       key: templateKey,
     });
 
