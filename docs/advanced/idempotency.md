@@ -14,13 +14,14 @@ The following is an example of how you can implement idempotency:
 async function chargeOrder(orderId: string, paymentMethod: PaymantMethod) {
   // Check if the order has already been charged
   const charge = await getChargeForOrder(orderId);
+
   if (charge) {
     return charge;
   }
 
   // Charge the order
   const charge = await chargeOrderWithPaymentMethod(orderId, paymentMethod);
-  
+
   return charge;
 }
 
