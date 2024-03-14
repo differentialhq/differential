@@ -18,4 +18,4 @@ It accepts an array of encryption keys. This is useful if you want to rotate you
 
 Since this essentially makes function arguments opaque to the control plane, it is important to note that Differential will not be able to provide any of its usual features for these encrypted function arguments, such as predictive retries or predictive alerting.
 
-Caching is still supported, as they it is based on the function arguments and return values as supplied by the client.
+Caching is still supported, as it is based on the function arguments and return values as supplied by the client.
