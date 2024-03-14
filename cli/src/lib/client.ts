@@ -16,9 +16,9 @@ export const waitForDeploymentStatus = async (
   deploymentId: string,
   serviceName: string,
   clusterId: string,
-  target: string,
+  targets: string[],
   maxAttempts: number = 10,
-) => {
+): Promise<string> => {
   const checkDeployment = () =>
     client.getDeployment({
       params: {
@@ -33,8 +33,8 @@ export const waitForDeploymentStatus = async (
     attempts++;
     const result = await checkDeployment();
 
-    if (result.status == 200 && result.body.status === target) {
-      return;
+    if (result.status == 200 && targets.includes(result.body.status)) {
+      return result.body.status;
     }
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }

@@ -92,6 +92,7 @@ export const ClientLibraryPublish: CommandModule<{}, ClientLibraryPublishArgs> =
         });
 
         if (libraryResponse.status !== 201) {
+          log("Failed to create library version", { libraryResponse });
           throw new Error(
             `Failed to create client library: ${libraryResponse.status}`,
           );
