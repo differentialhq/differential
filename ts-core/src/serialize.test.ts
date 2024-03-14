@@ -11,6 +11,8 @@ describe("serailizing and deserializing", () => {
     undefined,
     { hello: "Bob" },
     Buffer.from("hello"),
+    [1, 2, 3],
+    new Date(),
   ];
 
   values.forEach((value) => {
