@@ -1,44 +1,53 @@
 # Idempotency
 
-Idempotency is a property of a function that means that if you call it multiple times with the same arguments, it will always return the same result. This is useful for functions that have side effects, such as sending an email or charging a credit card.
+Idempotency is a property of an operation that means the operation can be applied multiple times without changing the result beyond the initial application. In other words, making the same request multiple times has the same effect as making the request once.
 
-Differential supports idempotency via a convenience function called `idempotent`. It takes a function and returns a new function that prompts the user to provide an idempotency key. If the function has already been called with that key, it will return the same result as before.
+In the context of Differential, you can easily achive this by the combination of:
 
-To mark a function as idempotent, simply wrap it with the `idempotent` function.
+1. Retrying the function call if it gets rejected, which would allow you ensure at-least-once execution.
+2. Checking a unique identifier in the request to ensure that the operation is not applied multiple times.
+
+The following is an example of how you can implement idempotency:
 
 ```typescript
-import { idempotent } from "@differentialhq/core";
+// service.ts
+async function chargeOrder(orderId: string, paymentMethod: PaymantMethod) {
+  // Check if the order has already been charged
+  const charge = await getChargeForOrder(orderId);
 
-const chargeOrder = async (order: Order) => {
-  const charge = await chargeCustomer(order.customerId, order.amount);
+  if (charge) {
+    return charge;
+  }
+
+  // Charge the order
+  const charge = await chargeOrderWithPaymentMethod(orderId, paymentMethod);
+
   return charge;
-};
+}
+
 export const orderService = d.service({
   name: "order",
   functions: {
-    chargeOrder: idempotent(chargeOrder),
+    chargeOrder,
   },
 });
+
+// client.ts
+let attempt = 0;
+
+function chargeOrder() {
+  try {
+    await orderService.chargeOrder(orderId, paymentMethod);
+  } catch (error) {
+    if (attempt < 3) {
+      attempt++;
+      return chargeOrder(orderId, paymentMethod);
+    }
+    throw error;
+  }
+}
 ```
 
-Now, when you call the function, you must provide an idempotency key.
+## Guarding against duplicate requests due to stalled machine retries
 
-```typescript
-// const charge = await orderClient.chargeOrder(order); // ⛔️ Error: Expected 2 arguments, but got 1.
-
-const charge = await orderClient.chargeOrder(order, {
-  $idempotencyKey: order.id,
-});
-```
-
-If you call the function again with the same idempotency key, the previous result will be returned.
-
-```typescript
-const charge2 = await orderClient.chargeOrder(order, {
-  $idempotencyKey: order.id,
-});
-
-assert.deepEqual(charge === charge2);
-```
-
-This is helpful when you model your functions as having side effects, such as sending an email or charging a credit card. If you call the function again with the same idempotency key, the side effect will not happen again.
+If a machine processing a request stalls, Differential will retry the request on another machine. This can lead to the same request being processed multiple times. To guard against this, you must use a unique identifier in the execution chain and check if the operation has already been applied explicitly.

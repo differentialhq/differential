@@ -11,7 +11,6 @@ const cache = new NodeCache({
 
 export type ServiceDefinitionFunction = {
   name: string;
-  idempotent?: boolean;
   cacheTTL?: number;
   timeoutIntervalSeconds?: number;
   maxAttempts?: number;
@@ -29,7 +28,6 @@ export const serviceDefinitionsSchema = z.array(
       .array(
         z.object({
           name: z.string(),
-          idempotent: z.boolean().optional(),
           rate: z
             .object({
               per: z.enum(["minute", "hour"]),

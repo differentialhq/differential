@@ -23,8 +23,6 @@ export const createJob = async (params: {
   targetArgs: string;
   owner: { clusterId: string };
   deploymentId?: string;
-  pool?: string;
-  idempotencyKey?: string;
   cacheKey?: string;
 }) => {
   const end = jobDurations.startTimer({ operation: "createJob" });
@@ -42,26 +40,7 @@ export const createJob = async (params: {
     maxAttempts: serviceDefinition?.maxAttempts,
   };
 
-  if (params.idempotencyKey) {
-    const idempotencyParams = {
-      ...params,
-      ...retryParams,
-      idempotencyKey: params.idempotencyKey,
-    };
-
-    const { id } = await createJobStrategies.idempotence({
-      ...idempotencyParams,
-      idempotencyKey: params.idempotencyKey,
-    });
-
-    onAfterJobCreated({
-      ...idempotencyParams,
-      jobId: id,
-    });
-
-    end();
-    return { id };
-  } else if (params.cacheKey) {
+  if (params.cacheKey) {
     const { id } = await createJobStrategies.cached({
       ...params,
       ...retryParams,
@@ -95,36 +74,6 @@ export const createJob = async (params: {
 };
 
 const createJobStrategies = {
-  idempotence: async ({
-    service,
-    targetFn,
-    targetArgs,
-    owner,
-    deploymentId,
-    pool,
-    idempotencyKey,
-    timeoutIntervalSeconds,
-  }: CreateJobParams & { idempotencyKey: string }) => {
-    const jobId = idempotencyKey;
-
-    await data.db
-      .insert(data.jobs)
-      .values({
-        id: idempotencyKey,
-        target_fn: targetFn,
-        target_args: targetArgs,
-        idempotency_key: jobId,
-        status: "pending",
-        owner_hash: owner.clusterId,
-        deployment_id: deploymentId,
-        service,
-        remaining_attempts: 1, // idempotent jobs only get one attempt
-        timeout_interval_seconds: timeoutIntervalSeconds,
-      })
-      .onConflictDoNothing();
-
-    return { id: jobId };
-  },
   cached: async ({
     service,
     targetFn,
@@ -177,14 +126,13 @@ const createJobStrategies = {
       id: jobId,
       target_fn: targetFn,
       target_args: targetArgs,
-      idempotency_key: jobId,
       status: "pending",
       owner_hash: owner.clusterId,
       deployment_id: deploymentId,
       service,
       cache_key: cacheKey,
       remaining_attempts:
-        maxAttempts ?? (cluster.autoRetryStalledJobsEnabled ? 2 : 1),
+        maxAttempts ?? (cluster.autoRetryStalledJobsEnabled ? 3 : 1),
       timeout_interval_seconds: timeoutIntervalSeconds,
     });
 
@@ -207,13 +155,12 @@ const createJobStrategies = {
       id: jobId,
       target_fn: targetFn,
       target_args: targetArgs,
-      idempotency_key: jobId,
       status: "pending",
       owner_hash: owner.clusterId,
       deployment_id: deploymentId,
       service,
       remaining_attempts:
-        maxAttempts ?? (cluster.autoRetryStalledJobsEnabled ? 2 : 1),
+        maxAttempts ?? (cluster.autoRetryStalledJobsEnabled ? 3 : 1),
       timeout_interval_seconds: timeoutIntervalSeconds,
     });
 

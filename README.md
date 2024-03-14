@@ -11,7 +11,6 @@ Differential is an open-source "Durable RPC" platform. By using a centralised co
 It also comes with batteries included:
 
 - [x] Distributed caching: Cache results of functions with a single line of code, and let all your services share the same cache.
-- [x] Idempotency: Mark functions as idempotent, and Differential will ensure that they are only called once.
 - [x] Rate limiting: Limit the number of times a function can be called globally in a given time period with a simple decorator.
 - [x] End to end encryption: All communication between the control-plane and your services can be encrypted with a single line of code.
 - [x] Observability: Differential comes with a built-in logging and metrics system, so you can see what's happening in your services in real-time.
@@ -25,7 +24,7 @@ It also comes with batteries included:
 ### 1. Write a service that connects to the Differential control-plane
 
 ```ts
-import { Differential, cached, idempotent } from "@differentialhq/core";
+import { Differential, cached } from "@differentialhq/core";
 
 // You can get a token from
 // - curl https://api.differential.dev/demo/token
@@ -39,10 +38,6 @@ function sum(a: number, b: number) {
   return a + b;
 }
 
-function square(x: number) {
-  return x * x;
-}
-
 function get(url: string) {
   // ...even functions with side effects
   return fetch(url).then((res) => res.json());
@@ -51,8 +46,7 @@ function get(url: string) {
 // Register your functions with the control-plane
 const myService = d.service("my-service", {
   sum: sum,
-  square: cached(square, { ttl: 60 }),
-  get: idempotent(get),
+  get: cached(get, { ttl: 60 }),
 });
 
 // Start the service, and it will connect to the
@@ -78,11 +72,8 @@ const client = d.service<typeof myService>("my-service");
 
 client.sum(1, 2).then(console.log); // 3
 
-client.square(3).then(console.log); // 9
-client.square(3).then(console.log); // 9 -> Cached! Doesn't call till 60 seconds.
-
 client.get("https://api.differential.dev/live").then(console.log); // { status: "ok" }
-client.get("https://api.differential.dev/live").then(console.log); // { status: "ok" } -> Idempotent! Doesn't make a network request.
+client.get("https://api.differential.dev/live").then(console.log); // { status: "ok" } -> Cached! Doesn't make a network request.
 ```
 
 ## Documentation

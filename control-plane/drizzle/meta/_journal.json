@@ -302,6 +302,20 @@
       "when": 1708737200211,
       "tag": "0043_closed_weapon_omega",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "5",
+      "when": 1710217538133,
+      "tag": "0044_fancy_landau",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "5",
+      "when": 1710402000130,
+      "tag": "0045_icy_kid_colt",
+      "breakpoints": true
     }
   ]
 }

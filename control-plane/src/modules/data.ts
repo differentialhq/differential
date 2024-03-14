@@ -63,7 +63,6 @@ export const jobs = pgTable(
     deployment_id: varchar("deployment_id", { length: 1024 }),
     target_fn: varchar("target_fn", { length: 1024 }).notNull(),
     target_args: text("target_args").notNull(),
-    idempotency_key: varchar("idempotency_key", { length: 1024 }).notNull(),
     cache_key: varchar("cache_key", { length: 1024 }),
     status: text("status", {
       enum: ["pending", "running", "success", "failure"], // job failure is actually a stalled state. TODO: rename it
@@ -83,14 +82,16 @@ export const jobs = pgTable(
     resulted_at: timestamp("resulted_at", { withTimezone: true }),
     last_retrieved_at: timestamp("last_retrieved_at", { withTimezone: true }),
     function_execution_time_ms: integer("function_execution_time_ms"),
-    timeout_interval_seconds: integer("timeout_interval_seconds"),
+    timeout_interval_seconds: integer("timeout_interval_seconds")
+      .notNull()
+      .default(3600),
     service: varchar("service", { length: 1024 }).notNull(),
     predicted_to_be_retryable: boolean("predicted_to_be_retryable"), // null = unknown, no = not retryable, yes = retryable
     predicted_to_be_retryable_reason: text("predicted_to_be_retryable_reason"),
     predictive_retry_count: integer("predictive_retry_count").default(0),
   },
   (table) => ({
-    pk: primaryKey(table.owner_hash, table.target_fn, table.idempotency_key),
+    pk: primaryKey(table.owner_hash, table.target_fn, table.id),
   }),
 );
 
