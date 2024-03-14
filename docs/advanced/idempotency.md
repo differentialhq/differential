@@ -20,6 +20,8 @@ async function chargeOrder(orderId: string, paymentMethod: PaymantMethod) {
 
   // Charge the order
   const charge = await chargeOrderWithPaymentMethod(orderId, paymentMethod);
+  
+  return charge;
 }
 
 export const orderService = d.service({
