@@ -1,5 +1,5 @@
-import { pack, unpack } from "./serialize";
 import crypto from "crypto";
+import { pack, unpack } from "./serialize";
 
 describe("serailizing and deserializing", () => {
   const values = [

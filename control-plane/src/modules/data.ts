@@ -82,7 +82,9 @@ export const jobs = pgTable(
     resulted_at: timestamp("resulted_at", { withTimezone: true }),
     last_retrieved_at: timestamp("last_retrieved_at", { withTimezone: true }),
     function_execution_time_ms: integer("function_execution_time_ms"),
-    timeout_interval_seconds: integer("timeout_interval_seconds"),
+    timeout_interval_seconds: integer("timeout_interval_seconds")
+      .notNull()
+      .default(3600),
     service: varchar("service", { length: 1024 }).notNull(),
     predicted_to_be_retryable: boolean("predicted_to_be_retryable"), // null = unknown, no = not retryable, yes = retryable
     predicted_to_be_retryable_reason: text("predicted_to_be_retryable_reason"),

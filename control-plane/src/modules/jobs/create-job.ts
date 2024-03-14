@@ -132,7 +132,7 @@ const createJobStrategies = {
       service,
       cache_key: cacheKey,
       remaining_attempts:
-        maxAttempts ?? (cluster.autoRetryStalledJobsEnabled ? 2 : 1),
+        maxAttempts ?? (cluster.autoRetryStalledJobsEnabled ? 3 : 1),
       timeout_interval_seconds: timeoutIntervalSeconds,
     });
 
@@ -160,7 +160,7 @@ const createJobStrategies = {
       deployment_id: deploymentId,
       service,
       remaining_attempts:
-        maxAttempts ?? (cluster.autoRetryStalledJobsEnabled ? 2 : 1),
+        maxAttempts ?? (cluster.autoRetryStalledJobsEnabled ? 3 : 1),
       timeout_interval_seconds: timeoutIntervalSeconds,
     });
 

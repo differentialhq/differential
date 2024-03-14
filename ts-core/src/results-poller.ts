@@ -1,5 +1,6 @@
 import debug from "debug";
 import { createClient } from "./create-client";
+import { DifferentialError } from "./errors";
 import { unpack } from "./serialize";
 import { Result } from "./task-queue";
 
@@ -67,11 +68,24 @@ export class ResultsPoller {
     switch (result.status) {
       case 200: {
         for (const job of result.body.filter(
-          (job) => job.status === "success" || job.status === "failure",
+          (job) => job.status === "success",
         )) {
           this.jobs[job.id].result = {
             content: unpack(job.result!),
             type: job.resultType!,
+          };
+
+          this.jobs[job.id].onResult(null!, this.jobs[job.id].result as Result);
+        }
+
+        for (const job of result.body.filter(
+          (job) => job.status === "failure",
+        )) {
+          this.jobs[job.id].result = {
+            content: new DifferentialError(
+              DifferentialError.REMOTE_EXECUTION_ERROR,
+            ),
+            type: "rejection", // interpret as rejection
           };
 
           this.jobs[job.id].onResult(null!, this.jobs[job.id].result as Result);
@@ -100,8 +114,8 @@ export class ResultsPoller {
         if (this.currentErrorCycle > ResultsPoller.MAX_ERROR_CYCLES) {
           log("Too many errors occurred while polling jobs", result);
 
-          const error = new Error(
-            "Too many errors occurred while polling jobs",
+          const error = new DifferentialError(
+            DifferentialError.TOO_MANY_NETWORK_ERRORS,
           );
 
           for (const job of unresolved) {
