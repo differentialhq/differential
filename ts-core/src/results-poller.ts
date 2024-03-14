@@ -83,7 +83,7 @@ export class ResultsPoller {
         )) {
           this.jobs[job.id].result = {
             content: new DifferentialError(
-              DifferentialError.REMOTE_EXECUTION_ERROR,
+              DifferentialError.EXECUTION_DID_NOT_COMPLETE,
             ),
             type: "rejection", // interpret as rejection
           };

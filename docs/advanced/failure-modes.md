@@ -47,7 +47,7 @@ Differential does preserve the stack trace that is generated when the error is t
 
 Differential does preserve the prototype of all the native JavaScript errors as defined in the [Well-Known Intrinsic Objects](https://262.ecma-international.org/12.0/#sec-well-known-intrinsic-objects). This means that the caller can check the error type using the `instanceof` operator for these errors.
 
-However, custom errors are not preserved across the boundary. This means that the caller cannot check the error type using the `instanceof` operator for custom errors. However, the caller can still check the error name and message.
+However, custom errors are not preserved across the boundary. This means that the caller cannot check the error type using the `instanceof` operator for custom errors. However, the caller can still check the class properties of the error to determine the error type - such as the `name` and `message` properties.
 
 ## A function call results in a timeout
 
