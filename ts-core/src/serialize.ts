@@ -1,5 +1,5 @@
-import msgpackr from "msgpackr";
 import crypto from "crypto";
+import msgpackr from "msgpackr";
 import { DifferentialError } from "./errors";
 
 const keyHashCache = new Map<Buffer, string>();
@@ -15,14 +15,29 @@ const getKeyHash = (key: Buffer) => {
   return keyHash;
 };
 
+const validation = (data: unknown) => {
+  const packed1 = msgpackr.pack(data).toString("base64");
+  const unpacked1 = msgpackr.unpack(Buffer.from(packed1, "base64"));
+  const packed2 = msgpackr.pack(unpacked1).toString("base64");
+
+  if (packed1 !== packed2) {
+    throw new DifferentialError(DifferentialError.INVALID_DATA_TYPE);
+  }
+};
+
 export const pack = (
   data: unknown,
+  validate: boolean,
   params?: {
     cryptoSettings?: {
       keys: Buffer[];
     };
-  }
+  },
 ): string => {
+  if (validate) {
+    validation(data);
+  }
+
   if (!params?.cryptoSettings) {
     return msgpackr.pack(data).toString("base64");
   }
@@ -51,14 +66,14 @@ export const unpack = (
     cryptoSettings?: {
       keys: Buffer[];
     };
-  }
+  },
 ) => {
   const unpacked = msgpackr.unpack(Buffer.from(data, "base64"));
 
   if (unpacked?.iv && params?.cryptoSettings) {
     const iv = Buffer.from(unpacked.iv, "base64");
     const key = params.cryptoSettings.keys.find(
-      (key) => getKeyHash(key) === unpacked.keyHash
+      (key) => getKeyHash(key) === unpacked.keyHash,
     );
 
     if (!key) {

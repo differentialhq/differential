@@ -31,6 +31,6 @@ It is theoretically possible to pass more complex data types such as `Map`, `Set
 
 For this purpose, they are left out of the initial offering.
 
-## Type-safety
+## Safety
 
-Differential client warns you if you try to call a function with arguments that are not correctly transportable by enforcing that all service function arguments and return values should adhere to containing the data types listed in the table above.
+Differential adds a layer of safety by validating the data types of the function arguments and return values before serializing them. If the data types are not supported, Differential will throw an error `DifferentialError.INVALID_DATA_TYPE`. The peformance overhead of this validation is negligible. However, you can disable this behaviour by setting the `validate` option to `false`.
