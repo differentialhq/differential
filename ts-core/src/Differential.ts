@@ -82,6 +82,7 @@ type PollingAgentService = {
 type PollingAgentOptions = {
   endpoint: string;
   machineId: string;
+  validateBeforeSerialization: boolean;
   deploymentId?: string;
   authHeader: string;
   service: PollingAgentService;
@@ -108,6 +109,7 @@ class PollingAgent {
   private service: PollingAgentService;
   private ttl?: number;
   private maxIdleCycles?: number;
+  private validateBeforeSerialization: boolean;
 
   constructor(options: PollingAgentOptions) {
     this.authHeader = options.authHeader;
@@ -115,6 +117,7 @@ class PollingAgent {
     this.ttl = options.ttl;
     this.maxIdleCycles = options.maxIdleCycles;
     this.exitHandler = options.exitHandler;
+    this.validateBeforeSerialization = options.validateBeforeSerialization;
 
     this.client = createClient({
       baseUrl: options.endpoint,
@@ -212,7 +215,10 @@ class PollingAgent {
             await this.client
               .persistJobResult({
                 body: {
-                  result: pack(result.content),
+                  result: pack(
+                    result.content,
+                    this.validateBeforeSerialization,
+                  ),
                   resultType: result.type,
                   functionExecutionTime: result.functionExecutionTime,
                 },
@@ -406,6 +412,7 @@ export class Differential {
   private machineId: string;
   private deploymentId?: string;
   private controlPlaneClient: ReturnType<typeof createClient>;
+  private validateBeforeSerialization: boolean = true;
 
   private jobPollWaitTime?: number;
   private maxIdleCycles?: number;
@@ -423,6 +430,8 @@ export class Differential {
    * @param options.endpoint The endpoint for the Differential cluster. Defaults to https://api.differential.dev.
    * @param options.encryptionKeys An array of encryption keys to use for encrypting and decrypting data. These keys are never sent to the control-plane and allows you to encrypt function arguments and return values. If you do not provide any keys, Differential will not encrypt any data. Encryption has a performance impact on your functions. When you want to rotate keys, you can add new keys to the start of the array. Differential will try to decrypt data with each key in the array until it finds a key that works. Differential will encrypt data with the first key in the array. Each key must be 32 bytes long.
    * @param options.jobPollWaitTime The amount of time in milliseconds that the client will maintain a connection to the control-plane when polling for jobs. Defaults to 20000ms. If a job is not received within this time, the client will close the connection and try again.
+   * @param options.validateBeforeSerialization If set to false, Differential will not validate the data before serializing it. This can be useful for performance reasons, but can lead to unexpected results if the data is not serializable. Defaults to true.
+   *
    * @example
    * ```ts
    * // Basic usage
@@ -443,6 +452,7 @@ export class Differential {
       endpoint?: string;
       encryptionKeys?: Buffer[];
       jobPollWaitTime?: number;
+      validateBeforeSerialization?: boolean;
     },
   ) {
     if (apiSecret && process.env.DIFFERENTIAL_API_SECRET) {
@@ -450,7 +460,9 @@ export class Differential {
         "API Secret was provided as an argument and environment variable. Constructor argument will be used.",
       );
     }
+
     apiSecret = apiSecret || process.env.DIFFERENTIAL_API_SECRET;
+
     if (!apiSecret) {
       throw new DifferentialError("No API Secret provided.");
     }
@@ -543,6 +555,7 @@ export class Differential {
           this.stop();
         }
       },
+      validateBeforeSerialization: this.validateBeforeSerialization,
     });
 
     this.pollingAgents.push(pollingAgent);
@@ -781,7 +794,7 @@ export class Differential {
       body: {
         service,
         targetFn: fn as string,
-        targetArgs: pack(originalArgs),
+        targetArgs: pack(originalArgs, this.validateBeforeSerialization),
         cacheKey: differentialConfig.$cacheKey,
       },
       headers: {

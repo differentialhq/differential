@@ -11,6 +11,9 @@ export class DifferentialError extends Error {
   static TOO_MANY_NETWORK_ERRORS =
     "Too many network errors occurred. Make sure the client is connected to the internet.";
 
+  static INVALID_DATA_TYPE =
+    "Serialization process encountered an invalid data type. The data can not be safely serialized. See: https://docs.differential.dev/advanced/arguments-and-return-values/";
+
   constructor(message: string, meta?: { [key: string]: unknown }) {
     super(message);
     this.name = "DifferentialError";
