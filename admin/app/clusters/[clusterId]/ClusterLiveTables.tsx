@@ -13,6 +13,7 @@ import {
   functionStatusToCircle,
 } from "./helpers";
 import { ServiceSummary } from "./services/ServiceSummary";
+import Link from "next/link";
 
 export function ClusterLiveTables({ clusterId }: { clusterId: string }) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
@@ -174,9 +175,12 @@ export function ClusterLiveTables({ clusterId }: { clusterId: string }) {
                     const jobId: string = row.getValue("jobId");
 
                     return (
-                      <p className="font-mono text-sm">
+                      <Link
+                        className="font-mono text-md underline"
+                        href={`/clusters/${clusterId}/activity?jobId=${jobId}`}
+                      >
                         {jobId.substring(jobId.length - 6)}
-                      </p>
+                      </Link>
                     );
                   },
                 },
