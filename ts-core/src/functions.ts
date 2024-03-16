@@ -1,14 +1,10 @@
 import { AsyncFunction } from "./types";
 
-const idempotentFunctions: AsyncFunction[] = [];
 const retryableFunctions: Array<{
   fn: AsyncFunction;
   maxAttempts: number;
   timeoutIntervalSeconds: number;
 }> = [];
-
-export const isFunctionIdempotent = (fn: AsyncFunction) =>
-  idempotentFunctions.includes(fn);
 
 export const retryConfigForFunction = (fn: AsyncFunction) =>
   retryableFunctions.find((f) => f.fn === fn);
@@ -21,7 +17,6 @@ type AddParameters<
 ) => ReturnType<TFunction>;
 
 type DifferentialConfig = {
-  $idempotencyKey?: string;
   $cacheKey?: string;
 };
 
@@ -31,19 +26,8 @@ export const extractDifferentialConfig = (
   differentialConfig: DifferentialConfig;
   originalArgs: any[];
 } => {
-  // just one now because we only support either idempotency key or cache key
+  // just one now because we only support cache key at the moment
   const lastArg = args[args.length - 1];
-
-  if (
-    typeof lastArg === "object" &&
-    lastArg !== null &&
-    "$idempotencyKey" in lastArg
-  ) {
-    return {
-      differentialConfig: lastArg,
-      originalArgs: args.slice(0, args.length - 1),
-    };
-  }
 
   if (
     typeof lastArg === "object" &&
@@ -60,48 +44,6 @@ export const extractDifferentialConfig = (
     differentialConfig: {},
     originalArgs: args,
   };
-};
-
-/**
- * This is a utility function that makes a function in a service definition idempotent.
- *
- * @param fn The function to make idempotent
- * @returns The same function with the same parameters, but with an additional parameter at the end of the function call that is the idempotency key
- * @example
- * ```ts
- * // src/services/order.ts
- *
- * const chargeOrder = async (order: Order) => {
- *   const charge = await chargeCustomer(order.customerId, order.amount);
- *   return charge;
- * }
- *
- * export const orderService = d.service({
- *   name: "order",
- *   functions: {
- *     chargeOrder: idempotent(chargeOrder),
- *   },
- * });
- *
- * // src/client.ts
- * const orderClient = d.client<typeof orderService>("order");
- *
- * // const order = await orderClient.chargeOrder(order); // ⛔️ Error: Expected 2 arguments, but got 1.
- *
- * const charge = await orderClient.chargeOrder(order, { $idempotencyKey: order.id });
- *
- * // if you call the function again with the same idempotency key, previous result will be returned
- *
- * const charge2 = await orderClient.chargeOrder(order, { $idempotencyKey: order.id });
- *
- * assert.deepEqual(charge === charge2);
- * ```
- */
-export const idempotent = <T extends AsyncFunction>(
-  fn: T,
-): AddParameters<T, [Pick<DifferentialConfig, "$idempotencyKey">]> => {
-  idempotentFunctions.push(fn);
-  return fn as any;
 };
 
 /**

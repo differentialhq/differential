@@ -1,27 +1,27 @@
-import { extractDifferentialConfig, idempotent } from "./functions";
+import { cached, extractDifferentialConfig } from "./functions";
 
-describe("idempotent", () => {
-  it("should inject idempotencyKey into differentialConfig", () => {
+describe("cache", () => {
+  it("should inject cacheKey into differentialConfig", () => {
     const mockFn = jest.fn();
 
-    const idempotentFn = idempotent(mockFn);
+    const cachedFn = cached(mockFn, 10);
 
-    idempotentFn("foo", "bar", { $idempotencyKey: "baz" });
+    cachedFn("foo", "bar", { $cacheKey: "baz" });
 
     expect(mockFn).toHaveBeenCalledWith("foo", "bar", {
-      $idempotencyKey: "baz",
+      $cacheKey: "baz",
     });
   });
 });
 
 describe("extractDifferentialConfig", () => {
   it("should extract differentialConfig", () => {
-    const args = ["foo", "bar", { $idempotencyKey: "baz" }];
+    const args = ["foo", "bar", { $cacheKey: "baz" }];
 
     const { differentialConfig, originalArgs } =
       extractDifferentialConfig(args);
 
-    expect(differentialConfig).toEqual({ $idempotencyKey: "baz" });
+    expect(differentialConfig).toEqual({ $cacheKey: "baz" });
     expect(originalArgs).toEqual(["foo", "bar"]);
   });
 });

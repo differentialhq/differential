@@ -3,7 +3,9 @@ import fs from "fs";
 import path from "path";
 import util from "util";
 import * as admin from "./admin";
+import { createAssetUploadWithTarget } from "./assets";
 import * as auth from "./auth";
+import { operationalCluster } from "./cluster";
 import { contract } from "./contract";
 import * as data from "./data";
 import {
@@ -18,11 +20,9 @@ import * as jobs from "./jobs/jobs";
 import * as management from "./management";
 import * as eventAggregation from "./observability/event-aggregation";
 import * as events from "./observability/events";
+import * as clientLib from "./packages/client-lib";
 import * as routingHelpers from "./routing-helpers";
 import { UPLOAD_BUCKET, getObject } from "./s3";
-import { createAssetUploadWithTarget } from "./assets";
-import * as clientLib from "./packages/client-lib";
-import { operationalCluster } from "./cluster";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -108,8 +108,7 @@ export const router = s.router(contract, {
       };
     }
 
-    const { targetFn, targetArgs, pool, service, idempotencyKey, cacheKey } =
-      request.body;
+    const { targetFn, targetArgs, pool, service, cacheKey } = request.body;
 
     const deployment = owner.cloudEnabled
       ? await findActiveDeployment(owner.clusterId, service)
@@ -121,8 +120,6 @@ export const router = s.router(contract, {
       targetArgs,
       owner,
       deploymentId: deployment?.id,
-      pool,
-      idempotencyKey,
       cacheKey,
     });
 
@@ -462,12 +459,6 @@ export const router = s.router(contract, {
     if (!deployment || deployment.clusterId !== clusterId) {
       return {
         status: 404,
-      };
-    }
-
-    if (deployment.status !== "ready") {
-      return {
-        status: 400,
       };
     }
 
