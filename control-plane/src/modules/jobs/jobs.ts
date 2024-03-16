@@ -125,9 +125,11 @@ export const getJobStatus = async ({
 export const getJobStatuses = async ({
   jobIds,
   owner,
+  longPollTimeout = 20000,
 }: {
   jobIds: string[];
   owner: { clusterId: string };
+  longPollTimeout?: number;
 }) => {
   const end = jobDurations.startTimer({ operation: "getJobStatuses" });
 
@@ -171,7 +173,7 @@ export const getJobStatuses = async ({
     if (!hasResolved) {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
-  } while (!hasResolved && Date.now() - start < 1000 * 20);
+  } while (!hasResolved && Date.now() - start < longPollTimeout);
 
   jobs.forEach((job) => {
     events.write({
