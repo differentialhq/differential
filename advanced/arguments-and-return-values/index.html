@@ -9,24 +9,24 @@
     <meta name="generator" content="Retype 3.5.0">
 
     <!-- Primary Meta Tags -->
-    <title>Idempotency</title>
-    <meta name="title" content="Idempotency">
-    <meta name="description" content="Idempotency is a property of an operation that means the operation can be applied multiple times without changing the result beyond the initial...">
+    <title>Argument and return values</title>
+    <meta name="title" content="Argument and return values">
+    <meta name="description" content="One benefit of using Differential is that is abstracts away many of the complexities of network and data serialization.">
 
     <!-- Canonical -->
-    <link rel="canonical" href="https://docs.differential.dev/advanced/idempotency/">
+    <link rel="canonical" href="https://docs.differential.dev/advanced/arguments-and-return-values/">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://docs.differential.dev/advanced/idempotency/">
-    <meta property="og:title" content="Idempotency">
-    <meta property="og:description" content="Idempotency is a property of an operation that means the operation can be applied multiple times without changing the result beyond the initial...">
+    <meta property="og:url" content="https://docs.differential.dev/advanced/arguments-and-return-values/">
+    <meta property="og:title" content="Argument and return values">
+    <meta property="og:description" content="One benefit of using Differential is that is abstracts away many of the complexities of network and data serialization.">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://docs.differential.dev/advanced/idempotency/">
-    <meta property="twitter:title" content="Idempotency">
-    <meta property="twitter:description" content="Idempotency is a property of an operation that means the operation can be applied multiple times without changing the result beyond the initial...">
+    <meta property="twitter:url" content="https://docs.differential.dev/advanced/arguments-and-return-values/">
+    <meta property="twitter:title" content="Argument and return values">
+    <meta property="twitter:description" content="One benefit of using Differential is that is abstracts away many of the complexities of network and data serialization.">
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
@@ -35,7 +35,6 @@
     <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.763898428390" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
     <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.763898428390" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.763898428390" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -179,64 +178,95 @@
                                 <!-- Rendered if sidebar right is enabled -->
                                 <div id="docs-sidebar-right-toggle"></div>
                                 <!-- Page content  -->
-<doc-anchor-target id="idempotency" class="break-words">
+<doc-anchor-target id="argument-and-return-values" class="break-words">
     <h1>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#idempotency">#</doc-anchor-trigger>
-        <span>Idempotency</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#argument-and-return-values">#</doc-anchor-trigger>
+        <span>Argument and return values</span>
     </h1>
 </doc-anchor-target>
-<p>Idempotency is a property of an operation that means the operation can be applied multiple times without changing the result beyond the initial application. In other words, making the same request multiple times has the same effect as making the request once.</p>
-<p>In the context of Differential, you can easily achive this by the combination of:</p>
-<ol>
-<li>Retrying the function call if it gets rejected, which would allow you ensure at-least-once execution.</li>
-<li>Checking a unique identifier in the request to ensure that the operation is not applied multiple times.</li>
-</ol>
-<p>The following is an example of how you can implement idempotency:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-typescript"><code v-pre class="language-typescript">// service.ts
-async function chargeOrder(orderId: string, paymentMethod: PaymantMethod) {
-  // Check if the order has already been charged
-  const charge = await getChargeForOrder(orderId);
-
-  if (charge) {
-    return charge;
-  }
-
-  // Charge the order
-  const charge = await chargeOrderWithPaymentMethod(orderId, paymentMethod);
-
-  return charge;
-}
-
-export const orderService = d.service({
-  name: &quot;order&quot;,
-  functions: {
-    chargeOrder,
-  },
-});
-
-// client.ts
-let attempt = 0;
-
-function chargeOrder() {
-  try {
-    await orderService.chargeOrder(orderId, paymentMethod);
-  } catch (error) {
-    if (attempt &lt; 3) {
-      attempt++;
-      return chargeOrder(orderId, paymentMethod);
-    }
-    throw error;
-  }
-}</code></pre>
-</doc-codeblock></div>
-<doc-anchor-target id="guarding-against-duplicate-requests-due-to-stalled-machine-retries">
+<p>One benefit of using Differential is that is abstracts away many of the complexities of network and data serialization. However, as with any abstraction - it is optimised for the most common use-cases and leaks some of the underlying complexity in the form of limitations.</p>
+<p>Differential serializes function arguments and return values with the same algorithm, so the limitations are the same for both.</p>
+<doc-anchor-target id="serializability">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#guarding-against-duplicate-requests-due-to-stalled-machine-retries">#</doc-anchor-trigger>
-        <span>Guarding against duplicate requests due to stalled machine retries</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#serializability">#</doc-anchor-trigger>
+        <span>Serializability</span>
     </h2>
 </doc-anchor-target>
-<p>If a machine processing a request stalls, Differential will retry the request on another machine. This can lead to the same request being processed multiple times. To guard against this, you must use a unique identifier in the execution chain and check if the operation has already been applied explicitly.</p>
+<p>Differential uses Message Pack for serializing function arguments and return values. It serializes the actual values, not the references to the values. Therefore, if your function arguments or return values contain references to objects, they will not be serialized correctly.</p>
+<doc-anchor-target id="data-type-compatibility">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#data-type-compatibility">#</doc-anchor-trigger>
+        <span>Data Type Compatibility</span>
+    </h2>
+</doc-anchor-target>
+<p>This is a table of data types and their compatibility with Differential as validated by the test suite:</p>
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Data Type</th>
+<th>Supported</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code v-pre>undefined</code></td>
+<td><span class="docs-emoji">&#x2705;</span></td>
+</tr>
+<tr>
+<td><code v-pre>null</code></td>
+<td><span class="docs-emoji">&#x2705;</span></td>
+</tr>
+<tr>
+<td><code v-pre>boolean</code></td>
+<td><span class="docs-emoji">&#x2705;</span></td>
+</tr>
+<tr>
+<td><code v-pre>number</code></td>
+<td><span class="docs-emoji">&#x2705;</span></td>
+</tr>
+<tr>
+<td><code v-pre>string</code></td>
+<td><span class="docs-emoji">&#x2705;</span></td>
+</tr>
+<tr>
+<td><code v-pre>bigint</code></td>
+<td><span class="docs-emoji">&#x2705;</span></td>
+</tr>
+<tr>
+<td><code v-pre>object</code></td>
+<td><span class="docs-emoji">&#x2705;</span></td>
+</tr>
+<tr>
+<td><code v-pre>Array</code></td>
+<td><span class="docs-emoji">&#x2705;</span></td>
+</tr>
+<tr>
+<td><code v-pre>Buffer</code></td>
+<td><span class="docs-emoji">&#x2705;</span></td>
+</tr>
+<tr>
+<td><code v-pre>Date</code></td>
+<td><span class="docs-emoji">&#x2705;</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<doc-anchor-target id="advanced-data-types">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#advanced-data-types">#</doc-anchor-trigger>
+        <span>Advanced Data Types</span>
+    </h2>
+</doc-anchor-target>
+<p>It is theoretically possible to pass more complex data types such as <code v-pre>Map</code>, <code v-pre>Set</code>, <code v-pre>TypedArray</code>, <code v-pre>Error</code>, <code v-pre>RegExp</code>, <code v-pre>Function</code>, <code v-pre>Promise</code>, <code v-pre>Symbol</code>, <code v-pre>WeakMap</code>, <code v-pre>WeakSet</code>, <code v-pre>ArrayBuffer</code>, <code v-pre>SharedArrayBuffer</code>, <code v-pre>DataView</code>, <code v-pre>Int8Array</code>, <code v-pre>Uint8Array</code> etc, as long as they are not nested and do not contain references to objects. However, they go through a serialization process that requires extra work to be properly deserialized on the other side.</p>
+<p>For this purpose, they are left out of the initial offering.</p>
+<doc-anchor-target id="safety">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#safety">#</doc-anchor-trigger>
+        <span>Safety</span>
+    </h2>
+</doc-anchor-target>
+<p>Differential adds a layer of safety by validating the data types of the function arguments and return values before serializing them. If the data types are not supported, Differential will throw an error <code v-pre>DifferentialError.INVALID_DATA_TYPE</code>. The peformance overhead of this validation is negligible. However, you can disable this behaviour by setting the <code v-pre>validate</code> option to <code v-pre>false</code>.</p>
 
                                 
                                 <!-- Required only on API pages -->
@@ -246,20 +276,20 @@ function chargeOrder() {
                             
                                 <nav class="flex mt-14">
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../advanced/failure-modes/">
+                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../advanced/architecture/">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                             <span>
                                                 <span class="block text-xs font-normal text-gray-400 dark:text-dark-400">Previous</span>
-                                                <span class="block mt-1">Failure Modes and Error Handling</span>
+                                                <span class="block mt-1">Architecture</span>
                                             </span>
                                         </a>
                                     </div>
                             
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../advanced/limitations/">
+                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../advanced/comparisons/">
                                             <span>
                                                 <span class="block text-xs font-normal text-right text-gray-400 dark:text-dark-400">Next</span>
-                                                <span class="block mt-1">Limitations</span>
+                                                <span class="block mt-1">Comparisons</span>
                                             </span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                         </a>
@@ -303,6 +333,6 @@ function chargeOrder() {
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": "Idempotency", level: 2, icon: "file", hasPrism: true, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": "Argument and return values", level: 2, icon: "file", hasPrism: false, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
 </body>
 </html>
