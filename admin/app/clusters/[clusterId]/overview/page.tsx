@@ -66,24 +66,7 @@ export default async function Page({
               className="flex flex-col bg-slate-800 rounded-md p-4"
             >
               <p className="text-gray-400">{i.key}</p>
-              {i.key === "Registered Functions" ||
-              i.key === "Active Functions Calls" ? (
-                <a
-                  href={`/clusters/${params.clusterId}/services`}
-                  className="text-gray-400 hover:text-blue-500 hover:shadow-md"
-                >
-                  <h3 className="text-xl">{i.value}</h3>
-                </a>
-              ) : i.key === "Live Machines" ? (
-                <a
-                  href={`/clusters/${params.clusterId}/monitoring`}
-                  className="text-gray-400 hover:text-blue-500 hover:shadow-md"
-                >
-                  <h3 className="text-xl">{i.value}</h3>
-                </a>
-              ) : (
-                <h3 className="text-xl">{i.value}</h3>
-              )}
+              <h3 className="text-xl">{i.value}</h3>
             </div>
           ))}
         </div>
