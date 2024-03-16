@@ -17,7 +17,7 @@ describe("serailizing and deserializing", () => {
 
   values.forEach((value) => {
     it(`should serialise ${value}`, () => {
-      expect(unpack(pack(value))).toEqual(value);
+      expect(unpack(pack(value, true))).toEqual(value);
     });
   });
 });
@@ -28,14 +28,14 @@ describe("encryption", () => {
   };
 
   it("should encrypt and decrypt", () => {
-    const encrypted = pack({ hello: "Bob" }, { cryptoSettings });
+    const encrypted = pack({ hello: "Bob" }, true, { cryptoSettings });
     const decrypted = unpack(encrypted, { cryptoSettings });
 
     expect(decrypted).toEqual({ hello: "Bob" });
   });
 
   it("should be able to encrypt and decrypt when keys roll", () => {
-    const encrypted = pack({ hello: "Bob" }, { cryptoSettings });
+    const encrypted = pack({ hello: "Bob" }, true, { cryptoSettings });
 
     const newCryptoSettings = {
       keys: [crypto.randomBytes(32), ...cryptoSettings.keys],
