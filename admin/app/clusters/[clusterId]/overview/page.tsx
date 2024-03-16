@@ -41,6 +41,10 @@ export default async function Page({
         );
       }).length,
     },
+    {
+      key: "Cloud Deployments",
+      value: clusterResult.body.deployments.length,
+    },
   ];
 
   return (
