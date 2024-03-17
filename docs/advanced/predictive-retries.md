@@ -2,6 +2,10 @@
 
 Status: **Technical Preview**
 
+!!!
+This feature is at the Technical Preview stage. Due to the nature of probabilistic outcomes, this feature may result in non-deterministic behavior. It's by default opt-in.
+!!!
+
 Differential can predict transient errors and retry the operations without the developer having to write custom code.
 
 The control-plane has all the required context on a particular failure, when it happens. It knows the function, some metadata about the source, payload, and the error message. It can use this information to predict if the error is transient or not.
