@@ -1,19 +1,20 @@
 import msgpackr from "msgpackr";
-import {
-  createJob,
-  getJobStatus,
-  nextJobs,
-  persistJobResult,
-} from "./jobs/jobs";
-import { selfHealJobs } from "./jobs/persist-result";
-import * as eventAggregation from "./observability/event-aggregation";
-import * as events from "./observability/events";
-import { serializeError } from "./predictor/serialize-error";
+import * as eventAggregation from "../observability/event-aggregation";
+import * as events from "../observability/events";
+import { serializeError } from "../predictor/serialize-error";
 import {
   functionDefinition,
   getServiceDefinitions,
-} from "./service-definitions";
-import { createOwner } from "./test/util";
+} from "../service-definitions";
+import { createOwner } from "../test/util";
+import {
+  createJob,
+  getJobStatus,
+  getJobStatuses,
+  nextJobs,
+  persistJobResult,
+} from "./jobs";
+import { selfHealJobs } from "./persist-result";
 
 const mockTargetFn = "testTargetFn";
 const mockTargetArgs = "testTargetArgs";
@@ -387,5 +388,97 @@ describe("persistJobResult", () => {
       ),
     ).toBe(true);
     expect(healedJobs.stalledRecovered).toContain(createJobResult.id);
+  });
+});
+
+describe("getJobStatuses", () => {
+  it("should get statuses of multiple jobs", async () => {
+    const owner = await createOwner();
+    const targetFn = "testTargetFn";
+    const targetArgs = "testTargetArgs";
+
+    const createJobResult = await createJob({
+      targetFn,
+      targetArgs,
+      owner,
+      service: "testService",
+    });
+
+    const otherJobs = [];
+
+    // other jobs
+    for (let i = 0; i < 3; i++) {
+      const otherJob = await createJob({
+        targetFn: `testTargetFn${i}`,
+        targetArgs: `testTargetArgs${i}`,
+        owner,
+        service: "testService",
+      });
+
+      otherJobs.push(otherJob);
+    }
+
+    await persistJobResult({
+      result: "foo",
+      resultType: "resolution",
+      jobId: createJobResult.id,
+      owner,
+      machineId: "testMachineId",
+    });
+
+    const result = await getJobStatuses({
+      jobIds: [createJobResult.id, ...otherJobs.map((x) => x.id)],
+      owner,
+    });
+
+    expect(result).toContainEqual({
+      id: createJobResult.id,
+      result: "foo",
+      resultType: "resolution",
+      service: "testService",
+      status: "success",
+    });
+
+    expect(result).toContainEqual({
+      id: otherJobs[0].id,
+      status: "pending",
+      result: null,
+      resultType: null,
+      service: "testService",
+    });
+  });
+
+  it("must exit successfully even if no jobs have completed", async () => {
+    const owner = await createOwner();
+
+    const jobs = [];
+
+    // other jobs
+    for (let i = 0; i < 3; i++) {
+      const otherJob = await createJob({
+        targetFn: `testTargetFn${i}`,
+        targetArgs: `testTargetArgs${i}`,
+        owner,
+        service: "testService",
+      });
+
+      jobs.push(otherJob);
+    }
+
+    const result = await getJobStatuses({
+      jobIds: jobs.map((x) => x.id),
+      owner,
+      longPollTimeout: 2000,
+    });
+
+    expect(result).toContainEqual({
+      id: jobs[0].id,
+      status: "pending",
+      result: null,
+      resultType: null,
+      service: "testService",
+    });
+
+    expect(result).toHaveLength(3);
   });
 });

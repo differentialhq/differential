@@ -125,9 +125,11 @@ export const getJobStatus = async ({
 export const getJobStatuses = async ({
   jobIds,
   owner,
+  longPollTimeout = 20000,
 }: {
   jobIds: string[];
   owner: { clusterId: string };
+  longPollTimeout?: number;
 }) => {
   const end = jobDurations.startTimer({ operation: "getJobStatuses" });
 
@@ -136,21 +138,42 @@ export const getJobStatuses = async ({
     return [];
   }
 
-  const jobs = await data.db
-    .select({
-      id: data.jobs.id,
-      service: data.jobs.service,
-      status: data.jobs.status,
-      result: data.jobs.result,
-      resultType: data.jobs.result_type,
-    })
-    .from(data.jobs)
-    .where(
-      and(
-        eq(data.jobs.owner_hash, owner.clusterId),
-        inArray(data.jobs.id, jobIds),
-      ),
+  const start = Date.now();
+  let hasResolved = false;
+
+  let jobs: Array<{
+    id: string;
+    service: string;
+    status: string;
+    result: string | null;
+    resultType: string | null;
+  }>;
+
+  do {
+    jobs = await data.db
+      .select({
+        id: data.jobs.id,
+        service: data.jobs.service,
+        status: data.jobs.status,
+        result: data.jobs.result,
+        resultType: data.jobs.result_type,
+      })
+      .from(data.jobs)
+      .where(
+        and(
+          eq(data.jobs.owner_hash, owner.clusterId),
+          inArray(data.jobs.id, jobIds),
+        ),
+      );
+
+    hasResolved = jobs.some(
+      (job) => job.status === "success" || job.status === "failure",
     );
+
+    if (!hasResolved) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  } while (!hasResolved && Date.now() - start < longPollTimeout);
 
   jobs.forEach((job) => {
     events.write({
