@@ -87,7 +87,15 @@ As you can see, this function fetches a list of greetings from a fake API and re
  });
 ```
 
-### 3. Change the `greet` command to call the new function
+### 3. Start the hello service once more
+
+```
+tsx src/run/hello-service.ts
+```
+
+This will start the [service called `hello`](https://github.com/differentialhq/app/blob/master/src/services/hello.ts) with the new registered function `helloInAnotherLanguage` active within the service.
+
+### 4. Change the `greet` command to call the new function
 
 You can replace the greet.ts file with the following. We're just extending the existing command to take a new `language` parameter and call the new function.
 
@@ -110,7 +118,15 @@ async function greet(name: string = "World", language: string = "english") {
 }
 ```
 
-### 4. Call the new command
+### 4. Start the hello service once more
+
+```
+tsx src/run/hello-service.ts
+```
+
+This will start the [service called `hello`](https://github.com/differentialhq/app/blob/master/src/services/hello.ts) so the new registered function can be run
+
+### 5. Call the new command
 
 ```bash
 tsx src/commands/greet.ts -- "Dali" "spanish"
