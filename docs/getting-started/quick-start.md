@@ -104,7 +104,6 @@ You can replace the greet.ts file with the following. We're just extending the e
 
 import { d } from "../d";
 import type { helloService } from "../services/hello";
-import { starting } from "../utls/cmd";
 
 const client = d.client<typeof helloService>("hello");
 
