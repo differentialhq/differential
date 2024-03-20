@@ -1,4 +1,4 @@
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { InferModel, and, eq, inArray, sql } from "drizzle-orm";
 import * as cron from "../cron";
 import * as data from "../data";
 import * as events from "../observability/events";
@@ -144,9 +144,9 @@ export const getJobStatuses = async ({
   let jobs: Array<{
     id: string;
     service: string;
-    status: string;
+    status: InferModel<typeof data.jobs>["status"];
     result: string | null;
-    resultType: string | null;
+    resultType: InferModel<typeof data.jobs>["result_type"];
   }>;
 
   do {
