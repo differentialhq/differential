@@ -107,3 +107,14 @@ Resources:
     Type: AWS::IAM::User
     Properties:
       UserName: "DifferentialControlPlane"
+
+Outputs:
+  AssetUploadBucket:
+    Description: S3 bucket used for asset uploads
+    Value: !Ref AssetUploadBucket
+  CfnTemplateBucket:
+    Description: S3 bucket used for deployment templates
+    Value: !Ref CfnTemplateBucket
+  DeploymentCloudFormationTopic:
+    Description: SNS topic for subscribing to CloudFormation status updates
+    Value: !Ref DeploymentCloudFormationTopic
