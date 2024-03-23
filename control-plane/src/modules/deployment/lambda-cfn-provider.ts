@@ -1,11 +1,6 @@
 import { ZodSchema, z } from "zod";
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
-import {
-  Deployment,
-  getAllPendingDeployments,
-  s3AssetDetails,
-  updateDeploymentResult,
-} from "./deployment";
+import { Deployment, s3AssetDetails } from "./deployment";
 import { DeploymentProvider } from "./deployment-provider";
 import { getCluster } from "../cluster";
 import { CloudFormationManager } from "./cfn-manager";
@@ -13,7 +8,6 @@ import {
   AlreadyExistsException,
   Parameter,
 } from "@aws-sdk/client-cloudformation";
-import { registerCron } from "../cron";
 
 const LAMBDA_CFN_TEMPLATE_KEY = "lambda-cfn.yaml";
 
@@ -42,9 +36,10 @@ export class LambdaCfnProvider implements DeploymentProvider {
     console.log("Creating new lambda deployment", functionName);
 
     try {
-      await this.cfnManager.create({
+      return await this.cfnManager.create({
         stackName: functionName,
         templateKey: LAMBDA_CFN_TEMPLATE_KEY,
+        clientRequestToken: deployment.id,
         params: await this.cfnParams(deployment),
       });
     } catch (error: any) {
@@ -60,20 +55,16 @@ export class LambdaCfnProvider implements DeploymentProvider {
     const functionName = this.buildFunctionName(deployment);
 
     console.log("Updating existing lambda deployment", functionName);
-    let status;
-    try {
-      status = await this.cfnManager.getChangeResult(functionName);
-    } catch (error: any) {
-      if (error?.message?.includes("does not exist")) {
-        console.warn("Stack does not exist. It will be created instead.");
-        return this.create(deployment);
-      }
-      throw error;
+    const exists = await this.cfnManager.stackExists(functionName);
+    if (!exists) {
+      console.warn("Stack does not exist. It will be created instead.");
+      return this.create(deployment);
     }
 
     const result = await this.cfnManager.update({
       stackName: functionName,
       templateKey: LAMBDA_CFN_TEMPLATE_KEY,
+      clientRequestToken: deployment.id,
       params: await this.cfnParams(deployment),
     });
     return result;
@@ -109,44 +100,6 @@ export class LambdaCfnProvider implements DeploymentProvider {
     } catch (error: any) {
       console.error("Failed to trigger lambda", functionName, error);
     }
-  }
-
-  // Scheduled job which checks for pending deployments and updates their status based on the result of the CloudFormation stack.
-  public async startPollingDeployments() {
-    registerCron(
-      async () => {
-        if (!process.env.DEPLOYMENT_SCHEDULING_ENABLED) {
-          return;
-        }
-
-        const deployments = await getAllPendingDeployments("lambda");
-        for (const deployment of deployments) {
-          let result;
-          try {
-            result = await this.cfnManager.getChangeResult(
-              this.buildFunctionName(deployment),
-            );
-          } catch (e) {
-            console.error("Failed to get CFN result", { error: e, deployment });
-            continue;
-          }
-
-          if (result.pending) {
-            continue;
-          }
-          console.log("Updating deployment with CFN result", {
-            deployment,
-            result,
-          });
-          await updateDeploymentResult(
-            deployment,
-            result.success ? "active" : "failed",
-            result,
-          );
-        }
-      },
-      { interval: 5000 },
-    );
   }
 
   private async cfnParams(deployment: Deployment): Promise<Parameter[]> {

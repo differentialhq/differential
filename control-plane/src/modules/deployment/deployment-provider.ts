@@ -8,8 +8,6 @@ import { LambdaCfnProvider } from "./lambda-cfn-provider";
 const mockProvider = new MockProvider();
 const lambdaProvider = new LambdaCfnProvider();
 
-lambdaProvider.startPollingDeployments();
-
 export const getDeploymentProvider = (provider: string): DeploymentProvider => {
   switch (provider) {
     case "lambda":

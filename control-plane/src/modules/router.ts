@@ -14,6 +14,7 @@ import {
   getDeployment,
   getDeployments,
   releaseDeployment,
+  updateDeploymentResult,
 } from "./deployment/deployment";
 import { getDeploymentProvider } from "./deployment/deployment-provider";
 import * as jobs from "./jobs/jobs";
@@ -23,6 +24,13 @@ import * as events from "./observability/events";
 import * as clientLib from "./packages/client-lib";
 import * as routingHelpers from "./routing-helpers";
 import { UPLOAD_BUCKET, getObject } from "./s3";
+import {
+  DELOYMENT_SNS_TOPIC,
+  confirmSubscription,
+  parseCloudFormationMessage,
+  validateSignature,
+} from "./sns";
+import { deploymentResultFromNotification } from "./deployment/cfn-manager";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -693,6 +701,62 @@ export const router = s.router(contract, {
         "Content-Disposition": `attachment; filename="${clusterId}-${version}.tgz"`,
       },
       body: await getObject(library),
+    };
+  },
+  sns: async (request) => {
+    if (!DELOYMENT_SNS_TOPIC) {
+      return {
+        status: 501,
+      };
+    }
+
+    try {
+      await validateSignature(request.request.body as Record<string, unknown>);
+    } catch {
+      console.error("SNS Signature validation failed");
+      return {
+        status: 400,
+      };
+    }
+
+    if (request.body.TopicArn != DELOYMENT_SNS_TOPIC) {
+      console.warn("Received request for unknown SNS topic");
+      return {
+        status: 400,
+      };
+    }
+
+    if (request.body.Type == "SubscriptionConfirmation" && request.body.Token) {
+      await confirmSubscription({
+        Token: request.body.Token,
+        TopicArn: DELOYMENT_SNS_TOPIC,
+      });
+    }
+
+    if (
+      request.body.Type == "Notification" &&
+      request.body.Subject == "AWS CloudFormation Notification" &&
+      request.body.Message
+    ) {
+      const message = parseCloudFormationMessage(request.body.Message);
+      const result = deploymentResultFromNotification(message);
+
+      console.log("Received deployment result from CloudFormation", result);
+      const status = result.pending
+        ? "uploading"
+        : result.success
+          ? "active"
+          : "failed";
+      await updateDeploymentResult(
+        { id: result.clientRequestToken },
+        status,
+        result,
+      );
+    }
+
+    return {
+      status: 200,
+      body: undefined,
     };
   },
 });
