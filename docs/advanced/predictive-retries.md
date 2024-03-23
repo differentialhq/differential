@@ -3,7 +3,7 @@
 Status: **Technical Preview**
 
 !!!
-This feature is at the Technical Preview stage. Due to the nature of probabilistic outcomes, this feature may result in non-deterministic behavior. It's by default opt-in.
+This feature is at the Technical Preview stage. Due to the nature of probabilistic outcomes, this feature may result in non-deterministic behaviour. It's opt-in and switched off by default.
 !!!
 
 Differential can predict transient errors and retry the operations without the developer having to write custom code.
