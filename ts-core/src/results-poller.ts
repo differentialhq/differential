@@ -83,15 +83,19 @@ export class ResultsPoller {
         for (const job of result.body.filter(
           (job) => job.status === "success",
         )) {
-          this.jobs[job.id].result = {
-            content: unpack(job.result!),
-            type: job.resultType!,
-          };
+          // since we delete the job from the list, we need to check if it still exists
+          // in case this job was already resolved by another polling cycle
+          if (this.jobs[job.id]) {
+            this.jobs[job.id].result = {
+              content: unpack(job.result!),
+              type: job.resultType!,
+            };
 
-          this.jobs[job.id]?.onResult(
-            null!,
-            this.jobs[job.id].result as Result,
-          );
+            this.jobs[job.id].onResult(
+              null!,
+              this.jobs[job.id].result as Result,
+            );
+          }
         }
 
         for (const job of result.body.filter(
