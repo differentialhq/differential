@@ -23,14 +23,14 @@ import * as eventAggregation from "./observability/event-aggregation";
 import * as events from "./observability/events";
 import * as clientLib from "./packages/client-lib";
 import * as routingHelpers from "./routing-helpers";
-import { UPLOAD_BUCKET, getObject } from "./s3";
+import { getObject } from "./s3";
 import {
-  DELOYMENT_SNS_TOPIC,
   confirmSubscription,
   parseCloudFormationMessage,
   validateSignature,
 } from "./sns";
 import { deploymentResultFromNotification } from "./deployment/cfn-manager";
+import { env } from "../utilities/env";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -388,6 +388,12 @@ export const router = s.router(contract, {
     };
   },
   createDeployment: async (request) => {
+    if (!env.CLOUD_FEATURES_AVAILABLE) {
+      return {
+        status: 501,
+      };
+    }
+
     const access = await routingHelpers.validateManagementRequest(request);
     const { cloudEnabled } = await operationalCluster(request.params.clusterId);
     if (!access || !cloudEnabled) {
@@ -397,12 +403,6 @@ export const router = s.router(contract, {
     }
 
     const { clusterId, serviceName } = request.params;
-
-    if (UPLOAD_BUCKET === undefined) {
-      return {
-        status: 501,
-      };
-    }
 
     const deployment = await createDeployment({
       clusterId,
@@ -541,6 +541,12 @@ export const router = s.router(contract, {
     };
   },
   createClientLibraryVersion: async (request) => {
+    if (!env.CLOUD_FEATURES_AVAILABLE) {
+      return {
+        status: 501,
+      };
+    }
+
     const access = await routingHelpers.validateManagementRequest(request);
     const { cloudEnabled } = await operationalCluster(request.params.clusterId);
     if (!access || !cloudEnabled) {
@@ -617,6 +623,12 @@ export const router = s.router(contract, {
     }
   },
   npmRegistryDefinition: async (request) => {
+    if (!env.CLOUD_FEATURES_AVAILABLE) {
+      return {
+        status: 501,
+      };
+    }
+
     const fullPackageName = request.params.packageName;
     const encodedPackageName = encodeURIComponent(fullPackageName);
 
@@ -704,7 +716,7 @@ export const router = s.router(contract, {
     };
   },
   sns: async (request) => {
-    if (!DELOYMENT_SNS_TOPIC) {
+    if (!env.CLOUD_FEATURES_AVAILABLE) {
       return {
         status: 501,
       };
@@ -719,7 +731,7 @@ export const router = s.router(contract, {
       };
     }
 
-    if (request.body.TopicArn != DELOYMENT_SNS_TOPIC) {
+    if (request.body.TopicArn != env.DEPLOYMENT_SNS_TOPIC) {
       console.warn("Received request for unknown SNS topic");
       return {
         status: 400,
@@ -729,7 +741,7 @@ export const router = s.router(contract, {
     if (request.body.Type == "SubscriptionConfirmation" && request.body.Token) {
       await confirmSubscription({
         Token: request.body.Token,
-        TopicArn: DELOYMENT_SNS_TOPIC,
+        TopicArn: env.DEPLOYMENT_SNS_TOPIC,
       });
     }
 

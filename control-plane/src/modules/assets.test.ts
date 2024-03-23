@@ -5,8 +5,14 @@ import { createOwner } from "./test/util";
 import { getPresignedURL } from "./s3";
 
 jest.mock("./s3", () => ({
-  UPLOAD_BUCKET: "mockedBucket",
   getPresignedURL: jest.fn().mockResolvedValue("mockedPresignedURL"),
+}));
+
+jest.mock("../utilities/env", () => ({
+  env: {
+    UPLOAD_BUCKET: "mockedBucket",
+    ...jest.requireActual("../utilities/env").env,
+  },
 }));
 
 describe("createAssetUploadWithTarget", () => {

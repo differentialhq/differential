@@ -1,6 +1,7 @@
 import msgpackr from "msgpackr";
 import { client } from "./client";
 import { deserializeError } from "./serialize-error";
+import { env } from "../../utilities/env";
 
 export type PredictedRetryableResult = {
   retryable: boolean;
@@ -26,7 +27,7 @@ export const isRetryable = async (resultContent: string) => {
         errorMessage: error.message ?? "",
       },
       headers: {
-        authorization: `Bearer ${process.env.PREDICTOR_API_KEY}`,
+        authorization: `Bearer ${env.PREDICTOR_API_KEY}`,
       },
     });
 

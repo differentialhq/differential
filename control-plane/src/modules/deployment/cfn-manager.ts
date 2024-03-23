@@ -5,9 +5,9 @@ import {
   Parameter,
   UpdateStackCommand,
 } from "@aws-sdk/client-cloudformation";
-import { getObject, CFN_BUCKET } from "../s3";
+import { getObject } from "../s3";
 import { Readable } from "stream";
-import { DELOYMENT_SNS_TOPIC } from "../sns";
+import { env } from "../../utilities/env";
 
 type CloudFormationStack = {
   stackId: string;
@@ -30,11 +30,11 @@ export class CloudFormationManager {
   }
 
   private async getTemplateBody(templateKey: string): Promise<string> {
-    if (CFN_BUCKET === undefined) {
+    if (env.CFN_BUCKET === undefined) {
       throw new Error("CFN_BUCKET environment variable is not set");
     }
     const object = await getObject({
-      bucket: CFN_BUCKET,
+      bucket: env.CFN_BUCKET,
       key: templateKey,
     });
 
@@ -61,7 +61,7 @@ export class CloudFormationManager {
     clientRequestToken: string;
     params: Parameter[];
   }): Promise<CloudFormationStack> {
-    if (DELOYMENT_SNS_TOPIC === undefined) {
+    if (env.DEPLOYMENT_SNS_TOPIC === undefined) {
       throw new Error("DELOYMENT_SNS_TOPIC environment variable is not set");
     }
     const templateBody = await this.getTemplateBody(templateKey);
@@ -70,7 +70,7 @@ export class CloudFormationManager {
       TemplateBody: templateBody,
       Parameters: params,
       OnFailure: "DELETE",
-      NotificationARNs: [DELOYMENT_SNS_TOPIC],
+      NotificationARNs: [env.DEPLOYMENT_SNS_TOPIC],
       ClientRequestToken: clientRequestToken,
     });
 
@@ -92,7 +92,7 @@ export class CloudFormationManager {
     clientRequestToken: string;
     params: Parameter[];
   }): Promise<CloudFormationStack> {
-    if (DELOYMENT_SNS_TOPIC === undefined) {
+    if (env.DEPLOYMENT_SNS_TOPIC === undefined) {
       throw new Error("DELOYMENT_SNS_TOPIC environment variable is not set");
     }
     const templateBody = await this.getTemplateBody(templateKey);
@@ -101,7 +101,7 @@ export class CloudFormationManager {
       StackName: stackName,
       TemplateBody: templateBody,
       Parameters: params,
-      NotificationARNs: [DELOYMENT_SNS_TOPIC],
+      NotificationARNs: [env.DEPLOYMENT_SNS_TOPIC],
       ClientRequestToken: clientRequestToken,
     });
 
