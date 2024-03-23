@@ -92,6 +92,7 @@ Resources:
 
   DifferentialServiceInvokeConfig:
     Type: AWS::Lambda::EventInvokeConfig
+    DependsOn: DifferentialService
     Properties:
       FunctionName: !Ref FunctionName
       Qualifier: "$LATEST"

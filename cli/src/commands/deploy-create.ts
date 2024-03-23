@@ -90,7 +90,7 @@ export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
 
       const { packagePath } = await packageService(service, project, outDir);
 
-      console.log(`☁️l  Creating deployment for service ${service}`);
+      console.log(`☁️  Creating deployment for service ${service}`);
 
       const response = await client.createDeployment({
         params: {
@@ -100,6 +100,7 @@ export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
       });
 
       if (response.status !== 201) {
+        log("Failed to create deployment", { response });
         throw new Error(
           "Failed to create deployment. Please check provided options and cluster configuration.",
         );
@@ -124,13 +125,19 @@ export const DeployCreate: CommandModule<{}, DeployCreateArgs> = {
         clusterId: cluster,
       });
 
-      await waitForDeploymentStatus(
+      const status = await waitForDeploymentStatus(
         deployment.id,
         service,
         cluster,
-        "active",
+        ["active", "inactive", "failed", "cancelled"],
         1000,
       );
+
+      if (status !== "active") {
+        throw new Error(
+          `Deployment failed to become active, current status: ${status}`,
+        );
+      }
 
       console.log(
         `✅  Deployment complete, ${service}:${deployment.id} is now available!`,

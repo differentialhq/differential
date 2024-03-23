@@ -9,7 +9,7 @@ export type Deployment = {
   id: string;
   clusterId: string;
   service: string;
-  status: string;
+  status: "uploading" | "active" | "inactive" | "failed" | "cancelled";
   provider: string;
   assetUploadId?: string | null;
   createdAt: Date;
@@ -163,7 +163,7 @@ export const releaseDeployment = async (
     update = await tx
       .update(data.deployments)
       .set({
-        meta: meta,
+        meta: meta ?? {},
       })
       .where(eq(data.deployments.id, deployment.id))
       .returning({
@@ -243,8 +243,8 @@ export const getAllPendingDeployments = async (
 };
 
 export const updateDeploymentResult = async (
-  deployment: Deployment,
-  status: "active" | "failed",
+  deployment: { id: string },
+  status: "active" | "failed" | "uploading",
   meta?: any,
 ) => {
   await data.db

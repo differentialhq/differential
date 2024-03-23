@@ -18,7 +18,10 @@ The stack can be provisioned by running the following command in your shell:
 aws cloudformation create-stack \
     --stack-name $STACK_NAME \
     --template-body file://cfn.yaml \
-    --parameters ParameterKey=AssetUploadBucketName,ParameterValue=${ASSET_BUCKET_NAME} \
+    --parameters \
+    ParameterKey=AssetUploadBucketName,ParameterValue=${ASSET_BUCKET_NAME} \
+    ParameterKey=CfnTemplateBucketName,ParameterValue=${CFN_BUCKET_NAME} \
+    ParameterKey=CfnSNSWebhook,ParameterValue=${CFN_WEBHOOK} \
     --capabilities CAPABILITY_NAMED_IAM CAPABILITY_IAM
 ```
 
@@ -31,5 +34,7 @@ aws cloudformation update-stack \
     --stack-name $STACK_NAME \
     --template-body file://cfn.yaml \
     --parameters ParameterKey=AssetUploadBucketName,ParameterValue=${ASSET_BUCKET_NAME} \
+    ParameterKey=CfnTemplateBucketName,ParameterValue=${CFN_BUCKET_NAME} \
+    ParameterKey=CloudFormationWebhook,ParameterValue=${CFN_WEBHOOK} \
     --capabilities CAPABILITY_NAMED_IAM CAPABILITY_IAM
 ```

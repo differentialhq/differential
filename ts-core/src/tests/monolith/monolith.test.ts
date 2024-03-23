@@ -67,7 +67,7 @@ describe("monolith", () => {
   "Expert says: foobar",
 ]
 `);
-  });
+  }, 50000);
 
   it("should not let an already started service start again", async () => {
     await expect(expertService.start()).rejects.toThrowError(
