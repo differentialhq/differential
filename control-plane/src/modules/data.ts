@@ -263,6 +263,24 @@ export const deploymentProvividerConfig = pgTable(
   },
 );
 
+export const predictiveRetriesCache = pgTable(
+  "predictive_retries_cache",
+  {
+    error_name: varchar("error_name", { length: 1024 }).notNull(),
+    error_message: varchar("error_message", { length: 1024 }).notNull(),
+    retryable: boolean("retryable").notNull(),
+    created_at: timestamp("created_at", {
+      withTimezone: true,
+      precision: 6,
+    })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    pk: primaryKey(table.error_name, table.error_message),
+  }),
+);
+
 export const db = drizzle(pool);
 
 export const isAlive = async () => {
