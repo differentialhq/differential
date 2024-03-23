@@ -8,6 +8,10 @@ Parameters:
     Type: String
     Description: Name for the S3 bucket used for CFN template storage
 
+  CfnSNSWebhook:
+    Type: String
+    Description: URL of the control plane CF webhook
+
 Resources:
   AssetUploadBucket:
     Type: AWS::S3::Bucket
@@ -57,6 +61,24 @@ Resources:
               Resource: !GetAtt DeploymentLambdaRuntimeRole.Arn
         Users:
           - !Ref ControlPlaneUser
+
+  DeploymentCloudFormationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: DeploymentCloudFormationTopic
+
+  DeploymentCloudFormationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: !Ref CfnSNSWebhook
+      TopicArn: !Ref DeploymentCloudFormationTopic
+      Protocol: "https"
+      DeliveryPolicy: |
+        {
+          "requestPolicy": {
+            "headerContentType": "application/json; charset=UTF-8"
+          }
+        }
 
   DeploymentLambdaRuntimeRole:
     Type: AWS::IAM::Role
