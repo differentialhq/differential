@@ -2,16 +2,18 @@
 
 import { client } from "@/client/client";
 import { useAuth } from "@clerk/nextjs";
+import { formatRelative } from "date-fns";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {
-  Area,
-  AreaChart,
+  Bar,
+  BarChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
+import { fillDates } from "../../../fill-dates";
 
 export function ServiceMetrics({
   clusterId,
@@ -31,7 +33,7 @@ export function ServiceMetrics({
     }>;
     executionTime: Array<{
       timestamp: Date;
-      avg: number;
+      avg: number | null;
     }>;
   }>({
     count: [],
@@ -70,7 +72,9 @@ export function ServiceMetrics({
             .sort((a, b) => a.timeBin.localeCompare(b.timeBin))
             .map((item) => ({
               timestamp: new Date(item.timeBin),
-              avg: item.avgExecutionTime,
+              avg: item.avgExecutionTime
+                ? Number(item.avgExecutionTime.toFixed(2))
+                : null,
             })),
         });
       } else {
@@ -88,31 +92,32 @@ export function ServiceMetrics({
     };
   }, [clusterId, serviceName, isLoaded, isSignedIn, getToken]);
 
-  console.log(data);
+  if (data.count.length === 0) {
+    return null;
+  }
 
-  return data.count.length > 0 ? (
+  return (
     <div>
       <div className="flex mt-12 space-x-12 mb-12">
-        <div className="rounded-md border flex-grow">
+        <div className="rounded-md border flex-grow w-2/3">
           <div className="mt-6 text-center">
-            <h4 className="text-l mb-4">Service Calls</h4>
-            <p className="text-gray-400">
-              Number of times {serviceName} has been called.
-            </p>
+            <h4 className="text-l mb-4">Service Call Counts</h4>
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart
+            <BarChart
               width={500}
               height={500}
               margin={{
                 right: 30,
-                left: 30,
                 bottom: 30,
               }}
-              data={data.count}
+              data={fillDates(data.count)}
             >
               <Tooltip
                 contentStyle={{ backgroundColor: "#1F2937", color: "#fff" }}
+                labelFormatter={(value) => {
+                  return formatRelative(new Date(value), new Date());
+                }}
                 formatter={(value, _name, props) => {
                   if (
                     isNaN(value as number) ||
@@ -130,70 +135,94 @@ export function ServiceMetrics({
                   return `${value} (${percent.toFixed(2)}%)`;
                 }}
               />
-              <YAxis dataKey="success" />
+              <YAxis
+                dataKey="success"
+                style={{
+                  fontSize: "12px",
+                }}
+              />
               <XAxis
                 dataKey="timestamp"
                 name="Time"
                 tickFormatter={tickFormatter}
+                style={{
+                  fontSize: "12px",
+                }}
               />
-              <Area
+              <Bar
                 type="monotone"
                 dataKey="success"
                 stroke="#8884d8"
                 fill="#8884d8"
               />
-              <Area
+              <Bar
                 type="monotone"
                 dataKey="failure"
                 stroke="#b30000"
                 fill="#b30000"
               />
-            </AreaChart>
+              <Bar
+                type="monotone"
+                dataKey="stalled"
+                stroke="#ffcc00"
+                fill="#ffcc00"
+              />
+            </BarChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="rounded-md border flex-grow">
+        <div className="rounded-md border flex-grow w-1/3">
           <div className="mt-6 text-center">
             <h4 className="text-l mb-4">Average Execution Time</h4>
-            <p className="text-gray-400">
-              The average time to execute {serviceName} functions.
-            </p>
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart
+            <BarChart
               width={500}
               height={500}
               margin={{
                 top: 30,
                 right: 30,
-                left: 30,
                 bottom: 30,
               }}
-              data={data.executionTime}
+              data={fillDates(data.executionTime)}
             >
               <Tooltip
                 contentStyle={{ backgroundColor: "#1F2937", color: "#fff" }}
                 formatter={(value, _name, props) => {
                   return `${value}ms`;
                 }}
+                labelFormatter={(value) => {
+                  return formatRelative(new Date(value), new Date());
+                }}
               />
-              <YAxis unit="ms" />
-              <XAxis dataKey="timestamp" tickFormatter={tickFormatter} />
-              <Area
+              <YAxis
+                unit="ms"
+                style={{
+                  fontSize: "12px",
+                }}
+              />
+              <XAxis
+                dataKey="timestamp"
+                tickFormatter={tickFormatter}
+                style={{
+                  fontSize: "12px",
+                }}
+              />
+              <Bar
                 type="monotone"
                 dataKey="avg"
                 stroke="#8884d8"
                 fill="#8884d8"
               />
-            </AreaChart>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
     </div>
-  ) : null;
+  );
 }
 
-const tickFormatter = (time: number) => {
+export const tickFormatter = (time: number) => {
   // Hour and minute (e.g. 12:00) including leading zero
   const date = new Date(time);
   const hours = date.getHours().toString().padStart(2, "0");
