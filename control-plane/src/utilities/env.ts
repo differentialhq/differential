@@ -87,4 +87,12 @@ let envSchema = z
     };
   });
 
-export const env = envSchema.parse(process.env);
+let env: z.infer<typeof envSchema>;
+try {
+  env = envSchema.parse(process.env);
+} catch (e: any) {
+  console.error("Invalid environment variables provided", e.errors);
+  process.exit(1);
+}
+
+export { env };
