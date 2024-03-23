@@ -3,6 +3,30 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.15.0](https://github.com/differentialhq/differential/compare/v3.14.0...v3.15.0) (2024-03-23)
+
+### Bug Fixes
+
+- Add job duration metrics ([#157](https://github.com/differentialhq/differential/issues/157)) ([0bf7adf](https://github.com/differentialhq/differential/commit/0bf7adfc944ae14ac525fe9bf2fed93810493afb))
+- Adding HTTP metrics ([#162](https://github.com/differentialhq/differential/issues/162)) ([6b9fda9](https://github.com/differentialhq/differential/commit/6b9fda97dbe4530cb4aefe7e5de110249342ea61))
+- Cache predictive retries and better docs ([#171](https://github.com/differentialhq/differential/issues/171)) ([416a8ae](https://github.com/differentialhq/differential/commit/416a8aeaa5339491027cb4335b429789736f6ad4))
+- Documentation updates based on feedback ([#166](https://github.com/differentialhq/differential/issues/166)) ([9553c42](https://github.com/differentialhq/differential/commit/9553c424049324f61da26b457ce973a1c81fafe5))
+- Fix Dockerfile link ([907fbbe](https://github.com/differentialhq/differential/commit/907fbbee51018f8b03a250fd16099481c6057460))
+- Fix jobId link for ClusterLiveTables ([#164](https://github.com/differentialhq/differential/issues/164)) ([ce1407c](https://github.com/differentialhq/differential/commit/ce1407c008b59f5b8b6d6b0c45d71b06446bcd0b))
+- Implement longs polling for getJobStatuses ([#169](https://github.com/differentialhq/differential/issues/169)) ([289c7a0](https://github.com/differentialhq/differential/commit/289c7a0070e816243b5eb3b35a44f144f11f75b9))
+- Infer getJobStatuses return type ([#173](https://github.com/differentialhq/differential/issues/173)) ([bfe099b](https://github.com/differentialhq/differential/commit/bfe099b68bf0f12455c7fb7cd768030c54cb7506))
+- Minor fixes to failure modes and error handling docs ([1376bf6](https://github.com/differentialhq/differential/commit/1376bf615ae160eac95c21d5faeb48e6958c4e7c))
+- Resolve test warnings ([#176](https://github.com/differentialhq/differential/issues/176)) ([e6c4d66](https://github.com/differentialhq/differential/commit/e6c4d66957bcbade2b064ae9ab9b4af389c97c8f))
+
+### Features
+
+- **admin:** Render deployment details ([#163](https://github.com/differentialhq/differential/issues/163)) ([7ba103d](https://github.com/differentialhq/differential/commit/7ba103d8641185e91df602974779ebde4f80e674))
+- Client Library distribution ([#154](https://github.com/differentialhq/differential/issues/154)) ([4728199](https://github.com/differentialhq/differential/commit/472819901d0da46e61d8c4fdd9c894eacd99a74b))
+- CloudFormation lambda provider ([#165](https://github.com/differentialhq/differential/issues/165)) ([9866a32](https://github.com/differentialhq/differential/commit/9866a32678f5c954852b84678395c3e6eebfd140))
+- Gate cloud features ([#155](https://github.com/differentialhq/differential/issues/155)) ([41463e2](https://github.com/differentialhq/differential/commit/41463e24849d29de7fd52ee6e572aeedbe6128a7))
+- Inject API secret into deployments ([#156](https://github.com/differentialhq/differential/issues/156)) ([6478816](https://github.com/differentialhq/differential/commit/64788163d705e8e65214a1f392dbba81feec4173))
+- Update CloudFormation deployments based on SNS ([#167](https://github.com/differentialhq/differential/issues/167)) ([826b7d0](https://github.com/differentialhq/differential/commit/826b7d0885bcf2aeeb6115819c0805dc93f621c5))
+
 # [3.14.0](https://github.com/differentialhq/differential/compare/v3.13.1...v3.14.0) (2024-02-29)
 
 ### Bug Fixes

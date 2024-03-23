@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.15.0](https://github.com/differentialhq/differential/compare/v3.14.0...v3.15.0) (2024-03-23)
+
+### Bug Fixes
+
+- Documentation updates based on feedback ([#166](https://github.com/differentialhq/differential/issues/166)) ([9553c42](https://github.com/differentialhq/differential/commit/9553c424049324f61da26b457ce973a1c81fafe5))
+
+### Features
+
+- Client Library distribution ([#154](https://github.com/differentialhq/differential/issues/154)) ([4728199](https://github.com/differentialhq/differential/commit/472819901d0da46e61d8c4fdd9c894eacd99a74b))
+- Gate cloud features ([#155](https://github.com/differentialhq/differential/issues/155)) ([41463e2](https://github.com/differentialhq/differential/commit/41463e24849d29de7fd52ee6e572aeedbe6128a7))
+- Update CloudFormation deployments based on SNS ([#167](https://github.com/differentialhq/differential/issues/167)) ([826b7d0](https://github.com/differentialhq/differential/commit/826b7d0885bcf2aeeb6115819c0805dc93f621c5))
+
 # [3.14.0](https://github.com/differentialhq/differential/compare/v3.13.1...v3.14.0) (2024-02-29)
 
 ### Features
