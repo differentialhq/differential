@@ -1,4 +1,4 @@
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { type InferModel, and, eq, inArray, sql } from "drizzle-orm";
 import * as cron from "../cron";
 import * as data from "../data";
 import * as events from "../observability/events";
@@ -32,10 +32,10 @@ export const nextJobs = async ({
   const end = jobDurations.startTimer({ operation: "nextJobs" });
 
   const results = await data.db.execute(
-    sql`UPDATE 
-      jobs SET status = 'running', 
-      remaining_attempts = remaining_attempts - 1, 
-      last_retrieved_at=${new Date().toISOString()}, 
+    sql`UPDATE
+      jobs SET status = 'running',
+      remaining_attempts = remaining_attempts - 1,
+      last_retrieved_at=${new Date().toISOString()},
       executing_machine_id=${machineId}
     WHERE
       id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining_attempts > 0))
@@ -144,9 +144,9 @@ export const getJobStatuses = async ({
   let jobs: Array<{
     id: string;
     service: string;
-    status: string;
+    status: InferModel<typeof data.jobs>["status"];
     result: string | null;
-    resultType: string | null;
+    resultType: InferModel<typeof data.jobs>["result_type"];
   }>;
 
   do {
