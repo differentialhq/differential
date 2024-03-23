@@ -30,11 +30,11 @@ export class CloudFormationManager {
   }
 
   private async getTemplateBody(templateKey: string): Promise<string> {
-    if (env.CFN_BUCKET === undefined) {
+    if (env.DEPLOYMENT_TEMPLATE_BUCKET === undefined) {
       throw new Error("CFN_BUCKET environment variable is not set");
     }
     const object = await getObject({
-      bucket: env.CFN_BUCKET,
+      bucket: env.DEPLOYMENT_TEMPLATE_BUCKET,
       key: templateKey,
     });
 

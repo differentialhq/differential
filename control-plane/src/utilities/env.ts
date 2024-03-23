@@ -13,15 +13,20 @@ export const truthy = z
 
 let envSchema = z
   .object({
-    ENABLE_FASTIFY_LOGGER: truthy.default(false),
     DATABASE_URL: z.string().url(),
     DATABASE_SSL_DISABLED: truthy.default(false),
-    PREDICTOR_API_URL: z.string().url().optional(),
-    PREDICTOR_API_KEY: z.string().optional(),
+    DATABASE_ALLOW_EXIT_ON_IDLE: truthy.default(false),
+
     CONSOLE_ORIGIN: z
       .string()
       .url()
       .default("https://console.differential.dev"),
+
+    ENABLE_FASTIFY_LOGGER: truthy.default(false),
+
+    PREDICTOR_API_URL: z.string().url().optional(),
+    PREDICTOR_API_KEY: z.string().optional(),
+
     JWKS_URL: z.string().url().optional(),
     MANAGEMENT_SECRET: z
       .string()
@@ -41,13 +46,16 @@ let envSchema = z
           path: ["MANAGEMENT_SECRET"],
         },
       ),
-    IGNORE_EXPIRATION: truthy.default(false),
-    UPLOAD_BUCKET: z.string().optional(),
-    CFN_BUCKET: z.string().optional(),
-    DEPLOYMENT_SNS_TOPIC: z.string().optional(),
+    JWT_IGNORE_EXPIRATION: truthy.default(false),
+
     SENTRY_DSN: z.string().optional(),
+
+    ASSET_UPLOAD_BUCKET: z.string().optional(),
+    DEPLOYMENT_TEMPLATE_BUCKET: z.string().optional(),
+    DEPLOYMENT_SNS_TOPIC: z.string().optional(),
     DEPLOYMENT_SCHEDULING_ENABLED: truthy.default(false),
-    ALLOW_EXIT_ON_IDLE: truthy.default(false),
+    AWS_ACCESS_KEY_ID: z.string().optional(),
+    AWS_SECRET_ACCESS_KEY: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -71,9 +79,11 @@ let envSchema = z
     return {
       ...data,
       CLOUD_FEATURES_AVAILABLE:
-        !!data.UPLOAD_BUCKET ||
-        !!data.CFN_BUCKET ||
-        !!data.DEPLOYMENT_SNS_TOPIC,
+        !!data.ASSET_UPLOAD_BUCKET ||
+        !!data.DEPLOYMENT_TEMPLATE_BUCKET ||
+        !!data.DEPLOYMENT_SNS_TOPIC ||
+        !!data.AWS_ACCESS_KEY_ID ||
+        !!data.AWS_SECRET_ACCESS_KEY,
     };
   });
 

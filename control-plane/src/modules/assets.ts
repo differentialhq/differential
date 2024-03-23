@@ -17,10 +17,10 @@ export const createAssetUploadWithTarget = async ({
   const id = target;
   const key = `${type}/${id}`;
 
-  if (!env.UPLOAD_BUCKET) {
+  if (!env.ASSET_UPLOAD_BUCKET) {
     throw new Error("Upload bucket not configured");
   }
-  const bucket = env.UPLOAD_BUCKET;
+  const bucket = env.ASSET_UPLOAD_BUCKET;
 
   switch (type) {
     case "client_library": {

@@ -10,8 +10,8 @@ jest.mock("./s3", () => ({
 
 jest.mock("../utilities/env", () => ({
   env: {
-    UPLOAD_BUCKET: "mockedBucket",
     ...jest.requireActual("../utilities/env").env,
+    ASSET_UPLOAD_BUCKET: "mockedBucket",
   },
 }));
 

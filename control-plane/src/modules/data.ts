@@ -27,7 +27,7 @@ export const pool = new Pool({
       },
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 5_000,
-  allowExitOnIdle: env.ALLOW_EXIT_ON_IDLE,
+  allowExitOnIdle: env.DATABASE_ALLOW_EXIT_ON_IDLE,
 });
 
 pool.on("error", (err) => {

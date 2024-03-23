@@ -389,6 +389,9 @@ export const router = s.router(contract, {
   },
   createDeployment: async (request) => {
     if (!env.CLOUD_FEATURES_AVAILABLE) {
+      console.warn(
+        "Received deployment request but cloud features are not available",
+      );
       return {
         status: 501,
       };
@@ -542,6 +545,9 @@ export const router = s.router(contract, {
   },
   createClientLibraryVersion: async (request) => {
     if (!env.CLOUD_FEATURES_AVAILABLE) {
+      console.warn(
+        "Received client library request but cloud features are not available",
+      );
       return {
         status: 501,
       };
@@ -624,6 +630,9 @@ export const router = s.router(contract, {
   },
   npmRegistryDefinition: async (request) => {
     if (!env.CLOUD_FEATURES_AVAILABLE) {
+      console.warn(
+        "Received NPM registry request but cloud features are not available",
+      );
       return {
         status: 501,
       };
@@ -717,6 +726,7 @@ export const router = s.router(contract, {
   },
   sns: async (request) => {
     if (!env.CLOUD_FEATURES_AVAILABLE) {
+      console.warn("Received SNS request but cloud features are not available");
       return {
         status: 501,
       };

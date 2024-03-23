@@ -59,7 +59,7 @@ export const verifyManagementToken = async ({
       getKey,
       {
         algorithms: ["RS256"],
-        ignoreExpiration: env.IGNORE_EXPIRATION,
+        ignoreExpiration: env.JWT_IGNORE_EXPIRATION,
       },
       function (err, decoded) {
         if (err) {
