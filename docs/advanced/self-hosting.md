@@ -131,3 +131,30 @@ aws iam create-access-key --user-name DifferentialControlPlane
 fly secrets set AWS_ACCESS_KEY_ID=xxx
 fly secrets set AWS_SECRET_ACCESS_KEY=xxx
 ```
+
+### Providing the control-plane with resource references
+
+The following environment variables will need to be made available to the control-plane:
+
+- `ASSET_UPLOAD_BUCKET`
+- `DEPLOYMENT_TEMPLATE_BUCKET`
+- `DEPLOYMENT_SNS_TOPIC`
+
+Values for these can be retrieved from the previously created CloudFormation stack:
+
+```
+aws cloudformation describe-stacks --stack-name <STACK_NAME> --query "Stacks[0].Outputs"
+```
+
+These can either be hard-coded in the control-plane's `fly.toml` or set as secrets using `fly secrets set`.
+
+### Upload deployment templates
+
+The control-plane retrieves template files from the `DEPLOYMENT_TEMPLATE_BUCKET` S3 bucket in order to create deployments.
+
+Upload the contents of `./infrastructure/deployment-templates/` to the `DEPLOYMENT_TEMPLATE_BUCKET` provisioned earlier.
+
+```
+cd ./infrastructure/deployment-templates/
+aws s3 sync --exclude ".*" ./ s3://<DEPLOYMENT_TEMPLATE_BUCKET>
+```
