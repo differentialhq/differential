@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.15.0](https://github.com/differentialhq/differential/compare/v3.14.0...v3.15.0) (2024-03-23)
+
+### Bug Fixes
+
+- Documentation updates based on feedback ([#166](https://github.com/differentialhq/differential/issues/166)) ([9553c42](https://github.com/differentialhq/differential/commit/9553c424049324f61da26b457ce973a1c81fafe5))
+- Minor fixes to failure modes and error handling docs ([1376bf6](https://github.com/differentialhq/differential/commit/1376bf615ae160eac95c21d5faeb48e6958c4e7c))
+- Resolve test warnings ([#176](https://github.com/differentialhq/differential/issues/176)) ([e6c4d66](https://github.com/differentialhq/differential/commit/e6c4d66957bcbade2b064ae9ab9b4af389c97c8f))
+
+### Features
+
+- Inject API secret into deployments ([#156](https://github.com/differentialhq/differential/issues/156)) ([6478816](https://github.com/differentialhq/differential/commit/64788163d705e8e65214a1f392dbba81feec4173))
+
 # [3.14.0](https://github.com/differentialhq/differential/compare/v3.13.1...v3.14.0) (2024-02-29)
 
 ### Bug Fixes

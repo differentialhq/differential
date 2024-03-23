@@ -1,6 +1,6 @@
 {
   "name": "@differentialhq/core",
-  "version": "3.14.0",
+  "version": "3.15.0",
   "description": "Javascript SDK for differential.dev",
   "main": "bin/index.js",
   "scripts": {
@@ -32,6 +32,6 @@
     "typescript": "^5.2.2"
   },
   "jest": {
-    "timeout": "10000"
+    "testTimeout": 10000
   }
 }

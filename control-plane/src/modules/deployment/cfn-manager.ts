@@ -7,6 +7,7 @@ import {
 } from "@aws-sdk/client-cloudformation";
 import { getObject, CFN_BUCKET } from "../s3";
 import { Readable } from "stream";
+import { DELOYMENT_SNS_TOPIC } from "../sns";
 
 type CloudFormationStack = {
   stackId: string;
@@ -17,6 +18,8 @@ type StackChangeResult = CloudFormationStack & {
   success: boolean;
   status: string;
   reason?: string;
+  // Used to match the event with a deployment
+  clientRequestToken: string;
 };
 
 export class CloudFormationManager {
@@ -50,18 +53,25 @@ export class CloudFormationManager {
   async create({
     stackName,
     templateKey,
+    clientRequestToken,
     params,
   }: {
     stackName: string;
     templateKey: string;
+    clientRequestToken: string;
     params: Parameter[];
   }): Promise<CloudFormationStack> {
+    if (DELOYMENT_SNS_TOPIC === undefined) {
+      throw new Error("DELOYMENT_SNS_TOPIC environment variable is not set");
+    }
     const templateBody = await this.getTemplateBody(templateKey);
     const createStackCommand = new CreateStackCommand({
       StackName: stackName,
       TemplateBody: templateBody,
       Parameters: params,
       OnFailure: "DELETE",
+      NotificationARNs: [DELOYMENT_SNS_TOPIC],
+      ClientRequestToken: clientRequestToken,
     });
 
     const response = await this.cloudFormationClient.send(createStackCommand);
@@ -74,18 +84,25 @@ export class CloudFormationManager {
   async update({
     stackName,
     templateKey,
+    clientRequestToken,
     params,
   }: {
     stackName: string;
     templateKey: string;
+    clientRequestToken: string;
     params: Parameter[];
   }): Promise<CloudFormationStack> {
+    if (DELOYMENT_SNS_TOPIC === undefined) {
+      throw new Error("DELOYMENT_SNS_TOPIC environment variable is not set");
+    }
     const templateBody = await this.getTemplateBody(templateKey);
 
     const updateStackCommand = new UpdateStackCommand({
       StackName: stackName,
       TemplateBody: templateBody,
       Parameters: params,
+      NotificationARNs: [DELOYMENT_SNS_TOPIC],
+      ClientRequestToken: clientRequestToken,
     });
 
     const response = await this.cloudFormationClient.send(updateStackCommand);
@@ -95,52 +112,72 @@ export class CloudFormationManager {
     return { stackId: response.StackId };
   }
 
-  async getChangeResult(stackId: string): Promise<StackChangeResult> {
-    const describeStacksCommand = new DescribeStacksCommand({
-      StackName: stackId,
-    });
-
-    const response = await this.cloudFormationClient.send(
-      describeStacksCommand,
-    );
-    if (
-      response.Stacks &&
-      response.Stacks.length > 0 &&
-      response.Stacks[0].StackStatus &&
-      response.Stacks[0].StackId
-    ) {
-      switch (response.Stacks[0].StackStatus) {
-        case "CREATE_COMPLETE":
-        case "UPDATE_COMPLETE":
-          return {
-            pending: false,
-            success: true,
-            stackId: response.Stacks[0].StackId,
-            status: response.Stacks[0].StackStatus,
-          };
-        case "CREATE_FAILED":
-        case "UPDATE_FAILED":
-        case "ROLLBACK_COMPLETE":
-        case "ROLLBACK_FAILED":
-        case "UPDATE_ROLLBACK_COMPLETE":
-        case "UPDATE_ROLLBACK_FAILED":
-          return {
-            pending: false,
-            success: false,
-            stackId: response.Stacks[0].StackId,
-            status: response.Stacks[0].StackStatus,
-            reason: response.Stacks[0].StackStatusReason,
-          };
-        default:
-          return {
-            pending: true,
-            success: false,
-            stackId: response.Stacks[0].StackId,
-            status: response.Stacks[0].StackStatus,
-          };
+  async stackExists(stackName: string): Promise<boolean> {
+    try {
+      const describeStacksCommand = new DescribeStacksCommand({
+        StackName: stackName,
+      });
+      const result = await this.cloudFormationClient.send(
+        describeStacksCommand,
+      );
+      return result.Stacks?.length === 1;
+    } catch (error: any) {
+      if (error?.message?.includes("does not exist")) {
+        return false;
       }
-    } else {
-      throw new Error("Failed to get CloudFormation stack status");
+      throw error;
     }
   }
 }
+
+export const deploymentResultFromNotification = (
+  notification: Record<string, string>,
+): StackChangeResult => {
+  const {
+    ResourceStatus: status,
+    StackId: stackId,
+    ResourceStatusReason: reason,
+    ClientRequestToken: clientRequestToken,
+  } = notification;
+
+  if (!status || !stackId) {
+    throw new Error("Invalid SNS notification");
+  }
+
+  if (!clientRequestToken) {
+    throw new Error("ClientRequestToken not found in SNS notification");
+  }
+
+  switch (status) {
+    case "CREATE_COMPLETE":
+    case "UPDATE_COMPLETE":
+      return {
+        pending: false,
+        success: true,
+        stackId,
+        status,
+        clientRequestToken,
+      };
+    case "UPDATE_ROLLBACK_FAILED":
+    case "ROLLBACK_FAILED":
+    case "UPDATE_ROLLBACK_COMPLETE":
+    case "DELETE_COMPLETE":
+      return {
+        pending: false,
+        success: false,
+        stackId,
+        status,
+        reason,
+        clientRequestToken,
+      };
+    default:
+      return {
+        pending: true,
+        success: false,
+        stackId,
+        status,
+        reason,
+        clientRequestToken,
+      };
+  }
+};

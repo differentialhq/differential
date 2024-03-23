@@ -18,6 +18,7 @@ type Workload = {
 
 export class ResultsPoller {
   private static MAX_ERROR_CYCLES = 50;
+  private static FORCE_POLL_DELAY = 500;
   private currentErrorCycle = 0;
   private exited = false;
   private polling = false;
@@ -42,12 +43,24 @@ export class ResultsPoller {
       attempts: 0,
       onResult,
     };
+
+    // If we are already in a polling cycle, wait for FORCE_POLL_DELAY before forcing another poll attempt.
+    // This is to avoid slow jobs from blocking the queue.
+    if (this.polling) {
+      setTimeout(() => {
+        if (this.jobs[jobId].attempts === 0) {
+          log("Forcing new poll attempt");
+          this.next();
+        }
+      }, ResultsPoller.FORCE_POLL_DELAY);
+    }
   }
 
   private next = async () => {
     this.polling = true;
 
     const unresolved = Object.values(this.jobs).filter((job) => {
+      job.attempts++;
       return job.result === undefined;
     });
 
@@ -75,7 +88,10 @@ export class ResultsPoller {
             type: job.resultType!,
           };
 
-          this.jobs[job.id].onResult(null!, this.jobs[job.id].result as Result);
+          this.jobs[job.id]?.onResult(
+            null!,
+            this.jobs[job.id].result as Result,
+          );
         }
 
         for (const job of result.body.filter(
