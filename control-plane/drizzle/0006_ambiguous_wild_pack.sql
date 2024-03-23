@@ -1,1 +1,0 @@
-ALTER TABLE "jobs" ADD COLUMN "machine_type" text;

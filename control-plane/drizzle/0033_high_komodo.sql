@@ -1,1 +1,0 @@
-ALTER TABLE "clusters" ADD COLUMN "predictive_retries_enabled" boolean DEFAULT false;
