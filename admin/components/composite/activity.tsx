@@ -21,6 +21,18 @@ const typeToText: { [key: string]: (activity: Activity) => string } = {
     `Function execution succeeded. Result was sent to the control plane.`,
   predictorRetryableResult: () =>
     `The promise has been rejected, predictive retries has deetermined the retryable status.`,
+  deploymentResulted: (activity) => {
+    if (activity.meta?.deploymentStatus === "active") {
+      return `Deployment succeeded. Jobs will be scheduled for execution on the new machines.`;
+    }
+    return `Deployment failed. Jobs will not be scheduled for execution on the new machine.`;
+  },
+  deploymentNotified: () =>
+    `Deployment provider was notified of pending jobs and will scale appropriately.`,
+  deploymentInactivated: () =>
+    `Deployment was inactivated. No new jobs will be scheduled for execution.`,
+  deploymentInitiated: () =>
+    `Deployment was initiated. New machines will be provisioned.`,
 };
 
 export function Activity({
@@ -64,6 +76,11 @@ export function Activity({
             {activity.machineId ? (
               <Badge variant="secondary">machine:{activity.machineId}</Badge>
             ) : null}
+            {activity.deploymentId ? (
+              <Badge variant="secondary">
+                deploymentId:{activity.deploymentId}
+              </Badge>
+            ) : null}
             {meta?.status ? (
               <Badge
                 variant="secondary"
@@ -101,6 +118,14 @@ export function Activity({
                 retryable:
                 {meta?.retryable ? "true" : "false"}
               </Badge>
+            ) : null}
+            {meta?.machineCount !== undefined ? (
+              <Badge variant="secondary">
+                machineCount:{meta?.machineCount}
+              </Badge>
+            ) : null}
+            {meta?.pendingJobs !== undefined ? (
+              <Badge variant="secondary">pendingJobs:{meta?.pendingJobs}</Badge>
             ) : null}
           </div>
         </div>

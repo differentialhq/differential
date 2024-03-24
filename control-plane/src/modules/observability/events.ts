@@ -12,11 +12,15 @@ export type EventTypes =
   | "jobStalled"
   | "jobRecovered"
   | "machinePing"
+  | "machineStalled"
   | "machineResourceProbe"
   | "functionInvocation"
   | "predictorRetryableResult"
   | "predictorRecovered"
-  | "machineStalled";
+  | "deploymentInitiated"
+  | "deploymentInactivated"
+  | "deploymentResulted"
+  | "deploymentNotified";
 
 type Event = {
   clusterId: string;
@@ -38,6 +42,10 @@ type Event = {
     attemptsRemaining?: number;
     retryable?: boolean;
     reason?: string;
+    pendingJobs?: number;
+    machineCount?: number;
+    replacedBy?: string;
+    deploymentStatus?: string;
   };
 };
 
@@ -107,7 +115,7 @@ class EventWriterBuffer {
         `,
       );
 
-      logger.info("Wrote events", {
+      logger.debug("Wrote events", {
         count: result.rowCount,
       });
     } catch (e) {
@@ -142,6 +150,10 @@ export const write = (event: Event, syntheticDelay = 0) => {
   if (buffer === null) {
     return;
   }
+
+  logger.debug("Adding event to buffer", {
+    event: event,
+  });
 
   buffer?.push({
     ...event,

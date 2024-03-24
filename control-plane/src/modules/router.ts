@@ -376,11 +376,12 @@ export const router = s.router(contract, {
 
     const { clusterId } = request.params;
 
-    const { jobId } = request.query;
+    const { jobId, deploymentId } = request.query;
 
     const result = await eventAggregation.getJobActivityByJobId({
       clusterId,
       jobId,
+      deploymentId,
     });
 
     return {
@@ -754,6 +755,9 @@ export const router = s.router(contract, {
     if (request.body.Type == "SubscriptionConfirmation" && request.body.Token) {
       await confirmSubscription({
         Token: request.body.Token,
+        TopicArn: env.DEPLOYMENT_SNS_TOPIC,
+      });
+      logger.info("Confirmed SNS subscription", {
         TopicArn: env.DEPLOYMENT_SNS_TOPIC,
       });
     }

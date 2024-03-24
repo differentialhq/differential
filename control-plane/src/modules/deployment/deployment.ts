@@ -4,6 +4,7 @@ import { ulid } from "ulid";
 import * as data from "../data";
 import { storeServiceDefinition } from "../service-definitions";
 import { DeploymentProvider } from "./deployment-provider";
+import * as events from "../observability/events";
 
 export type Deployment = {
   id: string;
@@ -143,42 +144,72 @@ export const releaseDeployment = async (
     ? await provider.update(deployment)
     : await provider.create(deployment);
 
-  let update;
-  await data.db.transaction(async (tx) => {
-    // Mark existing active deployment as inactive
-    await tx
-      .update(data.deployments)
-      .set({
-        status: "inactive",
-      })
-      .where(
-        and(
-          eq(data.deployments.cluster_id, deployment.clusterId),
-          eq(data.deployments.service, deployment.service),
-          eq(data.deployments.status, "active"),
-        ),
-      );
-
-    // Update the deployment with metadata from the provider (stackId, etx)
-    update = await tx
-      .update(data.deployments)
-      .set({
-        meta: meta ?? {},
-      })
-      .where(eq(data.deployments.id, deployment.id))
-      .returning({
-        id: data.deployments.id,
-        clusterId: data.deployments.cluster_id,
-        service: data.deployments.service,
-        status: data.deployments.status,
-      });
-  });
+  const [update] = await data.db
+    .update(data.deployments)
+    .set({
+      meta: meta ?? {},
+    })
+    .where(eq(data.deployments.id, deployment.id))
+    .returning({
+      id: data.deployments.id,
+      clusterId: data.deployments.cluster_id,
+      service: data.deployments.service,
+      status: data.deployments.status,
+      provider: data.deployments.provider,
+      createdAt: data.deployments.created_at,
+    });
 
   if (!update) {
     throw new Error("Failed to update deployment");
   }
 
-  return update[0];
+  events.write({
+    type: "deploymentInitiated",
+    deploymentId: update.id,
+    service: update.service,
+    clusterId: update.clusterId,
+    meta: {
+      deploymentStatus: update.status,
+    },
+  });
+
+  // TODO: This needs to happen once the deployment is actually active
+  const inctivatedDeployments = await data.db
+    .update(data.deployments)
+    .set({
+      status: "inactive",
+    })
+    .where(
+      and(
+        eq(data.deployments.cluster_id, deployment.clusterId),
+        eq(data.deployments.service, deployment.service),
+        eq(data.deployments.status, "active"),
+        ne(data.deployments.id, deployment.id),
+      ),
+    )
+    .returning({
+      id: data.deployments.id,
+      clusterId: data.deployments.cluster_id,
+      service: data.deployments.service,
+      status: data.deployments.status,
+      provider: data.deployments.provider,
+      createdAt: data.deployments.created_at,
+    });
+
+  for (const replaced of inctivatedDeployments) {
+    events.write({
+      type: "deploymentInactivated",
+      deploymentId: replaced.id,
+      service: replaced.service,
+      clusterId: replaced.clusterId,
+      meta: {
+        deploymentStatus: replaced.status,
+        replacedBy: update.id,
+      },
+    });
+  }
+
+  return update;
 };
 
 const deploymentCache = new NodeCache({
@@ -247,7 +278,7 @@ export const updateDeploymentResult = async (
   status: "active" | "failed" | "uploading",
   meta?: any,
 ) => {
-  await data.db
+  const [result] = await data.db
     .update(data.deployments)
     .set({
       status: status,
@@ -260,6 +291,18 @@ export const updateDeploymentResult = async (
       service: data.deployments.service,
       status: data.deployments.status,
     });
+
+  if (["active", "failed"].includes(status)) {
+    events.write({
+      type: "deploymentResulted",
+      deploymentId: result.id,
+      service: result.service,
+      clusterId: result.clusterId,
+      meta: {
+        deploymentStatus: status,
+      },
+    });
+  }
 };
 
 const previouslyReleased = async (deployment: Deployment): Promise<boolean> => {
