@@ -193,7 +193,7 @@ export const releaseDeployment = async (
   return update;
 };
 
-export const inactivateExistingDeployments = async (
+const inactivateExistingDeployments = async (
   replacement: Deployment,
 ): Promise<void> => {
   logger.info("Inactivating existing deployments", {

@@ -3,6 +3,7 @@ import {
   createDeployment,
   getDeployment,
   releaseDeployment,
+  updateDeploymentResult,
 } from "./deployment";
 import { DeploymentProvider } from "./deployment-provider";
 import * as data from "../data";
@@ -108,8 +109,29 @@ describe("releaseDeployment", () => {
     expect(provider.update).toHaveBeenCalledTimes(1);
     expect(provider.create).toHaveBeenCalledTimes(0);
   });
+});
 
-  it("should mark existing deployment status inactive on release", async () => {
+describe("updateDeploymentResult", () => {
+  let owner: { clusterId: string };
+
+  const provider: DeploymentProvider = {
+    name: () => "mockProvider",
+    schema: jest.fn(),
+    create: jest.fn(async () => ({})),
+    update: jest.fn(async () => ({})),
+    notify: jest.fn(),
+    minimumNotificationInterval: jest.fn(),
+  };
+
+  beforeAll(async () => {
+    owner = await createOwner();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should mark existing deployment status inactive", async () => {
     const deployment = await createDeployment({
       clusterId: owner.clusterId,
       serviceName: "testService",
@@ -127,10 +149,33 @@ describe("releaseDeployment", () => {
 
     await releaseDeployment(deployment2, provider);
 
-    // Deployment 1 should be inactive
+    // Deployment 1 should still be "active"
+    expect(await getDeployment(deployment.id)).toEqual({
+      ...deployment,
+      status: "active",
+      assetUploadId: null,
+    });
+
+    // Deployment 2 should still be "uploading"
+    expect(await getDeployment(deployment.id)).toEqual({
+      ...deployment,
+      status: "uploading",
+      assetUploadId: null,
+    });
+
+    await updateDeploymentResult(deployment2, "active");
+
+    // Deployment 1 should be "inactive"
     expect(await getDeployment(deployment.id)).toEqual({
       ...deployment,
       status: "inactive",
+      assetUploadId: null,
+    });
+
+    // Deployment 2 should be "active"
+    expect(await getDeployment(deployment2.id)).toEqual({
+      ...deployment2,
+      status: "active",
       assetUploadId: null,
     });
   });
