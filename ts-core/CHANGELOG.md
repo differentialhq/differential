@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.16.0](https://github.com/differentialhq/differential/compare/v3.15.0...v3.16.0) (2024-03-24)
+
+### Bug Fixes
+
+- Fix polling cycle race condition ([#181](https://github.com/differentialhq/differential/issues/181)) ([e51bc6f](https://github.com/differentialhq/differential/commit/e51bc6fcefaa2f2a3fabfb5e789176fcee4926bb))
+
+### Features
+
+- Add FORCE_POLL_DELAY to ResultsPoller ([#177](https://github.com/differentialhq/differential/issues/177)) ([9bf1407](https://github.com/differentialhq/differential/commit/9bf14072bd41d06a52b16f225188f9b6f7cd7858))
+
 # [3.15.0](https://github.com/differentialhq/differential/compare/v3.14.0...v3.15.0) (2024-03-23)
 
 ### Bug Fixes
