@@ -62,7 +62,10 @@ export const createDeployment = async ({
   ).shift();
 
   if (!service) {
-    console.log("Service not found, creating service definition");
+    logger.info("Service not found, creating service definition", {
+      clusterId,
+      service: serviceName,
+    });
     storeServiceDefinition(serviceName, { name: serviceName }, { clusterId });
   }
 
@@ -333,6 +336,10 @@ export const updateDeploymentResult = async (
       provider: data.deployments.provider,
       createdAt: data.deployments.created_at,
     });
+
+  if (!result) {
+    throw new Error("Failed to update deployment with result");
+  }
 
   logger.info("Updated deployment result", {
     deploymentId: deployment.id,
