@@ -4,23 +4,29 @@ import { EventTypes } from "./events";
 
 export const getJobActivityByJobId = async (params: {
   clusterId: string;
-  jobId: string;
+  jobId?: string;
+  deploymentId?: string;
 }) => {
+  const andCondition = [eq(data.events.cluster_id, params.clusterId)];
+
+  if (params.jobId) {
+    andCondition?.push(eq(data.events.job_id, params.jobId));
+  }
+  if (params.deploymentId) {
+    andCondition?.push(eq(data.events.deployment_id, params.deploymentId));
+  }
+
   const result = await data.db
     .select({
       type: data.events.type,
       service: data.events.service,
+      deploymentId: data.events.deployment_id,
       machineId: data.events.machine_id,
       timestamp: data.events.created_at,
       meta: data.events.meta,
     })
     .from(data.events)
-    .where(
-      and(
-        eq(data.events.cluster_id, params.clusterId),
-        eq(data.events.job_id, params.jobId),
-      ),
-    )
+    .where(and(...andCondition))
     .orderBy(desc(data.events.created_at));
 
   return result;

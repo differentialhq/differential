@@ -225,6 +225,7 @@ export const definition = {
             pool: z.string().nullable(),
             lastPingAt: z.date().nullable(),
             ip: z.string().nullable(),
+            deploymentId: z.string().nullable(),
           }),
         ),
         jobs: z.array(
@@ -394,6 +395,7 @@ export const definition = {
           type: z.string(),
           meta: z.unknown(),
           machineId: z.string().nullable(),
+          deploymentId: z.string().nullable(),
           timestamp: z.date(),
           service: z.string().nullable(),
         }),
@@ -402,7 +404,8 @@ export const definition = {
       404: z.undefined(),
     },
     query: z.object({
-      jobId: z.string(),
+      jobId: z.string().optional(),
+      deploymentId: z.string().optional(),
     }),
   },
   createDeployment: {

@@ -26,6 +26,7 @@ type Machine = {
   pool: string | null;
   lastPingAt: Date | null;
   ip: string | null;
+  deploymentId: string | null;
 };
 
 export const getClusters = async ({
@@ -145,6 +146,7 @@ export const getClusterDetailsForUser = async ({
       pool: data.machines.machine_type,
       lastPingAt: data.machines.last_ping_at,
       ip: data.machines.ip,
+      deploymentId: data.machines.deployment_id,
     })
     .from(data.machines)
     .where(

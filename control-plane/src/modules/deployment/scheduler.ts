@@ -5,6 +5,8 @@ import { getDeploymentProvider } from "./deployment-provider";
 import { ulid } from "ulid";
 import { getDeployment } from "./deployment";
 import { env } from "../../utilities/env";
+import * as events from "../observability/events";
+import { logger } from "../../utilities/logger";
 
 const getJobBacklog = async () => {
   return await data.db
@@ -55,6 +57,7 @@ const getMachineCount = async (
 // This is a naive implementation that will lead to duplicate notifications as there is no locking
 export const start = async () => {
   if (!env.DEPLOYMENT_SCHEDULING_ENABLED) {
+    logger.info("Deployment scheduling is disabled");
     return;
   }
   registerCron(
@@ -92,6 +95,17 @@ export const start = async () => {
         await data.db.insert(data.deploymentNotification).values({
           id: ulid(),
           deployment_id: deployment.id,
+        });
+
+        events.write({
+          type: "deploymentNotified",
+          deploymentId: deployment.id,
+          service: deployment.service,
+          clusterId: deployment.clusterId,
+          meta: {
+            pendingJobs: backlog.pending,
+            machineCount: runningMachines,
+          },
         });
         await provider.notify(deployment, backlog.pending, runningMachines);
       }

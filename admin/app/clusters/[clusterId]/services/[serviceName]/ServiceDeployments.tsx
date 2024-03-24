@@ -9,6 +9,7 @@ import { z } from "zod";
 import { DataTable } from "../../../../../components/ui/DataTable";
 import { formatRelative } from "date-fns";
 import { deploymentStatusToCircle } from "../../helpers";
+import Link from "next/link";
 
 export function ServiceDeployments({
   token,
@@ -42,7 +43,9 @@ export function ServiceDeployments({
       }
 
       if (result.status === 200) {
-        setData(result.body);
+        setData(
+          result.body.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)),
+        );
       } else {
         toast.error("Failed to fetch deployment details.");
       }
@@ -73,6 +76,18 @@ export function ServiceDeployments({
               {
                 accessorKey: "id",
                 header: "Deployment ID",
+                cell: ({ row }) => {
+                  const deploymentId: string = row.getValue("id");
+
+                  return (
+                    <Link
+                      className="font-mono text-md underline"
+                      href={`/clusters/${clusterId}/activity/deployment?deploymentId=${deploymentId}`}
+                    >
+                      {deploymentId.substring(deploymentId.length - 6)}
+                    </Link>
+                  );
+                },
               },
               {
                 accessorKey: "provider",

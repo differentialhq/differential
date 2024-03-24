@@ -42,7 +42,7 @@ export function ClusterSettings({ clusterId }: { clusterId: string }) {
 
   useEffect(() => {
     fetchData();
-  }, [clusterId]);
+  }, [clusterId, fetchData]);
 
   return (
     <div className="flex items-center space-x-2 justify-between border p-4 rounded-md">

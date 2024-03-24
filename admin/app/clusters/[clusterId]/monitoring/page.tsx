@@ -21,6 +21,7 @@ export default function Page({ params }: { params: { clusterId: string } }) {
       id: string;
       lastPingAt: Date | null;
       ip: string | null;
+      deploymentId: string | null;
     }[];
     jobs: {
       id: string;
@@ -91,6 +92,7 @@ export default function Page({ params }: { params: { clusterId: string } }) {
               .map((s) => ({
                 machineId: s.id,
                 ip: s.ip,
+                deploymentId: s.deploymentId,
                 ping: formatRelative(new Date(s.lastPingAt!), new Date()),
                 status:
                   new Date().getTime() - new Date(s.lastPingAt!).getTime() <
@@ -114,6 +116,10 @@ export default function Page({ params }: { params: { clusterId: string } }) {
               {
                 accessorKey: "ip",
                 header: "IP",
+              },
+              {
+                accessorKey: "deploymentId",
+                header: "Cloud Deployment",
               },
               {
                 accessorKey: "ping",
