@@ -10,7 +10,7 @@ import * as deploymentScheduler from "./modules/deployment/scheduler";
 import * as jobs from "./modules/jobs/jobs";
 import * as events from "./modules/observability/events";
 import * as router from "./modules/router";
-import { logger } from "./utilities/logger";
+import { logContext, logger } from "./utilities/logger";
 
 export const httpDurations = new Summary({
   name: "differential_http_operations_duration_ms",
@@ -48,6 +48,18 @@ app.setErrorHandler((error, request, reply) => {
   });
 
   return reply.status(500).send();
+});
+
+app.addHook("onRequest", (request, _reply, done) => {
+  const context = {
+    request: {
+      id: request.id,
+      path: request.routerPath,
+      method: request.method,
+    },
+  };
+
+  logContext.run(context, done);
 });
 
 app.addHook("onResponse", (request, reply, done) => {
