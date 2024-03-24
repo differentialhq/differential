@@ -1,7 +1,7 @@
 import * as data from "./data";
-import { ulid } from "ulid";
 import { and, eq } from "drizzle-orm";
-import { UPLOAD_BUCKET, getPresignedURL } from "./s3";
+import { getPresignedURL } from "./s3";
+import { env } from "../utilities/env";
 
 export type AssetType = "client_library" | "service_bundle";
 
@@ -16,10 +16,11 @@ export const createAssetUploadWithTarget = async ({
 }): Promise<string> => {
   const id = target;
   const key = `${type}/${id}`;
-  if (!UPLOAD_BUCKET) {
+
+  if (!env.ASSET_UPLOAD_BUCKET) {
     throw new Error("Upload bucket not configured");
   }
-  const bucket = UPLOAD_BUCKET;
+  const bucket = env.ASSET_UPLOAD_BUCKET;
 
   switch (type) {
     case "client_library": {

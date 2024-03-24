@@ -12,29 +12,22 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { Pool } from "pg";
-import { invariant } from "../utilities/invariant";
-
-const connectionString = invariant(
-  process.env.DATABASE_URL,
-  "DATABASE_URL must be set",
-);
-
-const sslDisabled = process.env.DATABASE_SSL_DISABLED === "true";
+import { env } from "../utilities/env";
 
 console.log("Attempting to connect to database", {
-  sslDisabled,
+  sslDisabled: env.DATABASE_SSL_DISABLED,
 });
 
 export const pool = new Pool({
-  connectionString,
-  ssl: sslDisabled
+  connectionString: env.DATABASE_URL,
+  ssl: env.DATABASE_SSL_DISABLED
     ? false
     : {
         rejectUnauthorized: false,
       },
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 5_000,
-  allowExitOnIdle: process.env.ALLOW_EXIT_ON_IDLE === "true",
+  allowExitOnIdle: env.DATABASE_ALLOW_EXIT_ON_IDLE,
 });
 
 pool.on("error", (err) => {

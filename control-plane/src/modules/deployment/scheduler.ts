@@ -4,6 +4,7 @@ import * as data from "../data";
 import { getDeploymentProvider } from "./deployment-provider";
 import { ulid } from "ulid";
 import { getDeployment } from "./deployment";
+import { env } from "../../utilities/env";
 
 const getJobBacklog = async () => {
   return await data.db
@@ -53,7 +54,7 @@ const getMachineCount = async (
 // Scheduled job which checks for pending jobs and notifies the deployment providers.
 // This is a naive implementation that will lead to duplicate notifications as there is no locking
 export const start = async () => {
-  if (!process.env.DEPLOYMENT_SCHEDULING_ENABLED) {
+  if (!env.DEPLOYMENT_SCHEDULING_ENABLED) {
     return;
   }
   registerCron(

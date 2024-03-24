@@ -1,4 +1,4 @@
-import "./utilities/env";
+import { env } from "./utilities/env";
 import "./utilities/profiling";
 
 import cors from "@fastify/cors";
@@ -24,7 +24,7 @@ export const timeoutErrors = new Counter({
 });
 
 const app = fastify({
-  logger: process.env.ENABLE_FASTIFY_LOGGER === "true",
+  logger: env.ENABLE_FASTIFY_LOGGER,
 });
 
 const metrics = fastify();
@@ -37,7 +37,7 @@ const s = initServer();
 app.register(s.plugin(router.router));
 
 app.register(cors, {
-  origin: process.env.CONSOLE_ORIGIN || "https://console.differential.dev",
+  origin: env.CONSOLE_ORIGIN,
 });
 
 app.setErrorHandler((error, request, reply) => {

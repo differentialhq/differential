@@ -22,7 +22,6 @@
     "@babel/preset-env": "^7.22.10",
     "@babel/preset-typescript": "^7.22.11",
     "@fastify/cors": "^8.5.0",
-    "@influxdata/influxdb-client": "^1.33.2",
     "@sentry/node": "^7.93.0",
     "@sentry/profiling-node": "^1.3.5",
     "@ts-rest/core": "^3.27.0",

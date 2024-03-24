@@ -1,8 +1,6 @@
 import { ConfirmSubscriptionCommand, SNSClient } from "@aws-sdk/client-sns";
 import MessageValidator from "sns-validator";
 
-export const DELOYMENT_SNS_TOPIC = process.env.DELOYMENT_SNS_TOPIC;
-
 const validator = new MessageValidator();
 const sns = new SNSClient();
 
