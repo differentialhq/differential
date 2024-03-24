@@ -4,6 +4,7 @@ import * as data from "../data";
 import * as events from "../observability/events";
 import * as predictor from "../predictor/predictor";
 import { jobDurations } from "./job-metrics";
+import { logger } from "../../utilities/logger";
 
 type PersistResultParams = {
   result: string;
@@ -33,10 +34,9 @@ const shouldPredictRetry = async ({
     .operationalCluster(owner.clusterId)
     .then((c) => c?.predictiveRetriesEnabled ?? false);
 
-  console.log(
-    "clusterHasPredictiveRetriesEnabled",
+  logger.info("Determining eligibility for predictive retries", {
     clusterHasPredictiveRetriesEnabled,
-  );
+  });
 
   if (!clusterHasPredictiveRetriesEnabled) {
     return false;
@@ -52,7 +52,9 @@ const shouldPredictRetry = async ({
     )
     .then((rows) => (rows[0]?.retryCount ?? 0) < MAX_PREDICTIVE_RETRIES);
 
-  console.log("jobHasRemainingAttempts", jobHasRemainingAttempts);
+  logger.info("Job is eligible for predictive retries", {
+    jobHasRemainingAttempts,
+  });
 
   return jobHasRemainingAttempts;
 };
@@ -239,10 +241,10 @@ export async function selfHealJobs(params?: { machineStallTimeout: number }) {
       UPDATE jobs as j
       SET status = 'failure'
       FROM machines as m
-      WHERE 
+      WHERE
         j.status = 'running' AND
-        j.executing_machine_id = m.id AND 
-        m.status = 'inactive' AND 
+        j.executing_machine_id = m.id AND
+        m.status = 'inactive' AND
         j.owner_hash = m.cluster_id AND
         j.remaining_attempts > 0
     `,

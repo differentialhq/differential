@@ -13,8 +13,9 @@ import {
 } from "drizzle-orm/pg-core";
 import { Pool } from "pg";
 import { env } from "../utilities/env";
+import { logger } from "../utilities/logger";
 
-console.log("Attempting to connect to database", {
+logger.info("Attempting database connection", {
   sslDisabled: env.DATABASE_SSL_DISABLED,
 });
 
@@ -31,19 +32,21 @@ export const pool = new Pool({
 });
 
 pool.on("error", (err) => {
-  console.error("Unexpected error on idle client", err);
+  logger.error("Database connection error on idle client", {
+    error: err,
+  });
 });
 
 pool.on("connect", (client) => {
-  // console.debug("Connected to database");
+  logger.debug("Database connection established");
 });
 
 pool.on("release", () => {
-  // console.debug("Database connection released");
+  logger.debug("Database connection released");
 });
 
 pool.on("remove", () => {
-  console.debug("Database connection removed");
+  logger.debug("Database connection removed");
 });
 
 export const jobs = pgTable(
@@ -278,7 +281,9 @@ export const db = drizzle(pool);
 
 export const isAlive = async () => {
   await db.execute(sql`select 1`).catch((e) => {
-    console.error("Database is not alive", e);
+    logger.error("Database connection is not alive", {
+      error: e,
+    });
     throw e;
   });
 };

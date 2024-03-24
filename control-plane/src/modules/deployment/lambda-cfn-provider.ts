@@ -8,6 +8,7 @@ import {
   AlreadyExistsException,
   Parameter,
 } from "@aws-sdk/client-cloudformation";
+import { logger } from "../../utilities/logger";
 
 const LAMBDA_CFN_TEMPLATE_KEY = "lambda-cfn.yaml";
 
@@ -44,7 +45,7 @@ export class LambdaCfnProvider implements DeploymentProvider {
       });
     } catch (error: any) {
       if (error instanceof AlreadyExistsException) {
-        console.warn("Stack already exists. It will be updated instead.");
+        logger.warn("Stack already exists. It will be updated instead.");
         return this.update(deployment);
       }
       throw error;
@@ -57,7 +58,7 @@ export class LambdaCfnProvider implements DeploymentProvider {
     console.log("Updating existing lambda deployment", functionName);
     const exists = await this.cfnManager.stackExists(functionName);
     if (!exists) {
-      console.warn("Stack does not exist. It will be created instead.");
+      logger.warn("Stack does not exist. It will be created instead.");
       return this.create(deployment);
     }
 

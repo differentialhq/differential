@@ -4,6 +4,7 @@ import * as data from "../data";
 import { client } from "./client";
 import { deserializeError } from "./serialize-error";
 import { env } from "../../utilities/env";
+import { logger } from "../../utilities/logger";
 
 export type PredictedRetryableResult = {
   retryable: boolean;
@@ -65,7 +66,7 @@ export const isRetryable = async (resultContent: string) => {
           },
         ])
         .catch((e) => {
-          console.error(`Failed to cache prediction`, {
+          logger.error(`Failed to cache prediction`, {
             error: e,
             errorName: error.name,
             errorMessage: error.message,
@@ -76,7 +77,7 @@ export const isRetryable = async (resultContent: string) => {
         retryable: retryable.body.retryable,
       };
     } else {
-      console.error(`Failed to predict retryability`, {
+      logger.error(`Failed to predict retryability`, {
         status: retryable?.status,
         body: retryable?.body,
       });

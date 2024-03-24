@@ -1,3 +1,4 @@
+import { logger } from "../utilities/logger";
 import * as management from "./management";
 
 export const validateManagementRequest = async (request: {
@@ -34,7 +35,9 @@ export const validateManagementAccess = async ({
     });
     return clusterAccess;
   } catch {
-    console.error("Error validating management token", managementToken);
+    logger.error("Error validating management token", {
+      managementToken,
+    });
     return false;
   }
 };

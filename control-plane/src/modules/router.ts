@@ -31,6 +31,7 @@ import {
 } from "./sns";
 import { deploymentResultFromNotification } from "./deployment/cfn-manager";
 import { env } from "../utilities/env";
+import { logger } from "../utilities/logger";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -389,7 +390,7 @@ export const router = s.router(contract, {
   },
   createDeployment: async (request) => {
     if (!env.CLOUD_FEATURES_AVAILABLE) {
-      console.warn(
+      logger.warn(
         "Received deployment request but cloud features are not available",
       );
       return {
@@ -545,7 +546,7 @@ export const router = s.router(contract, {
   },
   createClientLibraryVersion: async (request) => {
     if (!env.CLOUD_FEATURES_AVAILABLE) {
-      console.warn(
+      logger.warn(
         "Received client library request but cloud features are not available",
       );
       return {
@@ -622,7 +623,9 @@ export const router = s.router(contract, {
         },
       };
     } catch (e) {
-      console.error(e);
+      logger.error("Failed to create asset", {
+        error: e,
+      });
       return {
         status: 400,
       };
@@ -630,7 +633,7 @@ export const router = s.router(contract, {
   },
   npmRegistryDefinition: async (request) => {
     if (!env.CLOUD_FEATURES_AVAILABLE) {
-      console.warn(
+      logger.warn(
         "Received NPM registry request but cloud features are not available",
       );
       return {
@@ -726,7 +729,7 @@ export const router = s.router(contract, {
   },
   sns: async (request) => {
     if (!env.CLOUD_FEATURES_AVAILABLE) {
-      console.warn("Received SNS request but cloud features are not available");
+      logger.warn("Received SNS request but cloud features are not available");
       return {
         status: 501,
       };
@@ -735,14 +738,14 @@ export const router = s.router(contract, {
     try {
       await validateSignature(request.request.body as Record<string, unknown>);
     } catch {
-      console.error("SNS Signature validation failed");
+      logger.error("SNS Signature validation failed");
       return {
         status: 400,
       };
     }
 
     if (request.body.TopicArn != env.DEPLOYMENT_SNS_TOPIC) {
-      console.warn("Received request for unknown SNS topic");
+      logger.warn("Received request for unknown SNS topic");
       return {
         status: 400,
       };
@@ -763,7 +766,10 @@ export const router = s.router(contract, {
       const message = parseCloudFormationMessage(request.body.Message);
       const result = deploymentResultFromNotification(message);
 
-      console.log("Received deployment result from CloudFormation", result);
+      logger.info("Received deployment result from CloudFormation", {
+        result,
+      });
+
       const status = result.pending
         ? "uploading"
         : result.success
