@@ -2,14 +2,14 @@ import { createLogger, format, transports } from "winston";
 import { AsyncLocalStorage } from "async_hooks";
 import { env } from "../utilities/env";
 
-const logContext = new AsyncLocalStorage();
+export const logContext = new AsyncLocalStorage();
 
 const winston = createLogger({
   level: env.LOG_LEVEL,
   format:
     env.NODE_ENV === "development"
       ? format.combine(format.colorize(), format.simple())
-      : format.json(),
+      : format.simple(),
   transports: [new transports.Console()],
 });
 
