@@ -1,15 +1,18 @@
 import "./env";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import * as data from "../modules/data";
+import { logger } from "./logger";
 
 (async function runMigrations() {
-  console.log("Migrating database...");
+  logger.info("Migrating database...");
 
   try {
     await migrate(data.db, { migrationsFolder: "./drizzle" });
-    console.log("Database migrated successfully");
+    logger.info("Database migrated successfully");
   } catch (e) {
-    console.error("Error migrating database", e);
+    logger.error("Error migrating database", {
+      error: e,
+    });
     process.exit(1);
   }
 

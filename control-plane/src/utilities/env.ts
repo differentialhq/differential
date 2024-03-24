@@ -16,6 +16,10 @@ let envSchema = z
     DATABASE_URL: z.string().url(),
     DATABASE_SSL_DISABLED: truthy.default(false),
     DATABASE_ALLOW_EXIT_ON_IDLE: truthy.default(false),
+    LOG_LEVEL: z.enum(["error", "warn", "info", "debug"]).default("info"),
+    NODE_ENV: z
+      .enum(["test", "development", "production"])
+      .default("development"),
 
     CONSOLE_ORIGIN: z
       .string()
@@ -91,7 +95,11 @@ let env: z.infer<typeof envSchema>;
 try {
   env = envSchema.parse(process.env);
 } catch (e: any) {
-  console.error("Invalid environment variables provided", e.errors);
+  // Use console.error rather than logger.error here because the logger
+  // depends on the environment variables to be parsed
+  console.error("Invalid environment variables provided", {
+    errors: e.errors,
+  });
   process.exit(1);
 }
 

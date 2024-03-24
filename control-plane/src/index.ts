@@ -10,6 +10,7 @@ import * as deploymentScheduler from "./modules/deployment/scheduler";
 import * as jobs from "./modules/jobs/jobs";
 import * as events from "./modules/observability/events";
 import * as router from "./modules/router";
+import { logger } from "./utilities/logger";
 
 export const httpDurations = new Summary({
   name: "differential_http_operations_duration_ms",
@@ -41,7 +42,10 @@ app.register(cors, {
 });
 
 app.setErrorHandler((error, request, reply) => {
-  console.error(error);
+  logger.error("Error in request", {
+    path: request.routerPath,
+    error,
+  });
 
   return reply.status(500).send();
 });
@@ -74,12 +78,12 @@ const start = async () => {
 
   try {
     await app.listen({ port: 4000, host: "0.0.0.0" });
-    console.log("Server listening on port 4000");
+    logger.info("Server started", { port: 4000 });
 
     await metrics.listen({ port: 9091, host: "0.0.0.0" });
-    console.log("Metrics server listening on port 9091");
+    logger.info("Metrics server started", { port: 9091 });
   } catch (err) {
-    console.log(err);
+    logger.error("Failed to start server", { error: err });
     process.exit(1);
   }
 };
