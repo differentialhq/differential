@@ -5,6 +5,8 @@ import * as data from "../data";
 import { storeServiceDefinition } from "../service-definitions";
 import { DeploymentProvider } from "./deployment-provider";
 import * as events from "../observability/events";
+import { env } from "../../utilities/env";
+import { logger } from "../../utilities/logger";
 
 export type Deployment = {
   id: string;
@@ -46,7 +48,10 @@ export const createDeployment = async ({
 }): Promise<Deployment> => {
   const service = (
     await data.db
-      .select({ deployment_provider: data.services.deployment_provider })
+      .select({
+        preferred_deployment_provider:
+          data.services.preferred_deployment_provider,
+      })
       .from(data.services)
       .where(
         and(
@@ -61,7 +66,14 @@ export const createDeployment = async ({
     storeServiceDefinition(serviceName, { name: serviceName }, { clusterId });
   }
 
-  const provider = service?.deployment_provider ?? "lambda";
+  const provider =
+    service?.preferred_deployment_provider ?? env.DEPLOYMENT_DEFAULT_PROVIDER;
+
+  logger.info("Creating deployment", {
+    clusterId,
+    service,
+    provider,
+  });
 
   const deployment = await data.db
     .insert(data.deployments)
@@ -70,7 +82,6 @@ export const createDeployment = async ({
         id: ulid(),
         cluster_id: clusterId,
         service: serviceName,
-        // Temporary, the expectation is that the deployment will be in the "uploading" while any async work is being done
         status: "uploading",
         provider: provider,
       },
@@ -139,6 +150,12 @@ export const releaseDeployment = async (
   deployment: Deployment,
   provider: DeploymentProvider,
 ): Promise<Deployment> => {
+  logger.info("Releasing deployment", {
+    clusterId: deployment.clusterId,
+    service: deployment.service,
+    deploymentId: deployment.id,
+  });
+
   // Check if the service has been previously "released" (active or inactive) deployment
   const meta = (await previouslyReleased(deployment))
     ? await provider.update(deployment)
@@ -173,7 +190,18 @@ export const releaseDeployment = async (
     },
   });
 
-  // TODO: This needs to happen once the deployment is actually active
+  return update;
+};
+
+export const inactivateExistingDeployments = async (
+  replacement: Deployment,
+): Promise<void> => {
+  logger.info("Inactivating existing deployments", {
+    clusterId: replacement.clusterId,
+    service: replacement.service,
+    replacementDeployment: replacement,
+  });
+
   const inctivatedDeployments = await data.db
     .update(data.deployments)
     .set({
@@ -181,10 +209,10 @@ export const releaseDeployment = async (
     })
     .where(
       and(
-        eq(data.deployments.cluster_id, deployment.clusterId),
-        eq(data.deployments.service, deployment.service),
+        eq(data.deployments.cluster_id, replacement.clusterId),
+        eq(data.deployments.service, replacement.service),
         eq(data.deployments.status, "active"),
-        ne(data.deployments.id, deployment.id),
+        ne(data.deployments.id, replacement.id),
       ),
     )
     .returning({
@@ -196,6 +224,20 @@ export const releaseDeployment = async (
       createdAt: data.deployments.created_at,
     });
 
+  deploymentCache.del(`${replacement.clusterId}-${replacement.service}`);
+
+  if (inctivatedDeployments.length > 1) {
+    logger.warn(
+      "Found more than one previous active deployment for service, this is unexpected.",
+      {
+        clusterId: replacement.clusterId,
+        service: replacement.service,
+        activeDeployments: inctivatedDeployments,
+        replacementDeployment: replacement,
+      },
+    );
+  }
+
   for (const replaced of inctivatedDeployments) {
     events.write({
       type: "deploymentInactivated",
@@ -204,12 +246,10 @@ export const releaseDeployment = async (
       clusterId: replaced.clusterId,
       meta: {
         deploymentStatus: replaced.status,
-        replacedBy: update.id,
+        replacedBy: replacement.id,
       },
     });
   }
-
-  return update;
 };
 
 const deploymentCache = new NodeCache({
@@ -290,19 +330,34 @@ export const updateDeploymentResult = async (
       clusterId: data.deployments.cluster_id,
       service: data.deployments.service,
       status: data.deployments.status,
+      provider: data.deployments.provider,
+      createdAt: data.deployments.created_at,
     });
 
-  if (["active", "failed"].includes(status)) {
-    events.write({
-      type: "deploymentResulted",
-      deploymentId: result.id,
-      service: result.service,
-      clusterId: result.clusterId,
-      meta: {
-        deploymentStatus: status,
-      },
-    });
+  logger.info("Updated deployment result", {
+    deploymentId: deployment.id,
+    service: result.service,
+    clusterId: result.clusterId,
+    status,
+  });
+
+  if (!["active", "failed"].includes(status)) {
+    return;
   }
+
+  if (status === "active") {
+    await inactivateExistingDeployments(result);
+  }
+
+  events.write({
+    type: "deploymentResulted",
+    deploymentId: result.id,
+    service: result.service,
+    clusterId: result.clusterId,
+    meta: {
+      deploymentStatus: status,
+    },
+  });
 };
 
 const previouslyReleased = async (deployment: Deployment): Promise<boolean> => {
