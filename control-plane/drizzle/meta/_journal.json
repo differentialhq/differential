@@ -323,6 +323,13 @@
       "when": 1710710761520,
       "tag": "0046_needy_brood",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "5",
+      "when": 1711318443311,
+      "tag": "0047_certain_penance",
+      "breakpoints": true
     }
   ]
 }

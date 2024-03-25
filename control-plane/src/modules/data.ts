@@ -138,7 +138,7 @@ export const services = pgTable(
       .notNull(),
     service: varchar("service", { length: 1024 }).notNull(),
     definition: json("definition").notNull(),
-    deployment_provider: text("deployment_provider", {
+    preferred_deployment_provider: text("preferred_deployment_provider", {
       enum: ["lambda", "mock"],
     }),
   },
