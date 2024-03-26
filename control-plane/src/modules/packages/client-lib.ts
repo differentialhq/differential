@@ -6,6 +6,7 @@ import {
 import * as data from "../data";
 import { ulid } from "ulid";
 import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { logger } from "../../utilities/logger";
 
 type ClientLibraryVersion = {
   id: string;
@@ -28,7 +29,7 @@ export const createClientLibraryVersion = async ({
   const previous = await previousVersion({ clusterId });
   const version = incrementVersion({ version: previous, increment });
 
-  console.log("Creating client library version", {
+  logger.info("Creating client library version", {
     version,
     previous,
     increment,
