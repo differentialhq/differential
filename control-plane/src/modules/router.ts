@@ -738,8 +738,10 @@ export const router = s.router(contract, {
 
     try {
       await validateSignature(request.request.body as Record<string, unknown>);
-    } catch {
-      logger.error("SNS Signature validation failed");
+    } catch (error) {
+      logger.error("SNS Signature validation failed", {
+        error,
+      });
       return {
         status: 400,
       };
@@ -753,13 +755,22 @@ export const router = s.router(contract, {
     }
 
     if (request.body.Type == "SubscriptionConfirmation" && request.body.Token) {
-      await confirmSubscription({
-        Token: request.body.Token,
-        TopicArn: env.DEPLOYMENT_SNS_TOPIC,
-      });
-      logger.info("Confirmed SNS subscription", {
-        TopicArn: env.DEPLOYMENT_SNS_TOPIC,
-      });
+      try {
+        await confirmSubscription({
+          Token: request.body.Token,
+          TopicArn: env.DEPLOYMENT_SNS_TOPIC,
+        });
+        logger.info("Confirmed SNS subscription", {
+          TopicArn: env.DEPLOYMENT_SNS_TOPIC,
+        });
+      } catch (error) {
+        logger.error("Failed to confirm SNS subscription", {
+          error,
+        });
+        return {
+          status: 500,
+        };
+      }
     }
 
     if (
