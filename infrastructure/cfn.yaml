@@ -36,6 +36,10 @@ Resources:
                 - "s3:GetObject"
                 - "s3:DeleteObject"
               Resource: !Sub "arn:aws:s3:::${AssetUploadBucket}/*"
+            - Effect: Allow
+              Action:
+                - "s3:GetObject"
+              Resource: !Sub "arn:aws:s3:::${CfnTemplateBucket}/*"
         Users:
           - !Ref ControlPlaneUser
 
@@ -48,6 +52,8 @@ Resources:
           Statement:
             - Effect: Allow
               Action:
+                - "lambda:GetFunction"
+                - "lambda:DeleteFunction"
                 - "lambda:CreateFunction"
                 - "lambda:UpdateFunctionCode"
                 - "lambda:UpdateFunctionConfiguration"
@@ -59,6 +65,32 @@ Resources:
             - Effect: Allow
               Action: iam:PassRole
               Resource: !GetAtt DeploymentLambdaRuntimeRole.Arn
+        Users:
+          - !Ref ControlPlaneUser
+
+  DeploymentCloudFormationPolicy:
+      Type: AWS::IAM::Policy
+      Properties:
+        PolicyName: DeploymentCloudFormationPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - "sns:Publish"
+                - "sns:ConfirmSubscription"
+              Resource: !Ref DeploymentCloudFormationTopic
+            - Effect: Allow
+              Action:
+                - "cloudformation:CreateStack"
+                - "cloudformation:UpdateStack"
+                - "cloudformation:DescribeStacks"
+                - "cloudformation:GetTemplate"
+                - "cloudformation:ValidateTemplate"
+                - "cloudformation:CreateChangeSet"
+                - "cloudformation:ExecuteChangeSet"
+                - "cloudformation:DeleteStack"
+              Resource: "arn:aws:cloudformation:*:*:stack/differential-deployment-*"
         Users:
           - !Ref ControlPlaneUser
 
