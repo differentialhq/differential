@@ -83,11 +83,6 @@ describe("nextJobs", () => {
       functions: [
         {
           name: Math.random().toString(),
-          rate: {
-            per: "minute" as const,
-            limit: 1000,
-          },
-          cacheTTL: 1000,
         },
       ],
     };
@@ -113,34 +108,17 @@ describe("selfHealJobs", () => {
     const targetFn = "testTargetFn";
     const targetArgs = "testTargetArgs";
 
-    const fnDefinition = {
-      maxAttempts: 2,
-      name: "testTargetFn",
-      timeoutIntervalSeconds: 1,
-    };
-
-    // feed a service definition with retry config
-    await nextJobs({
-      owner,
-      limit: 10,
-      machineId: "testMachineId",
-      ip: "1.1.1.1",
-      service: "testService",
-      definition: {
-        name: "testService",
-        functions: [fnDefinition],
-      },
-    });
-
-    const saved = await functionDefinition(owner, "testService", targetFn);
-
-    expect(saved).toStrictEqual(fnDefinition);
-
     const createJobResult = await createJob({
       targetFn: mockTargetFn,
       targetArgs: mockTargetArgs,
       owner,
       service: "testService",
+      callConfig: {
+        retry: {
+          attempts: 2,
+        },
+        timeoutSeconds: 1,
+      },
     });
 
     // get the job, so that it moves to running state
@@ -179,36 +157,18 @@ describe("selfHealJobs", () => {
 
   it("should not retry a job that has reached max attempts", async () => {
     const owner = await createOwner();
-    const targetFn = "testTargetFn";
-
-    const fnDefinition = {
-      maxAttempts: 1,
-      name: "testTargetFn",
-      timeoutIntervalSeconds: 1,
-    };
-
-    // feed a service definition with retry config
-    await nextJobs({
-      owner,
-      limit: 10,
-      machineId: "testMachineId",
-      ip: "1.1.1.1",
-      service: "testService",
-      definition: {
-        name: "testService",
-        functions: [fnDefinition],
-      },
-    });
-
-    const saved = await functionDefinition(owner, "testService", targetFn);
-
-    expect(saved).toStrictEqual(fnDefinition);
 
     const createJobResult = await createJob({
       targetFn: mockTargetFn,
       targetArgs: mockTargetArgs,
       owner,
       service: "testService",
+      callConfig: {
+        retry: {
+          attempts: 1,
+        },
+        timeoutSeconds: 1,
+      },
     });
 
     // get the job, so that it moves to running state

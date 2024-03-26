@@ -28,15 +28,6 @@ export const serviceDefinitionsSchema = z.array(
       .array(
         z.object({
           name: z.string(),
-          rate: z
-            .object({
-              per: z.enum(["minute", "hour"]),
-              limit: z.number(),
-            })
-            .optional(),
-          cacheTTL: z.number().optional(),
-          timeoutIntervalSeconds: z.number().optional(),
-          maxAttempts: z.number().optional(),
         }),
       )
       .optional(),

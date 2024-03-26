@@ -1,5 +1,10 @@
 import { initClient, tsRestFetchApi } from "@ts-rest/core";
 import debug from "debug";
+import {
+  CallConfiguredBackgroundFunction,
+  CallConfiguredFunction,
+  extractCallConfig,
+} from "./call-config";
 import { contract } from "./contract";
 import { DifferentialError } from "./errors";
 import { Events } from "./events";
@@ -13,13 +18,15 @@ import { AsyncFunction } from "./types";
 const log = debug("differential:client");
 
 type ServiceClient<T extends RegisteredService<any>> = {
-  [K in keyof T["definition"]["functions"]]: T["definition"]["functions"][K];
+  [K in keyof T["definition"]["functions"]]: CallConfiguredFunction<
+    T["definition"]["functions"][K]
+  >;
 };
 
 type BackgroundServiceClient<T extends RegisteredService<any>> = {
-  [K in keyof T["definition"]["functions"]]: (
-    ...args: Parameters<T["definition"]["functions"][K]>
-  ) => Promise<{ id: string }>;
+  [K in keyof T["definition"]["functions"]]: CallConfiguredBackgroundFunction<
+    T["definition"]["functions"][K]
+  >;
 };
 
 export type ServiceDefinition<T extends string> = {
@@ -682,7 +689,7 @@ export class Differential {
     options?: {
       background?: boolean;
     },
-  ): ServiceClient<T> {
+  ): ServiceClient<T> | BackgroundServiceClient<T> {
     const d = this;
 
     if (options?.background === true) {
@@ -787,15 +794,14 @@ export class Differential {
   ) {
     log("Creating job", { service, fn, args });
 
-    const { differentialConfig, originalArgs } =
-      extractDifferentialConfig(args);
+    const { callConfig, originalArgs } = extractCallConfig(args);
 
     const result = await this.controlPlaneClient.createJob({
       body: {
         service,
         targetFn: fn as string,
         targetArgs: pack(originalArgs, this.validateBeforeSerialization),
-        cacheKey: differentialConfig.$cacheKey,
+        callConfig,
       },
       headers: {
         authorization: this.authHeader,

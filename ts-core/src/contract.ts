@@ -63,9 +63,26 @@ export const definition = {
     body: z.object({
       targetFn: z.string(),
       targetArgs: z.string(),
-      pool: z.string().optional(),
-      service: z.string().default("unknown"),
-      cacheKey: z.string().optional(),
+      service: z.string(),
+      callConfig: z
+        .object({
+          cache: z
+            .object({
+              key: z.string(),
+              ttlSeconds: z.number(),
+            })
+            .optional(),
+          retry: z
+            .object({
+              attempts: z.number().min(1).max(100),
+              predictive: z.boolean().default(false),
+            })
+            .optional(),
+          timeoutSeconds: z.number().default(300),
+          executionId: z.string().optional(),
+          background: z.boolean().default(false),
+        })
+        .optional(),
     }),
   },
   getJobStatus: {
@@ -225,6 +242,7 @@ export const definition = {
             pool: z.string().nullable(),
             lastPingAt: z.date().nullable(),
             ip: z.string().nullable(),
+            deploymentId: z.string().nullable(),
           }),
         ),
         jobs: z.array(
@@ -255,6 +273,11 @@ export const definition = {
                 }),
               )
               .optional(),
+          }),
+        ),
+        deployments: z.array(
+          z.object({
+            id: z.string(),
           }),
         ),
       }),
@@ -389,6 +412,7 @@ export const definition = {
           type: z.string(),
           meta: z.unknown(),
           machineId: z.string().nullable(),
+          deploymentId: z.string().nullable(),
           timestamp: z.date(),
           service: z.string().nullable(),
         }),
@@ -397,7 +421,8 @@ export const definition = {
       404: z.undefined(),
     },
     query: z.object({
-      jobId: z.string(),
+      jobId: z.string().optional(),
+      deploymentId: z.string().optional(),
     }),
   },
   createDeployment: {
@@ -410,11 +435,13 @@ export const definition = {
     responses: {
       501: z.undefined(),
       401: z.undefined(),
-      200: z.object({
+      201: z.object({
         id: z.string(),
-        packageUploadUrl: z.string(),
-        definitionUploadUrl: z.string(),
         status: z.string(),
+        clusterId: z.string(),
+        service: z.string(),
+        provider: z.string(),
+        createdAt: z.date(),
       }),
     },
   },
@@ -430,10 +457,50 @@ export const definition = {
       404: z.undefined(),
       200: z.object({
         id: z.string(),
-        packageUploadUrl: z.string(),
-        definitionUploadUrl: z.string(),
-        status: z.string(),
+        status: z.enum([
+          "uploading",
+          "active",
+          "inactive",
+          "failed",
+          "cancelled",
+        ]),
+        clusterId: z.string(),
+        service: z.string(),
+        provider: z.string(),
+        createdAt: z.date(),
       }),
+    },
+  },
+  getDeployments: {
+    method: "GET",
+    path: "/clusters/:clusterId/service/:serviceName/deployments",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    query: z.object({
+      status: z
+        .enum(["uploading", "active", "inactive", "failed", "cancelled"])
+        .optional(),
+      limit: z.coerce.number().min(1).max(100).default(10),
+    }),
+    responses: {
+      200: z.array(
+        z.object({
+          id: z.string(),
+          status: z.enum([
+            "uploading",
+            "active",
+            "inactive",
+            "failed",
+            "cancelled",
+          ]),
+          clusterId: z.string(),
+          service: z.string(),
+          provider: z.string(),
+          createdAt: z.date(),
+        }),
+      ),
+      401: z.undefined(),
     },
   },
   releaseDeployment: {
@@ -449,10 +516,69 @@ export const definition = {
       404: z.undefined(),
       200: z.object({
         id: z.string(),
-        packageUploadUrl: z.string(),
-        definitionUploadUrl: z.string(),
         status: z.string(),
+        clusterId: z.string(),
+        service: z.string(),
+        provider: z.string(),
+        createdAt: z.date(),
       }),
+    },
+  },
+  createClientLibraryVersion: {
+    method: "POST",
+    path: "/clusters/:clusterId/client-libraries",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      increment: z
+        .enum(["patch", "minor", "major"])
+        .optional()
+        .default("patch"),
+    }),
+    responses: {
+      501: z.undefined(),
+      401: z.undefined(),
+      201: z.object({
+        id: z.string(),
+        version: z.string(),
+      }),
+    },
+  },
+  getClientLibraryVersions: {
+    method: "GET",
+    path: "/clusters/:clusterId/client-libraries",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    responses: {
+      501: z.undefined(),
+      401: z.undefined(),
+      200: z.array(
+        z.object({
+          id: z.string(),
+          version: z.string(),
+          uploadedAt: z.date(),
+        }),
+      ),
+    },
+  },
+  createAsset: {
+    method: "POST",
+    path: "/clusters/:clusterId/assets",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      type: z.enum(["client_library", "service_bundle"]),
+      target: z.string(),
+    }),
+    responses: {
+      201: z.object({
+        presignedUrl: z.string(),
+      }),
+      400: z.undefined(),
+      401: z.undefined(),
     },
   },
   setClusterSettings: {
@@ -481,12 +607,59 @@ export const definition = {
     responses: {
       200: z.object({
         predictiveRetriesEnabled: z.boolean(),
+        cloudEnabled: z.boolean(),
       }),
       401: z.undefined(),
     },
     pathParams: z.object({
       clusterId: z.string(),
     }),
+  },
+  npmRegistryDefinition: {
+    method: "GET",
+    path: "/packages/npm/:packageName",
+    responses: {
+      501: z.undefined(),
+      404: z.undefined(),
+      200: z.object({
+        "dist-tags": z.record(z.string()),
+        name: z.string(),
+        versions: z.record(
+          z.object({
+            name: z.string(),
+            description: z.string(),
+            version: z.string(),
+            dist: z.object({
+              tarball: z.string(),
+            }),
+          }),
+        ),
+      }),
+    },
+  },
+  npmRegistryDownload: {
+    method: "GET",
+    path: "/packages/npm/:packageName/:version",
+    responses: {
+      501: z.undefined(),
+      404: z.undefined(),
+      200: z.any(),
+    },
+  },
+  sns: {
+    method: "POST",
+    body: z.object({
+      Token: z.string().optional(),
+      Message: z.string().optional(),
+      TopicArn: z.string(),
+      Subject: z.string().optional(),
+      Type: z.enum(["Notification", "SubscriptionConfirmation"]),
+    }),
+    path: "/events/sns",
+    responses: {
+      200: z.undefined(),
+      400: z.undefined(),
+    },
   },
 } as const;
 

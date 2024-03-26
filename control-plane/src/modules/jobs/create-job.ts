@@ -17,6 +17,19 @@ type CreateJobParams = {
   maxAttempts?: number;
 };
 
+type CallConfig = {
+  cache?: {
+    key: string;
+    ttlSeconds: number;
+  };
+  retry?: {
+    attempts: number;
+    predictive?: boolean;
+  };
+  timeoutSeconds?: number;
+  executionId?: string;
+};
+
 export const createJob = async (params: {
   service: string;
   targetFn: string;
@@ -24,6 +37,7 @@ export const createJob = async (params: {
   owner: { clusterId: string };
   deploymentId?: string;
   cacheKey?: string;
+  callConfig?: CallConfig;
 }) => {
   const end = jobDurations.startTimer({ operation: "createJob" });
 
@@ -35,21 +49,25 @@ export const createJob = async (params: {
 
   const cluster = await clusters.operationalCluster(params.owner.clusterId);
 
-  const retryParams = {
-    timeoutIntervalSeconds: serviceDefinition?.timeoutIntervalSeconds,
-    maxAttempts: serviceDefinition?.maxAttempts,
+  const callConfigParams = {
+    timeoutIntervalSeconds: params.callConfig?.timeoutSeconds,
+    maxAttempts: params.callConfig?.retry?.attempts,
+    predictiveRetriesEnabled: params.callConfig?.retry?.predictive,
+    id: params.callConfig?.executionId,
   };
 
-  if (params.cacheKey) {
+  if (params.callConfig?.cache?.key && params.callConfig?.cache?.ttlSeconds) {
     const { id } = await createJobStrategies.cached({
       ...params,
-      ...retryParams,
-      cacheKey: params.cacheKey,
+      ...callConfigParams,
+      cacheKey: params.callConfig.cache.key,
+      cacheTTLSeconds: params.callConfig.cache.ttlSeconds,
       cluster,
     });
 
     onAfterJobCreated({
       ...params,
+      ...callConfigParams,
       jobId: id,
     });
 
@@ -58,13 +76,13 @@ export const createJob = async (params: {
   } else {
     const { id } = await createJobStrategies.default({
       ...params,
-      ...retryParams,
+      ...callConfigParams,
       cluster,
     });
 
     onAfterJobCreated({
       ...params,
-      ...retryParams,
+      ...callConfigParams,
       jobId: id,
     });
 
@@ -80,22 +98,18 @@ const createJobStrategies = {
     targetArgs,
     owner,
     deploymentId,
-    pool,
+    cacheTTLSeconds,
     cacheKey,
     timeoutIntervalSeconds,
     maxAttempts,
     cluster,
   }: CreateJobParams & {
     cacheKey: string;
+    cacheTTLSeconds: number;
     cluster: clusters.OperationalCluster;
   }) => {
-    const cacheTTL = await functionDefinition(owner, service, targetFn)
-      .then((d) => d?.cacheTTL ?? 0)
-      .catch(() => 0); // on error, just don't cache
-
     // has a job been completed within the TTL?
     // if so, return the jobId
-
     const [job] = await data.db
       .select({
         id: data.jobs.id,
@@ -109,7 +123,10 @@ const createJobStrategies = {
           eq(data.jobs.target_fn, targetFn),
           eq(data.jobs.status, "success"),
           eq(data.jobs.result_type, "resolution"),
-          gte(data.jobs.resulted_at, new Date(Date.now() - cacheTTL)),
+          gte(
+            data.jobs.resulted_at,
+            new Date(Date.now() - cacheTTLSeconds * 1000),
+          ),
         ),
       )
       .orderBy(desc(data.jobs.resulted_at))

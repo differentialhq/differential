@@ -63,9 +63,26 @@ export const definition = {
     body: z.object({
       targetFn: z.string(),
       targetArgs: z.string(),
-      pool: z.string().optional(),
-      service: z.string().default("unknown"),
-      cacheKey: z.string().optional(),
+      service: z.string(),
+      callConfig: z
+        .object({
+          cache: z
+            .object({
+              key: z.string(),
+              ttlSeconds: z.number(),
+            })
+            .optional(),
+          retry: z
+            .object({
+              attempts: z.number().min(1).max(100),
+              predictive: z.boolean().default(false),
+            })
+            .optional(),
+          timeoutSeconds: z.number().default(300),
+          executionId: z.string().optional(),
+          background: z.boolean().default(false),
+        })
+        .optional(),
     }),
   },
   getJobStatus: {
