@@ -239,7 +239,6 @@ export const definition = {
           z.object({
             id: z.string(),
             description: z.string().nullable(),
-            pool: z.string().nullable(),
             lastPingAt: z.date().nullable(),
             ip: z.string().nullable(),
             deploymentId: z.string().nullable(),

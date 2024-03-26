@@ -36,16 +36,9 @@ export const createJob = async (params: {
   targetArgs: string;
   owner: { clusterId: string };
   deploymentId?: string;
-  cacheKey?: string;
   callConfig?: CallConfig;
 }) => {
   const end = jobDurations.startTimer({ operation: "createJob" });
-
-  const serviceDefinition = await functionDefinition(
-    params.owner,
-    params.service,
-    params.targetFn,
-  );
 
   const cluster = await clusters.operationalCluster(params.owner.clusterId);
 
