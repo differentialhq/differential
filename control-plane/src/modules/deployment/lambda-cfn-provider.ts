@@ -34,7 +34,10 @@ export class LambdaCfnProvider implements DeploymentProvider {
   public async create(deployment: Deployment): Promise<any> {
     const functionName = this.buildFunctionName(deployment);
 
-    console.log("Creating new lambda deployment", functionName);
+    logger.info("Creating new lambda deployment", {
+      deploymentId: deployment.id,
+      functionName,
+    });
 
     try {
       return await this.cfnManager.create({
@@ -55,7 +58,11 @@ export class LambdaCfnProvider implements DeploymentProvider {
   public async update(deployment: Deployment): Promise<any> {
     const functionName = this.buildFunctionName(deployment);
 
-    console.log("Updating existing lambda deployment", functionName);
+    logger.info("Updating existing lambda deployment", {
+      deploymentId: deployment.id,
+      functionName,
+    });
+
     const exists = await this.cfnManager.stackExists(functionName);
     if (!exists) {
       logger.warn("Stack does not exist. It will be created instead.");
@@ -86,7 +93,7 @@ export class LambdaCfnProvider implements DeploymentProvider {
     }
 
     try {
-      console.log("Triggering lambda", {
+      logger.info("Triggering lambda", {
         functionName,
         pendingJobs,
         runningMachines,
