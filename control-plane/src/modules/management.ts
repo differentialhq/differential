@@ -23,7 +23,6 @@ type Job = {
 type Machine = {
   id: string;
   description: string | null;
-  pool: string | null;
   lastPingAt: Date | null;
   ip: string | null;
   deploymentId: string | null;
@@ -143,7 +142,6 @@ export const getClusterDetailsForUser = async ({
     .select({
       id: data.machines.id,
       description: data.machines.description,
-      pool: data.machines.machine_type,
       lastPingAt: data.machines.last_ping_at,
       ip: data.machines.ip,
       deploymentId: data.machines.deployment_id,
