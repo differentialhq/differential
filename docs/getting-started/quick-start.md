@@ -29,7 +29,7 @@ This will:
 ### 2. Start the hello service
 
 ```
-tsx src/run/hello-service.ts
+tsx --watch src/run/hello-service.ts
 ```
 
 This will start a [service called `hello`](https://github.com/differentialhq/app/blob/master/src/services/hello.ts) and register itself with the Cloud control-plane.
@@ -37,7 +37,7 @@ This will start a [service called `hello`](https://github.com/differentialhq/app
 ### 3. Call the running service
 
 ```
-tsx src/commands/greet.ts
+tsx --watch src/commands/greet.ts
 ```
 
 This will call the [`greet` command](https://github.com/differentialhq/app/blob/master/src/commands/greet.ts) on the `hello` service and print the result.
