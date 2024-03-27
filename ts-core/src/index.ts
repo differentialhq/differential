@@ -17,5 +17,3 @@
  */
 
 export { Differential } from "./Differential";
-
-export { cached } from "./functions";
