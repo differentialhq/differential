@@ -26,19 +26,6 @@ export const definition = {
         .array(
           z.object({
             name: z.string(),
-            rate: z
-              .object({
-                per: z.enum(["minute", "hour"]),
-                limit: z.number(),
-              })
-              .optional(),
-            cacheTTL: z.number().optional(),
-            retryConfig: z
-              .object({
-                maxAttempts: z.number(),
-                timeoutIntervalSeconds: z.number(),
-              })
-              .optional(),
           }),
         )
         .optional(),
@@ -81,7 +68,7 @@ export const definition = {
     }),
     responses: {
       200: z.object({
-        status: z.enum(["pending", "running", "success", "failure"]),
+        status: z.enum(["pending", "running", "success", "failure", "stalled"]),
         result: z.string().nullable(),
         resultType: z.enum(["resolution", "rejection"]).nullable(),
       }),
@@ -103,7 +90,13 @@ export const definition = {
       200: z.array(
         z.object({
           id: z.string(),
-          status: z.enum(["pending", "running", "success", "failure"]),
+          status: z.enum([
+            "pending",
+            "running",
+            "success",
+            "failure",
+            "stalled",
+          ]),
           result: z.string().nullable(),
           resultType: z.enum(["resolution", "rejection"]).nullable(),
         }),

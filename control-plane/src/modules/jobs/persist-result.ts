@@ -1,4 +1,4 @@
-import { and, eq, gt, isNotNull, lt, sql } from "drizzle-orm";
+import { and, eq, gt, isNotNull, lt, lte, sql } from "drizzle-orm";
 import * as cluster from "../cluster";
 import * as data from "../data";
 import * as events from "../observability/events";
@@ -182,15 +182,15 @@ async function updateJobWithoutRetryableResult({
     .returning({ service: data.jobs.service, targetFn: data.jobs.target_fn });
 }
 
-export async function selfHealJobs(params?: { machineStallTimeout: number }) {
+export async function selfHealJobs(params?: { machineStallTimeout?: number }) {
   // TODO: impose a global timeout on jobs that don't have a timeout set
   // TODO: these queries need to be chunked. If there are 100k jobs, we don't want to update them all at once
 
   // Jobs are failed if they are running and have timed out
-  const stalledFailedByTimeout = await data.db
+  const stalledByTimeout = await data.db
     .update(data.jobs)
     .set({
-      status: "failure",
+      status: "stalled",
     })
     .where(
       and(
@@ -250,13 +250,14 @@ export async function selfHealJobs(params?: { machineStallTimeout: number }) {
     `,
   );
 
-  const stalledRecovered = await data.db
+  const stalledRecoveredJobs = await data.db
     .update(data.jobs)
     .set({
       status: "pending",
+      remaining_attempts: sql`remaining_attempts - 1`,
     })
     .where(
-      and(eq(data.jobs.status, "failure"), gt(data.jobs.remaining_attempts, 0)),
+      and(eq(data.jobs.status, "stalled"), gt(data.jobs.remaining_attempts, 0)),
     )
     .returning({
       id: data.jobs.id,
@@ -266,7 +267,26 @@ export async function selfHealJobs(params?: { machineStallTimeout: number }) {
       remainingAttempts: data.jobs.remaining_attempts,
     });
 
-  stalledFailedByTimeout.forEach((row) => {
+  const stalledFailedJobs = await data.db
+    .update(data.jobs)
+    .set({
+      status: "failure",
+    })
+    .where(
+      and(
+        eq(data.jobs.status, "stalled"),
+        lte(data.jobs.remaining_attempts, 0),
+      ),
+    )
+    .returning({
+      id: data.jobs.id,
+      service: data.jobs.service,
+      targetFn: data.jobs.target_fn,
+      ownerHash: data.jobs.owner_hash,
+      remainingAttempts: data.jobs.remaining_attempts,
+    });
+
+  stalledByTimeout.forEach((row) => {
     events.write({
       service: row.service,
       clusterId: row.ownerHash,
@@ -300,7 +320,7 @@ export async function selfHealJobs(params?: { machineStallTimeout: number }) {
     });
   });
 
-  stalledRecovered.forEach((row) => {
+  stalledRecoveredJobs.forEach((row) => {
     events.write({
       service: row.service,
       clusterId: row.ownerHash,
@@ -309,9 +329,18 @@ export async function selfHealJobs(params?: { machineStallTimeout: number }) {
     });
   });
 
+  stalledFailedJobs.forEach((row) => {
+    events.write({
+      service: row.service,
+      clusterId: row.ownerHash,
+      jobId: row.id,
+      type: "jobStalledTooManyTimes",
+    });
+  });
+
   return {
-    stalledFailedByTimeout: stalledFailedByTimeout.map((row) => row.id),
-    stalledRecovered: stalledRecovered.map((row) => row.id),
+    stalledFailedByTimeout: stalledByTimeout.map((row) => row.id),
+    stalledRecovered: stalledRecoveredJobs.map((row) => row.id),
     stalledMachines: stalledMachines.map((row) => ({
       id: row.id,
       clusterId: row.clusterId,

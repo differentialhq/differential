@@ -40,6 +40,8 @@ export function functionStatusToCircle(status: string) {
       return <DeadGreenCircle />;
     case "failure":
       return <DeadRedCircle />;
+    case "stalled":
+      return <DeadRedCircle />;
     default:
       return <DeadGrayCircle />;
   }

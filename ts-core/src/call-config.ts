@@ -1,18 +1,17 @@
-type CallConfig = {
-  $d: {
-    cache?: {
-      key: string;
-      ttlSeconds: number;
-    };
-    retry?: {
-      attempts: number;
-      predictive: boolean;
-    };
-    timeoutSeconds?: number;
-    executionId?: string;
-    background?: boolean;
-    // TODO: time travel
+export type CallConfig = {
+  cache?: {
+    key: string;
+    ttlSeconds: number;
   };
+  retryCountOnStall?: number;
+  predictiveRetriesOnRejection?: boolean;
+  timeoutSeconds?: number;
+  executionId?: string;
+  // TODO: time travel
+};
+
+export type $d = {
+  $d: CallConfig;
 };
 
 type AddParameters<
@@ -22,16 +21,16 @@ type AddParameters<
 > = (...args: [...Parameters<TFunction>, ...TParameters]) => TResult;
 
 export type CallConfiguredFunction<TFunction extends (...args: any) => any> =
-  AddParameters<TFunction, [CallConfig?], ReturnType<TFunction>>;
+  AddParameters<TFunction, [$d?], ReturnType<TFunction>>;
 
 export type CallConfiguredBackgroundFunction<
   TFunction extends (...args: any) => any,
-> = AddParameters<TFunction, [CallConfig?], Promise<{ id: string }>>;
+> = AddParameters<TFunction, [$d?], Promise<{ id: string }>>;
 
 export const extractCallConfig = (
   args: any[],
 ): {
-  callConfig?: CallConfig["$d"];
+  callConfig?: $d["$d"];
   originalArgs: any[];
 } => {
   const lastArg = args[args.length - 1];

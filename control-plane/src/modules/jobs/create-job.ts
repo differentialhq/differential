@@ -22,10 +22,8 @@ type CallConfig = {
     key: string;
     ttlSeconds: number;
   };
-  retry?: {
-    attempts: number;
-    predictive?: boolean;
-  };
+  retryCountOnStall?: number;
+  predictiveRetriesOnRejection?: boolean;
   timeoutSeconds?: number;
   executionId?: string;
 };
@@ -44,10 +42,12 @@ export const createJob = async (params: {
 
   const callConfigParams = {
     timeoutIntervalSeconds: params.callConfig?.timeoutSeconds,
-    maxAttempts: params.callConfig?.retry?.attempts,
-    predictiveRetriesEnabled: params.callConfig?.retry?.predictive,
+    maxAttempts: (params.callConfig?.retryCountOnStall ?? 0) + 1,
+    predictiveRetriesEnabled: params.callConfig?.predictiveRetriesOnRejection,
     id: params.callConfig?.executionId,
   };
+
+  console.log("callConfigParams", callConfigParams);
 
   if (params.callConfig?.cache?.key && params.callConfig?.cache?.ttlSeconds) {
     const { id } = await createJobStrategies.cached({

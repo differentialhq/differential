@@ -114,9 +114,8 @@ describe("selfHealJobs", () => {
       owner,
       service: "testService",
       callConfig: {
-        retry: {
-          attempts: 2,
-        },
+        retryCountOnStall: 2,
+        predictiveRetriesOnRejection: false,
         timeoutSeconds: 1,
       },
     });
@@ -164,9 +163,8 @@ describe("selfHealJobs", () => {
       owner,
       service: "testService",
       callConfig: {
-        retry: {
-          attempts: 1,
-        },
+        retryCountOnStall: 1,
+        predictiveRetriesOnRejection: false,
         timeoutSeconds: 1,
       },
     });

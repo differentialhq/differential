@@ -1,6 +1,7 @@
 import { initClient, tsRestFetchApi } from "@ts-rest/core";
 import debug from "debug";
 import {
+  CallConfig,
   CallConfiguredBackgroundFunction,
   CallConfiguredFunction,
   extractCallConfig,
@@ -8,7 +9,6 @@ import {
 import { contract } from "./contract";
 import { DifferentialError } from "./errors";
 import { Events } from "./events";
-import { extractDifferentialConfig, retryConfigForFunction } from "./functions";
 import { ResultsPoller } from "./results-poller";
 import { pack, unpack } from "./serialize";
 import { deserializeError, serializeError } from "./serialize-error";
@@ -72,10 +72,6 @@ const createClient = ({
 type ServiceRegistryFunction = {
   fn: AsyncFunction;
   name: string;
-  retryConfig?: {
-    maxAttempts: number;
-    timeoutIntervalSeconds: number;
-  };
 };
 
 const functionRegistry: { [key: string]: ServiceRegistryFunction } = {};
@@ -97,6 +93,7 @@ type PollingAgentOptions = {
   maxIdleCycles?: number;
   exitHandler: () => void;
 };
+
 class PollingAgent {
   private errorCount = 0;
   private idleCycleCount = 0;
@@ -151,9 +148,8 @@ class PollingAgent {
     // TODO: cache this
     const functions = Object.entries(functionRegistry)
       .filter(([, { name }]) => name === this.service.name)
-      .map(([functionName, { retryConfig }]) => ({
+      .map(([functionName]) => ({
         name: functionName,
-        retryConfig,
       }));
 
     const pollResult = await this.client
@@ -463,7 +459,7 @@ export class Differential {
     },
   ) {
     if (apiSecret && process.env.DIFFERENTIAL_API_SECRET) {
-      console.warn(
+      log(
         "API Secret was provided as an argument and environment variable. Constructor argument will be used.",
       );
     }
@@ -533,6 +529,10 @@ export class Differential {
     this.resultsPoller.start();
   }
 
+  public get secretPartial(): string {
+    return (this.apiSecret || "").substring(0, 4) + "...";
+  }
+
   private async listen(service: ServiceDefinition<any>) {
     this.events.startResourceProbe();
     if (
@@ -558,7 +558,7 @@ export class Differential {
       exitHandler: () => {
         const pollingAgents = this.pollingAgents.find((agent) => agent.polling);
         if (!pollingAgents) {
-          console.log("All polling agents quit");
+          log("All polling agents quit");
           this.stop();
         }
       },
@@ -606,7 +606,6 @@ export class Differential {
     functionRegistry[name] = {
       fn: fn,
       name: serviceName,
-      retryConfig: retryConfigForFunction(fn),
     };
   }
 
@@ -723,16 +722,12 @@ export class Differential {
   ): Promise<ReturnType<T["definition"]["functions"][U]>> {
     const start = Date.now();
     // create a job
-    const id = await this.createJob<T, U>(service, fn, args);
+    const { id, callConfig } = await this.createJob<T, U>(service, fn, args);
 
     log("Waiting for job to complete", { id });
 
     return new Promise((resolve, reject) => {
-      this.resultsPoller.getResult(id, (err, result) => {
-        if (err) {
-          return reject(err);
-        }
-
+      this.resultsPoller.getResult(id, callConfig, (result) => {
         log("Got result", { fn, id, result });
 
         const end = Date.now();
@@ -779,7 +774,7 @@ export class Differential {
     ...args: Parameters<T["definition"]["functions"][U]>
   ): Promise<{ id: string }> {
     // create a job
-    const id = await this.createJob<T, U>(service, fn, args);
+    const { id } = await this.createJob<T, U>(service, fn, args);
 
     return { id };
   }
@@ -791,17 +786,35 @@ export class Differential {
     service: T["definition"]["name"],
     fn: string | number | symbol,
     args: Parameters<T["definition"]["functions"][U]>,
-  ) {
+  ): Promise<{
+    id: string;
+    callConfig: CallConfig;
+  }> {
     log("Creating job", { service, fn, args });
 
     const { callConfig, originalArgs } = extractCallConfig(args);
+
+    const TODO_CONFIGURE_RETRY_COUNT_ON_STALL = 3;
+    const TODO_CONFIGURE_PREDICTIVE_RETRIES_ON_REJECTION = false;
+    const TODO_CONFIGURE_TIMEOUT_SECONDS = 300;
+
+    const effectiveCallConfig = {
+      cache: callConfig?.cache,
+      retryCountOnStall:
+        callConfig?.retryCountOnStall ?? TODO_CONFIGURE_RETRY_COUNT_ON_STALL,
+      predictiveRetriesOnRejection:
+        callConfig?.predictiveRetriesOnRejection ??
+        TODO_CONFIGURE_PREDICTIVE_RETRIES_ON_REJECTION,
+      timeoutSeconds:
+        callConfig?.timeoutSeconds ?? TODO_CONFIGURE_TIMEOUT_SECONDS,
+    };
 
     const result = await this.controlPlaneClient.createJob({
       body: {
         service,
         targetFn: fn as string,
         targetArgs: pack(originalArgs, this.validateBeforeSerialization),
-        callConfig,
+        callConfig: effectiveCallConfig,
       },
       headers: {
         authorization: this.authHeader,
@@ -811,7 +824,10 @@ export class Differential {
     log("Job created", { service, fn, args, body: result.body });
 
     if (result.status === 201) {
-      return result.body.id;
+      return {
+        id: result.body.id,
+        callConfig: effectiveCallConfig,
+      };
     } else if (result.status === 401) {
       throw new DifferentialError(DifferentialError.UNAUTHORISED);
     } else {

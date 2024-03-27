@@ -226,4 +226,4 @@ export async function storeMachineInfo(
 }
 
 export const start = () =>
-  cron.registerCron(selfHealJobs, { interval: 1000 * 10 }); // 10 seconds
+  cron.registerCron(selfHealJobs, { interval: 1000 * 5 }); // 10 seconds

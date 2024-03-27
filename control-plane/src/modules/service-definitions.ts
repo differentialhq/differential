@@ -11,9 +11,6 @@ const cache = new NodeCache({
 
 export type ServiceDefinitionFunction = {
   name: string;
-  cacheTTL?: number;
-  timeoutIntervalSeconds?: number;
-  maxAttempts?: number;
 };
 
 export type ServiceDefinition = {
