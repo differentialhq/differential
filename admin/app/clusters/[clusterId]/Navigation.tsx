@@ -11,32 +11,32 @@ export function Navigation({ clusterId }: { clusterId: string }) {
     <div className="flex flex-row mt-4 space-x-2">
       <Button
         asChild
-        variant={currentPath.includes("overview") ? "link" : "secondary"}
+        variant={currentPath.includes("overview") ? "outline" : "secondary"}
       >
         <Link href={`/clusters/${clusterId}/overview`}>Overview</Link>
       </Button>
       <Button
         asChild
-        variant={currentPath.includes("services") ? "link" : "secondary"}
+        variant={currentPath.includes("services") ? "outline" : "secondary"}
       >
         <Link href={`/clusters/${clusterId}/services`}>Services</Link>
       </Button>
       <Button
         asChild
-        variant={currentPath.includes("monitoring") ? "link" : "secondary"}
+        variant={currentPath.includes("monitoring") ? "outline" : "secondary"}
       >
         <Link href={`/clusters/${clusterId}/monitoring`}>Monitoring</Link>
       </Button>
       <Button
         asChild
-        variant={currentPath.includes("advanced") ? "link" : "secondary"}
+        variant={currentPath.includes("advanced") ? "outline" : "secondary"}
       >
         <Link href={`/clusters/${clusterId}/advanced`}>Advanced Settings</Link>
       </Button>
       <Button
         asChild
         variant={
-          currentPath.includes("client-libraries") ? "link" : "secondary"
+          currentPath.includes("client-libraries") ? "outline" : "secondary"
         }
       >
         <Link href={`/clusters/${clusterId}/client-libraries`}>
