@@ -239,7 +239,7 @@ export async function selfHealJobs(params?: { machineStallTimeout?: number }) {
   }>(
     sql`
       UPDATE jobs as j
-      SET status = 'failure'
+      SET status = 'stalled'
       FROM machines as m
       WHERE
         j.status = 'running' AND

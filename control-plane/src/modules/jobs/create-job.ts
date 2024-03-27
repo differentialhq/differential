@@ -47,8 +47,6 @@ export const createJob = async (params: {
     id: params.callConfig?.executionId,
   };
 
-  console.log("callConfigParams", callConfigParams);
-
   if (params.callConfig?.cache?.key && params.callConfig?.cache?.ttlSeconds) {
     const { id } = await createJobStrategies.cached({
       ...params,

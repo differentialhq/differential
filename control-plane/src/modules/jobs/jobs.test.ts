@@ -163,7 +163,7 @@ describe("selfHealJobs", () => {
       owner,
       service: "testService",
       callConfig: {
-        retryCountOnStall: 1,
+        retryCountOnStall: 0,
         predictiveRetriesOnRejection: false,
         timeoutSeconds: 1,
       },
@@ -310,7 +310,7 @@ describe("persistJobResult", () => {
 
   it("should auto retry when a machine is stalled", async () => {
     const owner = await createOwner();
-    const targetFn = "testTargetFn";
+    const targetFn = "machineStallTestFn";
     const targetArgs = "testTargetArgs";
     const service = "testService";
 
@@ -319,6 +319,9 @@ describe("persistJobResult", () => {
       targetArgs,
       owner,
       service,
+      callConfig: {
+        retryCountOnStall: 1,
+      },
     });
 
     // last ping will be now
