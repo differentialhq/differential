@@ -10,6 +10,7 @@ export type EventTypes =
   | "jobStatusRequest"
   | "jobResulted"
   | "jobStalled"
+  | "jobStalledTooManyTimes"
   | "jobRecovered"
   | "machinePing"
   | "machineStalled"

@@ -100,8 +100,8 @@ export default function Page({ params }: { params: { clusterId: string } }) {
   )?.machineId;
 
   const getAttribute = (activities: typeof reversed, key: string) => {
-    const lastActivityWithValue = activities?.find(
-      (activity) => (activity.meta as any)[key],
+    const lastActivityWithValue = activities?.find((activity) =>
+      activity.meta ? ((activity.meta || {}) as any)[key] : undefined,
     );
 
     return lastActivityWithValue

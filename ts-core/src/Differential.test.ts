@@ -18,16 +18,9 @@ describe("Differential", () => {
   });
 
   it("should initialize with API secret in environment", () => {
-    process.env.DIFFERENTIAL_API_SECRET = "test";
+    process.env.DIFFERENTIAL_API_SECRET = "environment_secret";
     expect(() => new Differential()).not.toThrow();
-  });
-
-  it("should warn for multiple API secrets", () => {
-    process.env.DIFFERENTIAL_API_SECRET = "test";
-    jest.spyOn(console, "warn");
-    expect(() => new Differential("test")).not.toThrow();
-    expect(console.warn).toHaveBeenCalledWith(
-      "API Secret was provided as an argument and environment variable. Constructor argument will be used.",
-    );
+    const d = new Differential();
+    expect(d.secretPartial).toBe("envi...");
   });
 });

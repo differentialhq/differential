@@ -117,7 +117,7 @@ export const router = s.router(contract, {
       };
     }
 
-    const { targetFn, targetArgs, pool, service, cacheKey } = request.body;
+    const { targetFn, targetArgs, service, callConfig } = request.body;
 
     const deployment = owner.cloudEnabled
       ? await findActiveDeployment(owner.clusterId, service)
@@ -129,7 +129,7 @@ export const router = s.router(contract, {
       targetArgs,
       owner,
       deploymentId: deployment?.id,
-      cacheKey,
+      callConfig,
     });
 
     return {
