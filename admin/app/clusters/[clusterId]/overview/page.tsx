@@ -1,6 +1,14 @@
 import { client } from "@/client/client";
 import { auth } from "@clerk/nextjs";
 import { SecretKeyReveal } from "../SecretKeyReveal";
+import { ActivityChart } from "./ActivityChart";
+
+function nearestMinute(date: Date) {
+  const d = new Date(date);
+  d.setSeconds(0);
+  d.setMilliseconds(0);
+  return d;
+}
 
 export default async function Page({
   params,
@@ -47,8 +55,51 @@ export default async function Page({
     },
   ];
 
+  const services = clusterResult.body.jobs.reduce((acc, curr) => {
+    const service = `${curr.service}:${curr.targetFn}`;
+
+    if (!acc.includes(service)) {
+      acc.push(service);
+    }
+
+    return acc;
+  }, [] as string[]);
+
+  const activity = clusterResult.body.jobs
+    .map((j) => {
+      return {
+        timestamp: nearestMinute(new Date(j.createdAt)),
+        service: `${j.service}:${j.targetFn}`,
+      };
+    })
+    .reduce(
+      (acc, curr) => {
+        const key = `${curr.timestamp.getTime()}-${curr.service}`;
+
+        acc[key] = acc[key] || {
+          timestamp: curr.timestamp,
+          [curr.service as string]: 0,
+        };
+
+        acc[key][curr.service as string] += 1;
+
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
+
+  const a = Object.values(activity);
+
   return (
     <div className="py-8 flex space-y-16 flex-col">
+      {a.length > 0 ? (
+        <div>
+          <h2 className="text-xl">Latest Activity</h2>
+          <div className="mt-8 -ml-8">
+            <ActivityChart activity={Object.values(a)} series={services} />
+          </div>
+        </div>
+      ) : null}
       <div>
         <h2 className="text-xl">Secret Keys</h2>
         <p className="text-gray-400 mt-2">

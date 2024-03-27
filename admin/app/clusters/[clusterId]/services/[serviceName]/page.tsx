@@ -1,10 +1,8 @@
 import { client } from "@/client/client";
-import { Button } from "@/components/ui/button";
 import { auth } from "@clerk/nextjs";
-import { ChevronLeft } from "lucide-react";
+import { ServiceDeployments } from "./ServiceDeployments";
 import { ServiceLiveTables } from "./ServiceLiveTables";
 import { ServiceMetrics } from "./ServiceMetrics";
-import { ServiceDeployments } from "./ServiceDeployments";
 
 export default async function Page({
   params,
@@ -33,14 +31,7 @@ export default async function Page({
   }
 
   return (
-    <section className="flex w-full h-full px-8 mt-8 mb-2 flex-col">
-      <div className="mb-8">
-        <a className="text-gray-400" href={`/clusters/${params.clusterId}`}>
-          <Button variant="secondary">
-            <ChevronLeft className="mr-1 h-4 w-4" /> Back
-          </Button>
-        </a>
-      </div>
+    <section className="flex w-full h-full mt-8 mb-2 flex-col">
       <div className="flex flex-col">
         <p className="text-gray-400">Differential Service</p>
         <h1 className="text-2xl font-mono">{params.serviceName}</h1>
