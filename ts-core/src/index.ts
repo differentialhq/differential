@@ -17,3 +17,5 @@
  */
 
 export { Differential } from "./Differential";
+
+export { CallConfig } from "./call-config";

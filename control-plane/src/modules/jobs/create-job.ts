@@ -28,6 +28,8 @@ type CallConfig = {
   executionId?: string;
 };
 
+const DEFAULT_RETRY_COUNT_ON_STALL = 1;
+
 export const createJob = async (params: {
   service: string;
   targetFn: string;
@@ -42,7 +44,9 @@ export const createJob = async (params: {
 
   const callConfigParams = {
     timeoutIntervalSeconds: params.callConfig?.timeoutSeconds,
-    maxAttempts: (params.callConfig?.retryCountOnStall ?? 0) + 1,
+    maxAttempts:
+      (params.callConfig?.retryCountOnStall ?? DEFAULT_RETRY_COUNT_ON_STALL) +
+      1,
     predictiveRetriesEnabled: params.callConfig?.predictiveRetriesOnRejection,
     id: params.callConfig?.executionId,
   };

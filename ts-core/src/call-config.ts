@@ -1,3 +1,17 @@
+/**
+ * Configures the function call with extra options. All options need to be configured under the $d key.
+ *
+ * @example
+ * ```ts
+ * await client.getUsers({
+ *   $d: {
+ *     cache: {
+ *       key: "users",
+ *       ttlSeconds: 60,
+ *    },
+ * });
+ * ```
+ */
 export type CallConfig = {
   cache?: {
     key: string;

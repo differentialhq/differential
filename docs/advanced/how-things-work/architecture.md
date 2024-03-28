@@ -7,6 +7,7 @@ Differential is currently in technical preview. We've seen promising early resul
 Differential’s architecture is intentionally straightforward. We adhere to the principle that simplicity leads to easier scalability, self-hosting, and iterative improvements. Our focus is on refining simplicity to achieve the most effective abstractions.
 
 ## Key Components
+
 - [Control Plane](#control-plane)
 - [SDK](#sdk)
 
