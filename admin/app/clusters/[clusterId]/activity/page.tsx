@@ -150,7 +150,7 @@ export default function Page({ params }: { params: { clusterId: string } }) {
   ].filter(({ value }) => value);
 
   return (
-    <section className="flex w-full h-full px-8 mt-8 mb-2 flex-col">
+    <section className="flex w-full h-full mt-8 mb-2 flex-col">
       <div className="flex flex-col">
         <p className="text-gray-400">Cluster Activity</p>
         <h1 className="text-2xl font-mono">jobId={jobId}</h1>

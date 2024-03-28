@@ -9,7 +9,10 @@ export function fillDates<T extends { timestamp: Date }>(data: Array<T>): T[] {
     (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
   );
 
-  const earliestTimestamp = sorted[0].timestamp.getTime();
+  const earliestTimestamp = Math.min(
+    sorted[0].timestamp.getTime(),
+    thirtyMinutesAgo().getTime(),
+  );
   const latestTimestamp = new Date().getTime();
 
   const dataApplicable = data.filter(

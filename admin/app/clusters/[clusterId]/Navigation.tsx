@@ -27,12 +27,12 @@ export function Navigation({ clusterId }: { clusterId: string }) {
       >
         <Link href={`/clusters/${clusterId}/monitoring`}>Monitoring</Link>
       </Button>
-      <Button
+      {/* <Button
         asChild
         variant={currentPath.includes("advanced") ? "outline" : "secondary"}
       >
         <Link href={`/clusters/${clusterId}/advanced`}>Advanced Settings</Link>
-      </Button>
+      </Button> */}
       <Button
         asChild
         variant={

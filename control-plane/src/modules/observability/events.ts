@@ -47,6 +47,7 @@ type Event = {
     machineCount?: number;
     replacedBy?: string;
     deploymentStatus?: string;
+    callConfig?: object;
   };
 };
 
