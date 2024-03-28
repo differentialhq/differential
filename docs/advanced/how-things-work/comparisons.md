@@ -15,9 +15,9 @@ With differential, the equivalent code here:
 const server = new HttpServer();
 const userController = new UserController();
 
-server.get('/users', (req, res) => {
+server.get("/users", (req, res) => {
   const users = userController.getUsers({
-    searchQuery: req.query.searchQuery
+    searchQuery: req.query.searchQuery,
   });
 
   res.status(200).json({ users });
@@ -25,16 +25,16 @@ server.get('/users', (req, res) => {
 
 // client.ts
 function getNames(users: User[]) {
-  const result = await fetch('/users', {
-    searchQuery: 'John'
+  const result = await fetch("/users", {
+    searchQuery: "John",
   });
 
   const data = await result.json();
 
   if (data.status === 200) {
-    return data.users.map(user => user.name);
+    return data.users.map((user) => user.name);
   } else {
-    throw new Error('Failed to get users');
+    throw new Error("Failed to get users");
   }
 }
 ```
@@ -43,14 +43,14 @@ becomes:
 
 ```ts
 // service.ts
-const { d } = require('./d.ts');
+const { d } = require("./d.ts");
 const userController = new UserController();
 
-export const userService = d.service('users', {
+export const userService = d.service("users", {
   functions: {
-    getUsers: userController.getUsers
-  }
-})
+    getUsers: userController.getUsers,
+  },
+});
 
 // client.ts
 const client = d.client<typeof userService>("users"); // lightweight proxy
@@ -58,10 +58,10 @@ const client = d.client<typeof userService>("users"); // lightweight proxy
 function getNames(users: User[]) {
   // this is fully type-safe
   const users = await client.getUsers({
-    searchQuery: 'John'
-  }); 
+    searchQuery: "John",
+  });
 
-  return users.map(user => user.name);
+  return users.map((user) => user.name);
 }
 ```
 
@@ -95,9 +95,9 @@ This is in stark contrast to something like a REST service that can publish a in
 
 gRPC uses Protocol Buffers as its serialization format. This means that you need to define your data structures in a separate file, and compile them into your language of choice. This is an additional step that you need to perform, and build tooling towards.
 
-Every change that is made to the data structures will require a recompilation of the data structures, and a redeployment of the service. 
+Every change that is made to the data structures will require a recompilation of the data structures, and a redeployment of the service.
 
-Differential uses native programming constructs, and does not require you to have a comparative `.proto` file or a complilation step. Compatibility of contracts is enforced by the type system. However, you do lose out on some of the gurantees that Protocol Buffers provides, such as backwards compatibility. 
+Differential uses native programming constructs, and does not require you to have a comparative `.proto` file or a complilation step. Compatibility of contracts is enforced by the type system. However, you do lose out on some of the gurantees that Protocol Buffers provides, such as backwards compatibility.
 
 However, we do plan to support additional developer tooling that will optionally verify and protect against breaking changes in contracts.
 
