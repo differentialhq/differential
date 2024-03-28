@@ -1,4 +1,8 @@
-# Failure Modes and Error Handling
+---
+order: 1990
+---
+
+# How to handle failures
 
 Differential failure modes and error handling is not too dissimilar from the traditional failure modes and error handling in a service-oriented architecture.
 
