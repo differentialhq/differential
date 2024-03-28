@@ -1,4 +1,4 @@
-# Shared Client Libraries
+# Building Shared Client Libraries for Services
 
 Status: **Private Beta**
 
