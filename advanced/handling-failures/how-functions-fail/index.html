@@ -3,38 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.764913179922">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.764914059578">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
 
     <!-- Primary Meta Tags -->
-    <title>Service Discovery</title>
-    <meta name="title" content="Service Discovery">
-    <meta name="description" content="Status: General Availability">
+    <title>How functions fail</title>
+    <meta name="title" content="How functions fail">
+    <meta name="description" content="Functions in Differential can \"fail\" in 2 main ways.">
 
     <!-- Canonical -->
-    <link rel="canonical" href="https://docs.differential.dev/guides/service-discovery/">
+    <link rel="canonical" href="https://docs.differential.dev/advanced/handling-failures/how-functions-fail/">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://docs.differential.dev/guides/service-discovery/">
-    <meta property="og:title" content="Service Discovery">
-    <meta property="og:description" content="Status: General Availability">
+    <meta property="og:url" content="https://docs.differential.dev/advanced/handling-failures/how-functions-fail/">
+    <meta property="og:title" content="How functions fail">
+    <meta property="og:description" content="Functions in Differential can \"fail\" in 2 main ways.">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://docs.differential.dev/guides/service-discovery/">
-    <meta property="twitter:title" content="Service Discovery">
-    <meta property="twitter:description" content="Status: General Availability">
+    <meta property="twitter:url" content="https://docs.differential.dev/advanced/handling-failures/how-functions-fail/">
+    <meta property="twitter:title" content="How functions fail">
+    <meta property="twitter:description" content="Functions in Differential can \"fail\" in 2 main ways.">
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../../resources/css/retype.css?v=3.5.0.764913179922" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.5.0.764914059578" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.764913179922" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.764913179922" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.764914059578" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.764914059578" data-turbo-eval="false" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -54,10 +54,10 @@
                 <!-- Logo -->
                 <div class="flex items-center justify-between h-full py-2 md:w-75">
                     <div class="flex items-center px-2 md:px-6">
-                        <a id="docs-site-logo" href="../../" class="flex items-center leading-snug text-xl">
+                        <a id="docs-site-logo" href="../../../" class="flex items-center leading-snug text-xl">
                             <span class="w-10 mr-2 grow-0 shrink-0 overflow-hidden">
-                                <img class="max-h-10 dark:hidden md:inline-block" src="../../256.png">
-                                <img class="max-h-10 hidden dark:inline-block" src="../../256.png">
+                                <img class="max-h-10 dark:hidden md:inline-block" src="../../../256.png">
+                                <img class="max-h-10 hidden dark:inline-block" src="../../../256.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Differential Docs</span>
                         </a>
@@ -178,22 +178,33 @@
                                 <!-- Rendered if sidebar right is enabled -->
                                 <div id="docs-sidebar-right-toggle"></div>
                                 <!-- Page content  -->
-<doc-anchor-target id="service-discovery" class="break-words">
+<doc-anchor-target id="how-functions-fail" class="break-words">
     <h1>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#service-discovery">#</doc-anchor-trigger>
-        <span>Service Discovery</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#how-functions-fail">#</doc-anchor-trigger>
+        <span>How functions fail</span>
     </h1>
 </doc-anchor-target>
-<p>Status: <strong>General Availability</strong></p>
-<p>Differential comes with a built-in service registry, so you can call your services by name, without having to worry about IP addresses, ports, or where it&#x27;s deployed. Your services phone-home to Differential control-plane.</p>
-<p>Your services (whether running in your own compute or Differential cloud) always poll the control-plane to:</p>
+<p>Functions in Differential can &quot;fail&quot; in 2 main ways.</p>
+<doc-anchor-target id="1-promise-rejection">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#1-promise-rejection">#</doc-anchor-trigger>
+        <span>1. Promise rejection</span>
+    </h2>
+</doc-anchor-target>
+<p>A function can fail via a promise rejection due to an explicity <code v-pre>throw</code> statement in the function code or due to an unhandled exception.</p>
+<p>Differential does not automatically retry failed function calls - i.e., if a function call fails, it fails. It is up to the client to decide if it wants to retry the function call. This is the scenarios denoted by 1 and 2 above. The exception to this is <a href="../guides/predictive-retries.md">predictive retries</a>, which is an opt-in feature to retry function calls based on the error metadata.</p>
+<doc-anchor-target id="2-stalling">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#2-stalling">#</doc-anchor-trigger>
+        <span>2. Stalling</span>
+    </h2>
+</doc-anchor-target>
+<p>A function can stall if it does not complete within the alotted time. This usually happens if:</p>
 <ol>
-<li>Advertise their presence</li>
-<li>Advertise their health</li>
-<li>Ask for work</li>
+<li>Function fails to complete within the alotted <code v-pre>timeoutSeconds</code> time.</li>
+<li>Worker stalls due to a machine crash or network problems. (See <a href="../compute-recovery/">Recovering from machine failures</a> for more information)</li>
 </ol>
-<p>This allows you to deploy your services anywhere, even across multiple cloud providers and regions, and still have them communicate with each other without any networking configuration.</p>
-<p>It also cuts down the need to secure your services with service to service authentication, as the machines are not directly communicating with each other, or accepting incoming connections. This improves the security posture of your services.</p>
+<p>Differential does automatically retry function calls that stall. This can be customized by setting the <code v-pre>retryCountOnStall</code> key in the call configuration object.</p>
 
                                 
                                 <!-- Required only on API pages -->
@@ -203,20 +214,20 @@
                             
                                 <nav class="flex mt-14">
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../guides/self-hosting/">
+                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../advanced/deployments/on-demand-compute/">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                             <span>
                                                 <span class="block text-xs font-normal text-gray-400 dark:text-dark-400">Previous</span>
-                                                <span class="block mt-1">Self-​hosting</span>
+                                                <span class="block mt-1">On-​demand Compute</span>
                                             </span>
                                         </a>
                                     </div>
                             
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../guides/shared-client-libraries/">
+                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../advanced/handling-failures/failure-modes/">
                                             <span>
                                                 <span class="block text-xs font-normal text-right text-gray-400 dark:text-dark-400">Next</span>
-                                                <span class="block mt-1">Shared Client Libraries</span>
+                                                <span class="block mt-1">How to handle failures</span>
                                             </span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                         </a>
@@ -260,6 +271,6 @@
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": "Service Discovery", level: 2, icon: "file", hasPrism: false, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": "How functions fail", level: 3, icon: "file", hasPrism: false, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
 </body>
 </html>

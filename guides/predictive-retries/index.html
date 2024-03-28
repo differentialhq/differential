@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.764913179922">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.764914059578">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
 
     <!-- Primary Meta Tags -->
-    <title>Predictive Retries</title>
-    <meta name="title" content="Predictive Retries">
+    <title>Predictive Retries on Promise Rejection</title>
+    <meta name="title" content="Predictive Retries on Promise Rejection">
     <meta name="description" content="Status: Technical Preview">
 
     <!-- Canonical -->
@@ -19,23 +19,23 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://docs.differential.dev/guides/predictive-retries/">
-    <meta property="og:title" content="Predictive Retries">
+    <meta property="og:title" content="Predictive Retries on Promise Rejection">
     <meta property="og:description" content="Status: Technical Preview">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://docs.differential.dev/guides/predictive-retries/">
-    <meta property="twitter:title" content="Predictive Retries">
+    <meta property="twitter:title" content="Predictive Retries on Promise Rejection">
     <meta property="twitter:description" content="Status: Technical Preview">
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../../resources/css/retype.css?v=3.5.0.764913179922" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.764914059578" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.764913179922" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.764914059578" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.764913179922" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.764913179922" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.764914059578" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.764914059578" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -179,10 +179,10 @@
                                 <!-- Rendered if sidebar right is enabled -->
                                 <div id="docs-sidebar-right-toggle"></div>
                                 <!-- Page content  -->
-<doc-anchor-target id="predictive-retries" class="break-words">
+<doc-anchor-target id="predictive-retries-on-promise-rejection" class="break-words">
     <h1>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#predictive-retries">#</doc-anchor-trigger>
-        <span>Predictive Retries</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#predictive-retries-on-promise-rejection">#</doc-anchor-trigger>
+        <span>Predictive Retries on Promise Rejection</span>
     </h1>
 </doc-anchor-target>
 <p>Status: <strong>Technical Preview</strong></p>
@@ -205,8 +205,8 @@
 </div>
 <p>Differential can predict transient errors and retry the operations without the developer having to write custom code.</p>
 <p>The control-plane has all the required context on a particular failure, when it happens. It knows the function, some metadata about the source, payload, and the error message. It can use this information to predict if the error is transient or not.</p>
-<p>If it&#x27;s predicted to be transient, Differential will retry the operation on a healthy worker before the client even notices. This is especially useful for database deadlocks, network errors, and other transient errors.</p>
-<p>It&#x27;s worth noting that Differential doesn&#x27;t retry the operation indefinitely. It has a retry limit for any function call that results in a transient error (default 3 times). If the function fails more than the retry limit, Differential will mark the function as permanently failed.</p>
+<p>If it&#x27;s predicted to be transient, Differential will retry the operation again without any client intervention. This is especially useful for database deadlocks, network errors, and other transient errors.</p>
+<p>It&#x27;s worth noting that Differential doesn&#x27;t retry the operation indefinitely. It has a retry limit for any function call that results in a transient error (default 3 times). If the function fails more than the retry limit, Differential will return the error to the client, so that client can handle it.</p>
 <p>For example, let&#x27;s consider this that occurs due to a database deadlock:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-typescript"><code v-pre class="language-typescript">// service.ts
@@ -230,11 +230,21 @@ const orderService = d.service({
 });
 
 // consumer.ts
-const client = d.client&lt;typeof orderService&gt;(&quot;order&quot;);
-
-await client.chargeCustomer(&quot;customer_id&quot;, 100); // &quot;charged&quot;</code></pre>
+const client = d.client&lt;typeof orderService&gt;(&quot;order&quot;);</code></pre>
 </doc-codeblock></div>
-<p>You can turn this feature on for your cluster using the <a href="https://console.differential.dev/">Console</a>. It&#x27;s off by default.</p>
+<p>Calling this function will result in a deadlock error:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-typescript"><code v-pre class="language-typescript">await client.chargeCustomer(&quot;customer_id&quot;, 100); // Error: Database deadlock</code></pre>
+</doc-codeblock></div>
+<p>Predictive retries can be enabled by setting the <code v-pre>predictiveRetriesOnRejection</code> key in the call configuration object. This will retry the function call if the worker rejects the job, based on the output of our internal AI workflow.</p>
+<p>By enabling predictive retries, Differential will retry the operation again transparently once it predicts the error to be transient:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-typescript"><code v-pre class="language-typescript">await client.chargeCustomer(&quot;customer_id&quot;, 100, {
+  $d: {
+    predictiveRetriesOnRejection: true,
+  },
+}); // charged</code></pre>
+</doc-codeblock></div>
 
                                 
                                 <!-- Required only on API pages -->
@@ -301,6 +311,6 @@ await client.chargeCustomer(&quot;customer_id&quot;, 100); // &quot;charged&quot
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": "Predictive Retries", level: 2, icon: "file", hasPrism: true, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": "Predictive Retries on Promise Rejection", level: 2, icon: "file", hasPrism: true, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
 </body>
 </html>

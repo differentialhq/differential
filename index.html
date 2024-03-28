@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.764913179922">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.764914059578">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -11,7 +11,7 @@
     <!-- Primary Meta Tags -->
     <title>Differential</title>
     <meta name="title" content="Differential">
-    <meta name="description" content="Typescript-first RPC Platform for building effortlessly reliable services">
+    <meta name="description" content="Build, Deploy and Refactor fault-tolerant back-end apps without the ceremony.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://docs.differential.dev/">
@@ -20,23 +20,21 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://docs.differential.dev/">
     <meta property="og:title" content="Differential">
-    <meta property="og:description" content="Typescript-first RPC Platform for building effortlessly reliable services">
-    <meta property="og:image" content="https://docs.differential.dev/assets/image-1.png">
+    <meta property="og:description" content="Build, Deploy and Refactor fault-tolerant back-end apps without the ceremony.">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://docs.differential.dev/">
     <meta property="twitter:title" content="Differential">
-    <meta property="twitter:description" content="Typescript-first RPC Platform for building effortlessly reliable services">
-    <meta property="twitter:image" content="https://docs.differential.dev/assets/image-1.png">
+    <meta property="twitter:description" content="Build, Deploy and Refactor fault-tolerant back-end apps without the ceremony.">
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="resources/css/retype.css?v=3.5.0.764913179922" rel="stylesheet">
+    <link href="resources/css/retype.css?v=3.5.0.764914059578" rel="stylesheet">
 
-    <script data-cfasync="false" src="resources/js/config.js?v=3.5.0.764913179922" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="resources/js/config.js?v=3.5.0.764914059578" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="resources/js/lunr.js?v=3.5.0.764913179922" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="resources/js/lunr.js?v=3.5.0.764914059578" data-turbo-eval="false" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -187,7 +185,7 @@
     </h1>
 </doc-anchor-target>
 <blockquote>
-<p>Typescript-first RPC Platform for building effortlessly reliable services</p>
+<p>Build, Deploy and Refactor fault-tolerant back-end apps without the ceremony.</p>
 </blockquote>
 <div class="flex mb-6">
     <div class="shrink-0 w-1 rounded-tl rounded-bl bg-blue-500 dark:bg-blue-400"></div>
@@ -202,49 +200,15 @@
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-<p>Differential is in the technical preview stage, and is open-source. We are working hard to make our cloud offering generally available. Sign up for the waitlist <a href="https://forms.fillout.com/t/9M1VhL8Wxyus">here</a>.</p>
+<p>Differential is in the technical preview stage, and is open-source. We are working hard to make our offering generally available. Sign up for the waitlist <a href="https://forms.fillout.com/t/9M1VhL8Wxyus">here</a>.</p>
         </div>
     </div>
 </div>
-<p>Differential is an open-source &quot;Durable RPC&quot; platform that makes your services more reliable and efficient. By using a centralised control-plane, Differential transparently handles network faults, machine restarts, retries, and more. It comes with end-to-end encryption, observability, service registry, caching, and more without any extra configuration. Moreover, it doesn&#x27;t change your existing programming paradigm. It acts as a thin wrapper around your existing functions to make them callable from anywhere, with full type safety.</p>
-<p><figure class="content-center">
-    <img src="assets/image-1.png" alt="Features">
-    <figcaption class="caption">Features</figcaption>
-</figure>
-</p>
-<doc-anchor-target id="reliability">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#reliability">#</doc-anchor-trigger>
-        <span>Reliability</span>
-    </h2>
-</doc-anchor-target>
-<ul>
-<li><strong>Machine Failure Recovery</strong>: If a machine goes down while processing your request, Differential can transparently detect it and retry the operation on a healthy worker. See <a href="./advanced/compute-recovery.md">Compute Recovery</a> for more.</li>
-<li><strong>Predictive Retries</strong>: With the help of AI Differential detects transient errors (database deadlocks) and retries the operation before the client even notices. See <a href="./advanced/predictive-retries.md">Predictive Retries</a> for more.</li>
-<li><strong>Predictive Alerting</strong>: Differential can alert you when a function fails due to an unrecoverable error that requires a code change, and provide you with reproduction steps. See <a href="./advanced/predictive-alerting.md">Predictive Alerting</a> for more.</li>
-</ul>
-<doc-anchor-target id="efficiency">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#efficiency">#</doc-anchor-trigger>
-        <span>Efficiency</span>
-    </h2>
-</doc-anchor-target>
-<ul>
-<li><strong>Distributed Caching</strong>: Differential can transparently cache the results of your function calls from one worker, so that other workers can use the result without recomputing it. See <a href="./advanced/distributed-caching.md">Distributed Caching</a> for more.</li>
-<li><strong>On-demand Compute</strong>: Use our managed compute offering (in alpha) which will run your services as serverless functions with a single command deploy and significantly less cold-start time. See <a href="./advanced/on-demand-compute.md">On-demand Compute</a> for more.</li>
-<li><strong>Co-located Code</strong>: You can choose to have all your services co-located, and let Differential run them as independent services at run time. No more splitting code for splitting services. See <a href="getting-started/thinking/">Thinking in Differential</a> for more.</li>
-</ul>
-<doc-anchor-target id="usability">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#usability">#</doc-anchor-trigger>
-        <span>Usability</span>
-    </h2>
-</doc-anchor-target>
-<ul>
-<li><strong>Use your existing programming paradigm</strong>: Differential doesn&#x27;t invert your programming paradigm. If you know how to write functions, and call them, you already know how to use Differential. A collection of functions is called a service, and services come with lightweight, fully-typesafe clients that you can use to call them from anywhere. See <a href="getting-started/thinking/">Thinking in Differential</a> for more.</li>
-<li><strong>Service Discovery</strong>: Differential comes with a built-in service registry, so you can call your services by name, without having to worry about IP addresses, ports, or where it&#x27;s deployed. Your services phone-home to Differential control-plane. See <a href="./advanced/service-discovery.md">Service Discovery</a> for more.</li>
-<li><strong>Observability</strong>: See what&#x27;s happening in your services in real-time, with end-to-end observability that with zero configuration. See live payloads, events, and errors in the Differential dashboard. See <a href="./advanced/observability.md">Observability</a> for more.</li>
-</ul>
+<p>Differential is an open-source application code aware service mesh (control-plane) and a set of adapters (client libraries) which connects your services together with first-class support for Typescript.
+‍
+Differential is a framework that builds on the concepts developers are already familiar with.</p>
+<p>Services are collections of plain old javascript functions which can be deployed in almost any compute. Services ship their own type-safe Typescript clients.</p>
+<p>The control plane takes care of routing data between the functions, and recovering from transient failures, transparently.</p>
 <doc-anchor-target id="open-source-and-self-hostable">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#open-source-and-self-hostable">#</doc-anchor-trigger>
