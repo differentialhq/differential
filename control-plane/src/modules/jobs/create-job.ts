@@ -58,7 +58,7 @@ export const createJob = async (params: {
 
     onAfterJobCreated({
       ...params,
-      ...callConfigParams,
+      callConfig: params.callConfig,
       jobId: id,
     });
 
@@ -73,7 +73,7 @@ export const createJob = async (params: {
 
     onAfterJobCreated({
       ...params,
-      ...callConfigParams,
+      callConfig: params.callConfig,
       jobId: id,
     });
 
@@ -182,7 +182,8 @@ const onAfterJobCreated = async ({
   targetArgs,
   owner,
   jobId,
-}: CreateJobParams & { jobId: string }) => {
+  callConfig,
+}: CreateJobParams & { jobId: string; callConfig?: CallConfig }) => {
   events.write({
     type: "jobCreated",
     clusterId: owner.clusterId,
@@ -191,6 +192,7 @@ const onAfterJobCreated = async ({
       targetFn,
       service,
       targetArgs,
+      callConfig,
     },
   });
 };
