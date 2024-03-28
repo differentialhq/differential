@@ -39,4 +39,4 @@ sequenceDiagram
     Note over HealthyMachine: Executes retried tasks
 ```
 
-However, it's possible that the particular workload that you're executing on the machine is what makes it crash. To account for this, there's a retry limit for any function call that results in a machine stall (default 2 times). If the function fails more than the retry limit, Differential will mark the function as permanently failed.
+However, it's possible that the particular workload that you're executing on the machine is what makes it crash. To account for this, there's a retry limit for any function call that results in a machine stall (default 1 time). If the function fails more than the retry limit, Differential will mark the function as permanently failed.

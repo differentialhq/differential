@@ -1,4 +1,4 @@
-# Idempotency
+# Ensuring Idempotency
 
 Idempotency is a property of an operation that means the operation can be applied multiple times without changing the result beyond the initial application. In other words, making the same request multiple times has the same effect as making the request once.
 
