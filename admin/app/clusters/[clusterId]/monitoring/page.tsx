@@ -12,6 +12,7 @@ import {
   LiveGreenCircle,
   functionStatusToCircle,
 } from "../helpers";
+import Link from "next/link";
 
 export default function Page({ params }: { params: { clusterId: string } }) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
@@ -167,9 +168,12 @@ export default function Page({ params }: { params: { clusterId: string } }) {
                   const jobId: string = row.getValue("jobId");
 
                   return (
-                    <p className="font-mono text-sm">
+                    <Link
+                      className="font-mono text-md underline"
+                      href={`/clusters/${params.clusterId}/activity?jobId=${jobId}`}
+                    >
                       {jobId.substring(jobId.length - 6)}
-                    </p>
+                    </Link>
                   );
                 },
               },

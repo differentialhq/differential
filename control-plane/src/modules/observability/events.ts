@@ -10,6 +10,7 @@ export type EventTypes =
   | "jobStatusRequest"
   | "jobResulted"
   | "jobStalled"
+  | "jobStalledTooManyTimes"
   | "jobRecovered"
   | "machinePing"
   | "machineStalled"
@@ -46,6 +47,7 @@ type Event = {
     machineCount?: number;
     replacedBy?: string;
     deploymentStatus?: string;
+    callConfig?: object;
   };
 };
 
