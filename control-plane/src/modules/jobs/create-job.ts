@@ -3,7 +3,6 @@ import { ulid } from "ulid";
 import * as clusters from "../cluster";
 import * as data from "../data";
 import * as events from "../observability/events";
-import { functionDefinition } from "../service-definitions";
 import { jobDurations } from "./job-metrics";
 
 type CreateJobParams = {
@@ -15,6 +14,7 @@ type CreateJobParams = {
   pool?: string;
   timeoutIntervalSeconds?: number;
   maxAttempts?: number;
+  predictiveRetriesEnabled?: boolean;
 };
 
 type CallConfig = {
@@ -98,6 +98,7 @@ const createJobStrategies = {
     timeoutIntervalSeconds,
     maxAttempts,
     cluster,
+    predictiveRetriesEnabled,
   }: CreateJobParams & {
     cacheKey: string;
     cacheTTLSeconds: number;
@@ -143,9 +144,9 @@ const createJobStrategies = {
       deployment_id: deploymentId,
       service,
       cache_key: cacheKey,
-      remaining_attempts:
-        maxAttempts ?? (cluster.autoRetryStalledJobsEnabled ? 3 : 1),
+      remaining_attempts: maxAttempts ?? 1,
       timeout_interval_seconds: timeoutIntervalSeconds,
+      predictive_retry_enabled: predictiveRetriesEnabled,
     });
 
     return { id: jobId };
@@ -160,6 +161,7 @@ const createJobStrategies = {
     timeoutIntervalSeconds,
     maxAttempts,
     cluster,
+    predictiveRetriesEnabled,
   }: CreateJobParams & { cluster: clusters.OperationalCluster }) => {
     const jobId = ulid();
 
@@ -171,9 +173,9 @@ const createJobStrategies = {
       owner_hash: owner.clusterId,
       deployment_id: deploymentId,
       service,
-      remaining_attempts:
-        maxAttempts ?? (cluster.autoRetryStalledJobsEnabled ? 3 : 1),
+      remaining_attempts: maxAttempts ?? 1,
       timeout_interval_seconds: timeoutIntervalSeconds,
+      predictive_retry_enabled: predictiveRetriesEnabled,
     });
 
     return { id: jobId };

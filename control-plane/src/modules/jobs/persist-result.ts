@@ -1,10 +1,8 @@
 import { and, eq, gt, isNotNull, lt, lte, sql } from "drizzle-orm";
-import * as cluster from "../cluster";
 import * as data from "../data";
 import * as events from "../observability/events";
 import * as predictor from "../predictor/predictor";
 import { jobDurations } from "./job-metrics";
-import { logger } from "../../utilities/logger";
 
 type PersistResultParams = {
   result: string;
@@ -17,7 +15,7 @@ type PersistResultParams = {
 };
 
 // TODO: this should be configurable at a cluster level
-const MAX_PREDICTIVE_RETRIES = 1;
+const MAX_PREDICTIVE_RETRIES = 3;
 
 const shouldPredictRetry = async ({
   resultType,
@@ -30,33 +28,22 @@ const shouldPredictRetry = async ({
     return false;
   }
 
-  const clusterHasPredictiveRetriesEnabled = await cluster
-    .operationalCluster(owner.clusterId)
-    .then((c) => c?.predictiveRetriesEnabled ?? false);
-
-  logger.info("Determining eligibility for predictive retries", {
-    clusterHasPredictiveRetriesEnabled,
-  });
-
-  if (!clusterHasPredictiveRetriesEnabled) {
-    return false;
-  }
-
-  const jobHasRemainingAttempts = await data.db
+  const jobs = await data.db
     .select({
-      retryCount: data.jobs.predictive_retry_count,
+      jobId: data.jobs.id,
     })
     .from(data.jobs)
     .where(
-      and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
+      and(
+        eq(data.jobs.id, jobId),
+        eq(data.jobs.owner_hash, owner.clusterId),
+        eq(data.jobs.predictive_retry_enabled, true),
+        lte(data.jobs.predictive_retry_count, MAX_PREDICTIVE_RETRIES),
+      ),
     )
-    .then((rows) => (rows[0]?.retryCount ?? 0) < MAX_PREDICTIVE_RETRIES);
+    .limit(1);
 
-  logger.info("Job is eligible for predictive retries", {
-    jobHasRemainingAttempts,
-  });
-
-  return jobHasRemainingAttempts;
+  return jobs.length === 1;
 };
 
 export async function persistJobResult({
