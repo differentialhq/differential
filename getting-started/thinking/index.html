@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.765021453624">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.765023222582">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -30,12 +30,12 @@
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../../resources/css/retype.css?v=3.5.0.765021453624" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.765023222582" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.765021453624" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.765023222582" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.765021453624" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.765021453624" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.765023222582" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.765023222582" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.5.0" defer></script>
 
     <script>
@@ -226,7 +226,7 @@ export async function sendWeeklyNewsletterToAll() {
  |    └- crawler.ts
  └- index.ts</code></pre>
 </doc-codeblock></div>
-<p><strong>4. Starting a service is as simple as calling <code v-pre>service.start()</code>. Stopping is done via a <code v-pre>servuce.stop()</code></strong>.</p>
+<p><strong>4. Starting a service is as simple as calling <code v-pre>service.start()</code>. Stopping is done via a <code v-pre>service.stop()</code></strong>.</p>
 <p>You can have 1:1 services to processes, or you can have multiple services running in the same process. It&#x27;s up to you. You can also start and stop services dynamically at runtime.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-typescript"><code v-pre class="language-typescript">// src/index.ts
@@ -241,7 +241,12 @@ await emailService.start();</code></pre>
   C[authService] --&gt; B
   D[crawlerService] --&gt; B</pre></div>
 <p><strong>6. You can call any function in any service from any other service.</strong></p>
-<p>You don&#x27;t need to know where the service is running, or how to connect to it. You just need to know the name of the service and the name of the function.</p>
+<p>You don&#x27;t need to know where the service is running, or how to connect to it. You just need to know the name of the service and the name of the function. Function calls get routed to the correct service by the control-plane.</p>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre class="mermaid w-full">graph LR
+  A[My App] --&gt; B[Control Plane]
+  B --&gt; C[emailService]
+  B --&gt; D[authService]
+  B --&gt; E[crawlerService]</pre></div>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-typescript"><code v-pre class="language-typescript">import { d } from &quot;../d&quot;;
 import type { emailService } from &quot;./services/email&quot;;
