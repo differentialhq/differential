@@ -154,14 +154,13 @@ export const getDeployments = async (
 
 export const releaseDeployment = async (
   deployment: Deployment,
+  provider: DeploymentProvider,
 ): Promise<Deployment> => {
   logger.info("Releasing deployment", {
     clusterId: deployment.clusterId,
     service: deployment.service,
     deploymentId: deployment.id,
   });
-
-  const provider = getDeploymentProvider(deployment.provider);
 
   // Check if the service has been previously "released" (active or inactive) deployment
   const meta = (await previouslyReleased(deployment))

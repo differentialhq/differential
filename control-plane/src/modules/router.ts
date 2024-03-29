@@ -479,7 +479,10 @@ export const router = s.router(contract, {
 
     return {
       status: 200,
-      body: await releaseDeployment(deployment),
+      body: await releaseDeployment(
+        deployment,
+        getDeploymentProvider(deployment.provider),
+      ),
     };
   },
   getDeploymentLogs: async (request) => {

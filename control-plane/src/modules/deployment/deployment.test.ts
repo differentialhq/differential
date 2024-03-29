@@ -131,7 +131,7 @@ describe("updateDeploymentResult", () => {
     jest.clearAllMocks();
   });
 
-  it.only("should mark existing deployment status inactive", async () => {
+  it("should mark existing deployment status inactive", async () => {
     const deployment = await createDeployment({
       clusterId: owner.clusterId,
       serviceName: "testService",
@@ -157,8 +157,8 @@ describe("updateDeploymentResult", () => {
     });
 
     // Deployment 2 should still be "uploading"
-    expect(await getDeployment(deployment2.id)).toEqual({
-      ...deployment2,
+    expect(await getDeployment(deployment.id)).toEqual({
+      ...deployment,
       status: "uploading",
       assetUploadId: null,
     });
