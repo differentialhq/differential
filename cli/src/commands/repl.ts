@@ -10,7 +10,7 @@ import repl from "repl";
 import { Differential } from "@differentialhq/core";
 import { client } from "../lib/client";
 
-const log = debug("differential:cli:client-lib:publish");
+const log = debug("differential:cli:repl");
 
 interface ReplArgs {
   cluster?: string;

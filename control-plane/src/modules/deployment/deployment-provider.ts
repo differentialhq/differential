@@ -49,6 +49,10 @@ export interface DeploymentProvider {
     pendingJobs: number,
     runningMachines: number,
   ) => Promise<any>;
+  getLogs: (
+    deployment: Deployment,
+    nextToken?: string,
+  ) => Promise<{ message: string }[]>;
   // How frequently the provider should be notified of new jobs
   minimumNotificationInterval: () => number;
 }

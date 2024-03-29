@@ -10,11 +10,17 @@ import {
 } from "@aws-sdk/client-cloudformation";
 import { logger } from "../../utilities/logger";
 
+import {
+  CloudWatchLogsClient,
+  FilterLogEventsCommand,
+} from "@aws-sdk/client-cloudwatch-logs";
+
 const LAMBDA_CFN_TEMPLATE_KEY = "lambda-cfn.yaml";
 
 export class LambdaCfnProvider implements DeploymentProvider {
   private lambdaClient = new LambdaClient();
   private cfnManager = new CloudFormationManager();
+  private cloudWatchClient = new CloudWatchLogsClient();
 
   public name(): string {
     return "lambda";
@@ -107,6 +113,48 @@ export class LambdaCfnProvider implements DeploymentProvider {
       );
     } catch (error: any) {
       console.error("Failed to trigger lambda", functionName, error);
+    }
+  }
+
+  public async getLogs(
+    deployment: Deployment,
+    nextToken?: string,
+  ): Promise<{ message: string }[]> {
+    const logGroupName = `/aws/lambda/${this.buildFunctionName(deployment)}`;
+
+    // TODO: Exclude these as part of the query
+    const excludePattern = new RegExp(
+      "^START|^INIT_START|^END|^REPORT|Task timed out after",
+    );
+
+    const request = new FilterLogEventsCommand({
+      nextToken,
+      logGroupName,
+      limit: 500,
+    });
+
+    try {
+      const reponse = await this.cloudWatchClient.send(request);
+      return (
+        (reponse.events
+          ?.map((event) => {
+            return {
+              message: event.message?.replace(/[\n\r]/g, ""),
+            };
+          })
+          .filter((event) => {
+            if (event.message == undefined) {
+              return false;
+            }
+            return !excludePattern.test(event.message);
+          }) as { message: string }[]) ?? []
+      );
+    } catch (error: any) {
+      logger.error("Failed to get CloudWatch logs", {
+        deploymentId: deployment.id,
+        error: error,
+      });
+      return [];
     }
   }
 
