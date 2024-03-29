@@ -39,4 +39,8 @@ export class MockProvider implements DeploymentProvider {
       runningMachines,
     });
   }
+
+  public async getLogs(): Promise<{ message: string }[]> {
+    return [{ message: "Test log" }];
+  }
 }

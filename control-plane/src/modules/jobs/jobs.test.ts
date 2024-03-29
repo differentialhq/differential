@@ -245,9 +245,7 @@ describe("persistJobResult", () => {
   it("should attempt to retry when predictive retries are enabled", async () => {
     await events.initialize();
 
-    const owner = await createOwner({
-      predictiveRetriesEnabled: true,
-    });
+    const owner = await createOwner();
     const targetFn = "testTargetFn";
     const targetArgs = "testTargetArgs";
 
@@ -256,7 +254,6 @@ describe("persistJobResult", () => {
       functions: [
         {
           name: "testTargetFn",
-          maxAttempts: 2,
         },
       ],
     };
@@ -275,6 +272,9 @@ describe("persistJobResult", () => {
       targetArgs,
       owner,
       service: "testService",
+      callConfig: {
+        predictiveRetriesOnRejection: true,
+      },
     });
 
     await persistJobResult({
