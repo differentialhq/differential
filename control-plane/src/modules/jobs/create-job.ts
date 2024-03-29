@@ -5,6 +5,7 @@ import * as data from "../data";
 import * as events from "../observability/events";
 import { functionDefinition } from "../service-definitions";
 import { jobDurations } from "./job-metrics";
+import * as clusterActivity from "../cluster-activity";
 
 type CreateJobParams = {
   service: string;
@@ -39,6 +40,8 @@ export const createJob = async (params: {
   callConfig?: CallConfig;
 }) => {
   const end = jobDurations.startTimer({ operation: "createJob" });
+
+  clusterActivity.setClusterActivityToHigh(params.owner.clusterId);
 
   const cluster = await clusters.operationalCluster(params.owner.clusterId);
 

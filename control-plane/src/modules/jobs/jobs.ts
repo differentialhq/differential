@@ -8,6 +8,7 @@ import {
 } from "../service-definitions";
 import { jobDurations } from "./job-metrics";
 import { selfHealJobs } from "./persist-result";
+import * as clusterActivity from "../cluster-activity";
 
 export { createJob } from "./create-job";
 export { persistJobResult } from "./persist-result";
@@ -20,6 +21,7 @@ export const nextJobs = async ({
   deploymentId,
   ip,
   definition,
+  ttl = 20_000,
 }: {
   service: string;
   owner: { clusterId: string };
@@ -28,11 +30,30 @@ export const nextJobs = async ({
   deploymentId?: string;
   ip: string;
   definition?: ServiceDefinition;
+  ttl?: number;
 }) => {
+  const start = Date.now();
   const end = jobDurations.startTimer({ operation: "nextJobs" });
 
-  const results = await data.db.execute(
-    sql`UPDATE
+  type Result = {
+    id: string;
+    target_fn: string;
+    target_args: string;
+  };
+
+  let results: { rowCount: number | null; rows: Result[] } = {
+    rowCount: null,
+    rows: [],
+  };
+
+  await Promise.all([
+    storeMachineInfo(machineId, ip, owner, deploymentId),
+    definition ? storeServiceDefinition(service, definition, owner) : undefined,
+  ]);
+
+  do {
+    results = await data.db.execute<Result>(
+      sql`UPDATE
       jobs SET status = 'running',
       remaining_attempts = remaining_attempts - 1,
       last_retrieved_at=${new Date().toISOString()},
@@ -43,12 +64,14 @@ export const nextJobs = async ({
       AND service = ${service}
     LIMIT ${limit})
     RETURNING id, target_fn, target_args`,
-  );
+    );
 
-  await Promise.all([
-    storeMachineInfo(machineId, ip, owner, deploymentId),
-    definition ? storeServiceDefinition(service, definition, owner) : undefined,
-  ]);
+    const timeout = clusterActivity.isClusterActivityHigh(owner.clusterId)
+      ? 100
+      : 1000;
+
+    await new Promise((resolve) => setTimeout(resolve, timeout));
+  } while (!results.rowCount && Date.now() - start < ttl);
 
   if (results.rowCount === 0) {
     end();
@@ -149,7 +172,12 @@ export const getJobStatuses = async ({
     resultType: InferModel<typeof data.jobs>["result_type"];
   }>;
 
+  let attempt = 0;
+
   do {
+    attempt++;
+    const backoff = Math.min(100 * attempt, 1000);
+
     jobs = await data.db
       .select({
         id: data.jobs.id,
@@ -171,7 +199,7 @@ export const getJobStatuses = async ({
     );
 
     if (!hasResolved) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, backoff));
     }
   } while (!hasResolved && Date.now() - start < longPollTimeout);
 
