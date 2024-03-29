@@ -2,7 +2,7 @@
   <img src="https://cdn.differential.dev/logo.png" width="200" style="border-radius: 10px" />
 </p>
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/differentialhq/differential/test-and-docs.yml) ![NPM Downloads](https://img.shields.io/npm/dm/%40differentialhq%2Fcore) ![Libraries.io dependency status for latest release](https://img.shields.io/librariesio/release/npm/%40differentialhq%2Fcore) ![GitHub Release](https://img.shields.io/github/v/release/differentialhq/differential) ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/differentialhq/differential)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/differentialhq/differential/test.yml) ![NPM Downloads](https://img.shields.io/npm/dm/%40differentialhq%2Fcore) ![Libraries.io dependency status for latest release](https://img.shields.io/librariesio/release/npm/%40differentialhq%2Fcore) ![GitHub Release](https://img.shields.io/github/v/release/differentialhq/differential) ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/differentialhq/differential)
 
 # Differential
 
