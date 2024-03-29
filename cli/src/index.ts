@@ -8,6 +8,7 @@ import { Auth } from "./commands/auth";
 import { getToken } from "./lib/auth";
 import { Clusters } from "./commands/clusters";
 import { ClientLibrary } from "./commands/client-lib";
+import { Repl } from "./commands/repl";
 
 const cli = yargs(hideBin(process.argv))
   .scriptName("differential")
@@ -18,7 +19,7 @@ const cli = yargs(hideBin(process.argv))
 
 const authenticated = getToken();
 if (authenticated) {
-  cli.command(Deploy).command(Clusters).command(ClientLibrary);
+  cli.command(Deploy).command(Clusters).command(ClientLibrary).command(Repl);
 } else {
   console.log(
     "Diffential CLI is not authenticated. Please run `differential auth login` to authenticate.",
