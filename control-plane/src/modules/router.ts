@@ -201,27 +201,6 @@ export const router = s.router(contract, {
       },
     };
   },
-  // TODO: deprecate
-  createCredential: async (request) => {
-    if (!auth.machineAuthSuccess(request.headers.authorization)) {
-      return {
-        status: 401,
-      };
-    }
-
-    const { organizationId } = request.params;
-
-    const created = await admin.createCredential({
-      organizationId,
-    });
-
-    return {
-      status: 201,
-      body: {
-        apiSecret: created.apiSecret,
-      },
-    };
-  },
   getTemporaryToken: async () => {
     const created = await admin.createTemporaryCredential();
 
