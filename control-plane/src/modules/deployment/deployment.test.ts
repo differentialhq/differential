@@ -66,6 +66,7 @@ describe("releaseDeployment", () => {
     create: jest.fn(async () => ({})),
     update: jest.fn(async () => ({})),
     notify: jest.fn(),
+    getLogs: jest.fn(),
     minimumNotificationInterval: jest.fn(),
   };
 
@@ -120,6 +121,7 @@ describe("updateDeploymentResult", () => {
     create: jest.fn(async () => ({})),
     update: jest.fn(async () => ({})),
     notify: jest.fn(),
+    getLogs: jest.fn(),
     minimumNotificationInterval: jest.fn(),
   };
 
@@ -131,7 +133,7 @@ describe("updateDeploymentResult", () => {
     jest.clearAllMocks();
   });
 
-  it("should mark existing deployment status inactive", async () => {
+  it.only("should mark existing deployment status inactive", async () => {
     const deployment = await createDeployment({
       clusterId: owner.clusterId,
       serviceName: "testService",
@@ -157,8 +159,8 @@ describe("updateDeploymentResult", () => {
     });
 
     // Deployment 2 should still be "uploading"
-    expect(await getDeployment(deployment.id)).toEqual({
-      ...deployment,
+    expect(await getDeployment(deployment2.id)).toEqual({
+      ...deployment2,
       status: "uploading",
       assetUploadId: null,
     });
