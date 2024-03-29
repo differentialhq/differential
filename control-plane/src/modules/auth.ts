@@ -1,10 +1,27 @@
 import { eq } from "drizzle-orm";
 import * as data from "./data";
+import Cache from "node-cache";
 
-export const jobOwnerHash = async (authHeader: string) => {
+type Cluster = {
+  organizationId: string | null;
+  clusterId: string;
+  cloudEnabled: boolean | null;
+};
+
+const cache = new Cache({ stdTTL: 60, checkperiod: 10, maxKeys: 1000 });
+
+export const jobOwnerHash = async (
+  authHeader: string,
+): Promise<Cluster | null> => {
   const secret = authHeader.split(" ")[1];
 
-  const result = await data.db
+  const cached = cache.get<Cluster>(secret);
+
+  if (cached) {
+    return cached;
+  }
+
+  const [cluster] = await data.db
     .select({
       organizationId: data.clusters.organization_id,
       clusterId: data.clusters.id,
@@ -13,19 +30,17 @@ export const jobOwnerHash = async (authHeader: string) => {
     .from(data.clusters)
     .where(eq(data.clusters.api_secret, secret));
 
-  if (result.length === 0) {
+  if (!cluster) {
     return null;
   }
 
-  return {
-    organizationId: result[0].organizationId,
-    clusterId: result[0].clusterId,
-    cloudEnabled: result[0].cloudEnabled,
+  const result = {
+    organizationId: cluster.organizationId,
+    clusterId: cluster.clusterId,
+    cloudEnabled: cluster.cloudEnabled,
   };
-};
 
-export const machineAuthSuccess = async (
-  authHeader: string,
-): Promise<boolean> => {
-  throw new Error("Deprecated");
+  cache.set<Cluster>(secret, result);
+
+  return result;
 };

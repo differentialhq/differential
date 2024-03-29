@@ -47,31 +47,6 @@ export const getClusters = async ({
   });
 };
 
-export const createCredential = async ({
-  organizationId,
-}: {
-  organizationId: string;
-}) => {
-  const created = await data.db
-    .insert(data.clusters)
-    .values([
-      {
-        id: `cluster-${randomName("-")}-${crypto
-          .randomBytes(5)
-          .toString("hex")}`,
-        organization_id: organizationId,
-        api_secret: `sk_${crypto.randomBytes(32).toString("hex")}`,
-      },
-    ])
-    .returning({
-      id: data.clusters.id,
-      apiSecret: data.clusters.api_secret,
-      organizationId: data.clusters.organization_id,
-    });
-
-  return created[0];
-};
-
 export const createTemporaryCredential = async () => {
   const created = await data.db
     .insert(data.clusters)
