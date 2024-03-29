@@ -7,7 +7,6 @@ const cache = new NodeCache({ stdTTL: 60, checkperiod: 65, maxKeys: 5000 });
 export type OperationalCluster = {
   predictiveRetriesEnabled: boolean | null;
   cloudEnabled: boolean | null;
-  autoRetryStalledJobsEnabled: boolean;
 };
 
 export const operationalCluster = async (
@@ -22,8 +21,6 @@ export const operationalCluster = async (
   const results = await data.db
     .select({
       predictiveRetriesEnabled: data.clusters.predictive_retries_enabled,
-      autoRetryStalledJobsEnabled:
-        data.clusters.auto_retry_stalled_jobs_enabled,
       cloudEnabled: data.clusters.cloud_enabled,
     })
     .from(data.clusters)
