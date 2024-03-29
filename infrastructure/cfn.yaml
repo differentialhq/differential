@@ -59,6 +59,7 @@ Resources:
                 - "lambda:UpdateFunctionConfiguration"
                 - "lambda:PutFunctionConcurrency"
                 - "lambda:PutFunctionEventInvokeConfig"
+                - "lambda:ListTags"
                 - "lambda:TagResource"
                 - "lambda:InvokeFunction"
               Resource: "arn:aws:lambda:*:*:function:differential-deployment-*"

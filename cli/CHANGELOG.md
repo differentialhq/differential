@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.17.0](https://github.com/differentialhq/differential/compare/v3.16.0...v3.17.0) (2024-03-28)
+
+### Features
+
+- Retry config via call config ([#191](https://github.com/differentialhq/differential/issues/191)) ([b69f603](https://github.com/differentialhq/differential/commit/b69f6033a780d8bce6f00fb124ac841114ee7fdd))
+
 # [3.15.0](https://github.com/differentialhq/differential/compare/v3.14.0...v3.15.0) (2024-03-23)
 
 ### Bug Fixes

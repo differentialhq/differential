@@ -157,23 +157,6 @@ export const definition = {
       }),
     },
   },
-  createCredential: {
-    method: "POST",
-    path: "/organizations/:organizationId/clusters",
-    headers: z.object({
-      authorization: z.string(),
-    }),
-    responses: {
-      201: z.object({
-        apiSecret: z.string(),
-      }),
-      401: z.undefined(),
-    },
-    pathParams: z.object({
-      organizationId: z.string(),
-    }),
-    body: z.object({}),
-  },
   getTemporaryToken: {
     method: "GET",
     path: "/demo/token",
@@ -509,6 +492,29 @@ export const definition = {
         service: z.string(),
         provider: z.string(),
         createdAt: z.date(),
+      }),
+    },
+  },
+  getDeploymentLogs: {
+    method: "GET",
+    path: "/clusters/:clusterId/service/:serviceName/deployments/:deploymentId/logs",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    query: z.object({
+      next: z.string().optional(),
+    }),
+    body: z.undefined(),
+    responses: {
+      401: z.undefined(),
+      404: z.undefined(),
+      200: z.object({
+        events: z.array(
+          z.object({
+            message: z.string(),
+          }),
+        ),
+        next: z.string().optional(),
       }),
     },
   },

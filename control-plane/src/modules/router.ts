@@ -9,9 +9,11 @@ import { operationalCluster } from "./cluster";
 import { contract } from "./contract";
 import * as data from "./data";
 import {
+  Deployment,
   createDeployment,
   findActiveDeployment,
   getDeployment,
+  getDeploymentLogs,
   getDeployments,
   releaseDeployment,
   updateDeploymentResult,
@@ -183,27 +185,6 @@ export const router = s.router(contract, {
             encoding: "utf-8",
           },
         ),
-      },
-    };
-  },
-  // TODO: deprecate
-  createCredential: async (request) => {
-    if (!auth.machineAuthSuccess(request.headers.authorization)) {
-      return {
-        status: 401,
-      };
-    }
-
-    const { organizationId } = request.params;
-
-    const created = await admin.createCredential({
-      organizationId,
-    });
-
-    return {
-      status: 201,
-      body: {
-        apiSecret: created.apiSecret,
       },
     };
   },
@@ -468,6 +449,33 @@ export const router = s.router(contract, {
         deployment,
         getDeploymentProvider(deployment.provider),
       ),
+    };
+  },
+  getDeploymentLogs: async (request) => {
+    const access = await routingHelpers.validateManagementRequest(request);
+    const { cloudEnabled } = await operationalCluster(request.params.clusterId);
+    if (!access || !cloudEnabled) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { clusterId, deploymentId } = request.params;
+    const { next } = request.query;
+
+    const deployment = await getDeployment(deploymentId);
+
+    if (!deployment || deployment.clusterId !== clusterId) {
+      return {
+        status: 404,
+      };
+    }
+
+    return {
+      status: 200,
+      body: {
+        events: await getDeploymentLogs(deployment, next),
+      },
     };
   },
   setClusterSettings: async (request) => {

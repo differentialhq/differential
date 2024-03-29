@@ -21,7 +21,7 @@ export const nextJobs = async ({
   deploymentId,
   ip,
   definition,
-  ttl = 20_000,
+  ttl = 1_000,
 }: {
   service: string;
   owner: { clusterId: string };

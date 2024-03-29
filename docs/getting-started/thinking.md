@@ -1,14 +1,10 @@
 ---
-order: 1499
+order: 1990
 ---
 
 # Thinking in Differential
 
-Differential is a little bit different (pun intended) from the way it looks at separation of services from the way you might be used to. 
-
-It's built on the core beliefs that: **Monolithic code does not need to result in co-located services**.
-
-It's not a RPC framework, or a microservices framework. If you're familiar with a service mesh, you can think of it as a higher-level, app-code aware service mesh.
+Differential is a little bit different (pun intended) from the way it looks at separation of services from the way you might be used to.
 
 ## The Differential Way
 
@@ -23,7 +19,7 @@ export const emailService = d.service({
     sendWeeklyNewsletterToAll,
     sendPasswordResetEmail,
     scheduleOnboardingEmails,
-  }
+  },
 });
 ```
 
@@ -34,13 +30,13 @@ export const emailService = d.service({
 
 export async function sendWeeklyNewsletterToAll() {
   const users = await db.getUsers();
-  const emails = users.map(user => user.email);
+  const emails = users.map((user) => user.email);
   await email.send(emails, "Weekly Newsletter", "...");
   // ...
 }
 ```
 
-**3. All services are co-located in the same codebase, so they can share code and types.**
+**3. Services can be co-located on the same codebase, or spread out across multiple repositories. Differential doesn't make any assumptions on the file structure.**
 
 ```ts
 src/
@@ -51,7 +47,7 @@ src/
  └- index.ts
 ```
 
-**4. Starting a service is as simple as calling `d.start()`. Stopping is done via a `d.stop()`**.
+**4. Starting a service is as simple as calling `service.start()`. Stopping is done via a `servuce.stop()`**.
 
 You can have 1:1 services to processes, or you can have multiple services running in the same process. It's up to you. You can also start and stop services dynamically at runtime.
 
@@ -62,9 +58,9 @@ import { emailService } from "./services/email";
 await emailService.start();
 ```
 
-**5. Once a service is started, it registers itself with the control-plane.**
+**5. Once a service is started, it registers itself with the control-plane, and starts asking for "work".**
 
-The open-source control-plane is a central service that keeps track of all the services that are running, and their health. It acts as a service registry, and a service bus.
+The open-source control-plane is a central service that keeps track of all the services that are running, and their health. It acts as a service registry, and a service mesh. Your services don't talk to each other directly. Instead, they talk to the control-plane, which routes the function calls to the correct service.
 
 ```mermaid
 graph LR
@@ -91,9 +87,9 @@ async function confirmUserSignup(email: string) {
 }
 ```
 
-**7. Thanks to co-located code, your function calls are type-safe**
+**7. Your function calls are type-safe**
 
-You can't call a function that doesn't exist, or pass the wrong arguments.
+You can't call a function that doesn't exist, or pass the wrong arguments as long as you set up the client library object with a reference to the service.
 
 ```ts
 import { d } from "../d";
@@ -106,7 +102,7 @@ const auth = d.client<typeof authService>("auth");
 async function confirmUserSignup(email: string) {
   await email.foo("bar");
   // ⛔️ Error: Property 'foo' does not exist on type 'ServiceClient<RegisteredService<{...}>>'.
-  
+
   await email.scheduleOnboardingEmails({ foo: "bar" });
   // ⛔️ Error: Argument of type '{ foo: string; }' is not assignable to parameter of type 'string'.
 }
@@ -138,11 +134,12 @@ sequenceDiagram
 
 Differential is an opinionated framework. It makes some tradeoffs to make it easier to build services. They might not be the right tradeoffs for you, but we think they are the right tradeoffs for most people.
 
-**1. Monolithic codebases provide a great developer experience, but resulting monolithic services often do not.**
+**1. Overhead of microservices architecture can have sensible defaults.**
 
-- Unless you're very careful, heavy background processes can affect the high availability of your mission-critical services.
-- Scaling a single service is hard. You can't scale just the background processes; you have to scale the entire service.
-- Keeping unnecessary services running is wasteful. You can't just run the background processes; you have to run the entire service.
+- Microservices architecture can really shine when you want to scale a specific part of your system, prevent cascading failures, move your workloads to on-demand compute etc.
+- But the resulting ovehread of managing all the service-to-service communication concerns, tooling, and infrastructure can be overwhelming.
+- There exists a set of sensible defaults that can be applied to most services, and common concerns that can be abstracted away.
+- Moreover, microservices that can minimize the cold start time, and can be started and stopped dynamically would increase adoption of the architecture.
 
 **2. Writing duplicative service interfaces/contracts can be avoided.**
 

@@ -3,7 +3,6 @@ import { ulid } from "ulid";
 import * as clusters from "../cluster";
 import * as data from "../data";
 import * as events from "../observability/events";
-import { functionDefinition } from "../service-definitions";
 import { jobDurations } from "./job-metrics";
 import * as clusterActivity from "../cluster-activity";
 
@@ -16,6 +15,7 @@ type CreateJobParams = {
   pool?: string;
   timeoutIntervalSeconds?: number;
   maxAttempts?: number;
+  predictiveRetriesEnabled?: boolean;
 };
 
 type CallConfig = {
@@ -65,7 +65,7 @@ export const createJob = async (params: {
 
     onAfterJobCreated({
       ...params,
-      ...callConfigParams,
+      callConfig: params.callConfig,
       jobId: id,
     });
 
@@ -80,7 +80,7 @@ export const createJob = async (params: {
 
     onAfterJobCreated({
       ...params,
-      ...callConfigParams,
+      callConfig: params.callConfig,
       jobId: id,
     });
 
@@ -101,6 +101,7 @@ const createJobStrategies = {
     timeoutIntervalSeconds,
     maxAttempts,
     cluster,
+    predictiveRetriesEnabled,
   }: CreateJobParams & {
     cacheKey: string;
     cacheTTLSeconds: number;
@@ -146,9 +147,9 @@ const createJobStrategies = {
       deployment_id: deploymentId,
       service,
       cache_key: cacheKey,
-      remaining_attempts:
-        maxAttempts ?? (cluster.autoRetryStalledJobsEnabled ? 3 : 1),
+      remaining_attempts: maxAttempts ?? 1,
       timeout_interval_seconds: timeoutIntervalSeconds,
+      predictive_retry_enabled: predictiveRetriesEnabled,
     });
 
     return { id: jobId };
@@ -163,6 +164,7 @@ const createJobStrategies = {
     timeoutIntervalSeconds,
     maxAttempts,
     cluster,
+    predictiveRetriesEnabled,
   }: CreateJobParams & { cluster: clusters.OperationalCluster }) => {
     const jobId = ulid();
 
@@ -174,9 +176,9 @@ const createJobStrategies = {
       owner_hash: owner.clusterId,
       deployment_id: deploymentId,
       service,
-      remaining_attempts:
-        maxAttempts ?? (cluster.autoRetryStalledJobsEnabled ? 3 : 1),
+      remaining_attempts: maxAttempts ?? 1,
       timeout_interval_seconds: timeoutIntervalSeconds,
+      predictive_retry_enabled: predictiveRetriesEnabled,
     });
 
     return { id: jobId };
@@ -189,7 +191,8 @@ const onAfterJobCreated = async ({
   targetArgs,
   owner,
   jobId,
-}: CreateJobParams & { jobId: string }) => {
+  callConfig,
+}: CreateJobParams & { jobId: string; callConfig?: CallConfig }) => {
   events.write({
     type: "jobCreated",
     clusterId: owner.clusterId,
@@ -198,6 +201,7 @@ const onAfterJobCreated = async ({
       targetFn,
       service,
       targetArgs,
+      callConfig,
     },
   });
 };

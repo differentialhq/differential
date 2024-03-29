@@ -66,6 +66,7 @@ describe("releaseDeployment", () => {
     create: jest.fn(async () => ({})),
     update: jest.fn(async () => ({})),
     notify: jest.fn(),
+    getLogs: jest.fn(),
     minimumNotificationInterval: jest.fn(),
   };
 
@@ -120,6 +121,7 @@ describe("updateDeploymentResult", () => {
     create: jest.fn(async () => ({})),
     update: jest.fn(async () => ({})),
     notify: jest.fn(),
+    getLogs: jest.fn(),
     minimumNotificationInterval: jest.fn(),
   };
 

@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.17.0](https://github.com/differentialhq/differential/compare/v3.16.0...v3.17.0) (2024-03-28)
+
+### Bug Fixes
+
+- Additional SNS error logging ([#186](https://github.com/differentialhq/differential/issues/186)) ([b7f730b](https://github.com/differentialhq/differential/commit/b7f730b3075ab80b156066bf6df7fd3af3a0b07f))
+- Cleanup some console.logs ([#188](https://github.com/differentialhq/differential/issues/188)) ([45b9e6f](https://github.com/differentialhq/differential/commit/45b9e6fc3ac7fd3c6a46be8ee1e8e499c873dd6d))
+- Minor fixes to admin console ([#193](https://github.com/differentialhq/differential/issues/193)) ([6a1e697](https://github.com/differentialhq/differential/commit/6a1e69740c648eca8069c8dd5456ac50aa96c8e6))
+
+### Features
+
+- Add CloudFormation IAM permissions ([#187](https://github.com/differentialhq/differential/issues/187)) ([1ddac77](https://github.com/differentialhq/differential/commit/1ddac7735d98777d99fb98a2047fc9f96c5dc336))
+- Better charts for services ([#180](https://github.com/differentialhq/differential/issues/180)) ([607140e](https://github.com/differentialhq/differential/commit/607140e3148f4ad0f8bcbaf81a75222a271f98f1))
+- Call configuration and docs ([#192](https://github.com/differentialhq/differential/issues/192)) ([f1d405a](https://github.com/differentialhq/differential/commit/f1d405a6f5614343816d1577f2ebbf56577a41ed))
+- **control-plane:** Introduce structured logging ([#182](https://github.com/differentialhq/differential/issues/182)) ([aa27106](https://github.com/differentialhq/differential/commit/aa27106c203b56ebd32651514663e5c03ead0948))
+- Defer deployment inactivation ([#185](https://github.com/differentialhq/differential/issues/185)) ([181f9dd](https://github.com/differentialhq/differential/commit/181f9dd2ad547838e3a450d6bb2ff8138b0240f6))
+- Deployment event tracking ([#184](https://github.com/differentialhq/differential/issues/184)) ([05a2349](https://github.com/differentialhq/differential/commit/05a23495c10b08f1a1ef53526344f3420f5e626c))
+- Retry config via call config ([#191](https://github.com/differentialhq/differential/issues/191)) ([b69f603](https://github.com/differentialhq/differential/commit/b69f6033a780d8bce6f00fb124ac841114ee7fdd))
+- Validate environment variables on startup ([#178](https://github.com/differentialhq/differential/issues/178)) ([475f00b](https://github.com/differentialhq/differential/commit/475f00bf8c25d5bf1654ad0447a16437788f1d50))
+- Wrap requests in logger context ([#183](https://github.com/differentialhq/differential/issues/183)) ([3b583ef](https://github.com/differentialhq/differential/commit/3b583efe33fc940d49b5407dccea9ddf419b2fce))
+
 # [3.16.0](https://github.com/differentialhq/differential/compare/v3.15.0...v3.16.0) (2024-03-24)
 
 ### Bug Fixes

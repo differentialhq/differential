@@ -1,6 +1,8 @@
-# Recovering from machine failures
+---
+order: 1980
+---
 
-Status: **General Availability**
+# Recovering from machine failures
 
 In a cloud environment, machines can fail at any time. Differential transparently handles machine failures by periodically sending heartbeats to the control-plane, quickly catching and retrying failed operations on a healthy worker. This means that you don't have to worry about your service being unavailable due to a machine failure.
 

@@ -3,7 +3,10 @@ import NodeCache from "node-cache";
 import { ulid } from "ulid";
 import * as data from "../data";
 import { storeServiceDefinition } from "../service-definitions";
-import { DeploymentProvider } from "./deployment-provider";
+import {
+  DeploymentProvider,
+  getDeploymentProvider,
+} from "./deployment-provider";
 import * as events from "../observability/events";
 import { env } from "../../utilities/env";
 import { logger } from "../../utilities/logger";
@@ -194,6 +197,14 @@ export const releaseDeployment = async (
   });
 
   return update;
+};
+
+export const getDeploymentLogs = async (
+  deployment: Deployment,
+  nextToken?: string,
+): Promise<{ message: string }[]> => {
+  const provider = getDeploymentProvider(deployment.provider);
+  return await provider.getLogs(deployment, nextToken);
 };
 
 const inactivateExistingDeployments = async (

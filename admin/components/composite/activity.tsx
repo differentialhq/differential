@@ -33,6 +33,12 @@ const typeToText: { [key: string]: (activity: Activity) => string } = {
     `Deployment was inactivated. No new jobs will be scheduled for execution.`,
   deploymentInitiated: () =>
     `Deployment was initiated. New machines will be provisioned.`,
+  jobStalled: () =>
+    `Function execution did not complete within the expected time frame. The function is marked as stalled.`,
+  jobRecovered: () =>
+    `Function execution was recovered after being marked as stalled.`,
+  jobStalledTooManyTimes: () =>
+    `Function execution did not complete within the expected time frame too many times. The execution has resulted in a failure.`,
 };
 
 export function Activity({
