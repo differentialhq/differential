@@ -14,6 +14,9 @@ export class DifferentialError extends Error {
   static INVALID_DATA_TYPE =
     "Serialization process encountered an invalid data type. The data can not be safely serialized. See: https://docs.differential.dev/advanced/arguments-and-return-values/";
 
+  static TIMEOUT =
+    "The function timed out before being able to complete. Make sure the function is not stalling.";
+
   constructor(message: string, meta?: { [key: string]: unknown }) {
     super(message);
     this.name = "DifferentialError";

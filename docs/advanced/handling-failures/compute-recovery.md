@@ -1,6 +1,8 @@
-# Recovering from machine failures
+---
+order: 1980
+---
 
-Status: **General Availability**
+# Recovering from machine failures
 
 In a cloud environment, machines can fail at any time. Differential transparently handles machine failures by periodically sending heartbeats to the control-plane, quickly catching and retrying failed operations on a healthy worker. This means that you don't have to worry about your service being unavailable due to a machine failure.
 
@@ -39,4 +41,4 @@ sequenceDiagram
     Note over HealthyMachine: Executes retried tasks
 ```
 
-However, it's possible that the particular workload that you're executing on the machine is what makes it crash. To account for this, there's a retry limit for any function call that results in a machine stall (default 2 times). If the function fails more than the retry limit, Differential will mark the function as permanently failed.
+However, it's possible that the particular workload that you're executing on the machine is what makes it crash. To account for this, there's a retry limit for any function call that results in a machine stall (default 1 time). If the function fails more than the retry limit, Differential will mark the function as permanently failed.

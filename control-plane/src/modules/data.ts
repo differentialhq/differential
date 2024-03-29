@@ -61,7 +61,7 @@ export const jobs = pgTable(
     target_args: text("target_args").notNull(),
     cache_key: varchar("cache_key", { length: 1024 }),
     status: text("status", {
-      enum: ["pending", "running", "success", "failure"], // job failure is actually a stalled state. TODO: rename it
+      enum: ["pending", "running", "success", "failure", "stalled"], // job failure is actually a stalled state. TODO: rename it
     }).notNull(),
     result: text("result"),
     result_type: text("result_type", {
@@ -80,8 +80,11 @@ export const jobs = pgTable(
     function_execution_time_ms: integer("function_execution_time_ms"),
     timeout_interval_seconds: integer("timeout_interval_seconds")
       .notNull()
-      .default(3600),
+      .default(300),
     service: varchar("service", { length: 1024 }).notNull(),
+    predictive_retry_enabled: boolean("predictive_retry_enabled").default(
+      false,
+    ),
     predicted_to_be_retryable: boolean("predicted_to_be_retryable"), // null = unknown, no = not retryable, yes = retryable
     predicted_to_be_retryable_reason: text("predicted_to_be_retryable_reason"),
     predictive_retry_count: integer("predictive_retry_count").default(0),

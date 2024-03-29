@@ -5,7 +5,6 @@ import { contract } from "@/client/contract";
 import { useAuth } from "@clerk/nextjs";
 import { formatRelative } from "date-fns";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { z } from "zod";
@@ -57,12 +56,6 @@ export function ServiceLiveTables({
     fetchData();
   }, [token, clusterId, serviceName, isLoaded, isSignedIn, getToken]);
 
-  const path = usePathname();
-
-  const searchParams = useSearchParams();
-
-  const jobId = searchParams.get("jobId");
-
   return (
     <div>
       <div>
@@ -77,7 +70,7 @@ export function ServiceLiveTables({
                 Function: s.name,
                 "Cache TTL":
                   s.cacheTTL === null || s.cacheTTL === undefined
-                    ? "N/A"
+                    ? "-"
                     : `${s.cacheTTL}s`,
               })) ?? []
             }
@@ -98,11 +91,11 @@ export function ServiceLiveTables({
                 jobId: s.id,
                 targetFn: s.targetFn,
                 status: s.status,
-                resolution: s.resultType ?? "N/A",
+                resolution: s.resultType ?? "-",
                 createdAt: formatRelative(new Date(s.createdAt), new Date()),
                 "Execution Time":
                   s.functionExecutionTime === null
-                    ? "N/A"
+                    ? "-"
                     : `${s.functionExecutionTime}ms`,
               }))}
             noDataMessage="No services with function calls have been detected in the cluster lately."

@@ -2,7 +2,6 @@
 
 import { client } from "@/client/client";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@clerk/nextjs";
 import { useCallback, useEffect, useState } from "react";
@@ -95,30 +94,6 @@ export default function Page({ params }: { params: { clusterId: string } }) {
               });
           }}
         />
-      </div>
-      <div
-        className="flex items-center space-x-2 justify-between border p-4 rounded-md"
-        style={{ width: 800 }}
-      >
-        <div className="flex flex-col space-y-1">
-          <div className="font-bold flex space-x-2">
-            <p>Differential Cloud</p>
-            <Badge variant="secondary">Private Beta</Badge>
-          </div>
-          <p className="text-gray-400">
-            Differential Cloud is a fully managed deployment of the open-source
-            offering.
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() =>
-            (window.location.href = "https://forms.fillout.com/t/9M1VhL8Wxyus")
-          }
-        >
-          Join the waitlist
-        </Button>
       </div>
     </div>
   );

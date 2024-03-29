@@ -17,39 +17,52 @@ type CreateJobParams = {
   maxAttempts?: number;
 };
 
+type CallConfig = {
+  cache?: {
+    key: string;
+    ttlSeconds: number;
+  };
+  retryCountOnStall?: number;
+  predictiveRetriesOnRejection?: boolean;
+  timeoutSeconds?: number;
+  executionId?: string;
+};
+
+const DEFAULT_RETRY_COUNT_ON_STALL = 1;
+
 export const createJob = async (params: {
   service: string;
   targetFn: string;
   targetArgs: string;
   owner: { clusterId: string };
   deploymentId?: string;
-  cacheKey?: string;
+  callConfig?: CallConfig;
 }) => {
   const end = jobDurations.startTimer({ operation: "createJob" });
 
-  const serviceDefinition = await functionDefinition(
-    params.owner,
-    params.service,
-    params.targetFn,
-  );
-
   const cluster = await clusters.operationalCluster(params.owner.clusterId);
 
-  const retryParams = {
-    timeoutIntervalSeconds: serviceDefinition?.timeoutIntervalSeconds,
-    maxAttempts: serviceDefinition?.maxAttempts,
+  const callConfigParams = {
+    timeoutIntervalSeconds: params.callConfig?.timeoutSeconds,
+    maxAttempts:
+      (params.callConfig?.retryCountOnStall ?? DEFAULT_RETRY_COUNT_ON_STALL) +
+      1,
+    predictiveRetriesEnabled: params.callConfig?.predictiveRetriesOnRejection,
+    id: params.callConfig?.executionId,
   };
 
-  if (params.cacheKey) {
+  if (params.callConfig?.cache?.key && params.callConfig?.cache?.ttlSeconds) {
     const { id } = await createJobStrategies.cached({
       ...params,
-      ...retryParams,
-      cacheKey: params.cacheKey,
+      ...callConfigParams,
+      cacheKey: params.callConfig.cache.key,
+      cacheTTLSeconds: params.callConfig.cache.ttlSeconds,
       cluster,
     });
 
     onAfterJobCreated({
       ...params,
+      callConfig: params.callConfig,
       jobId: id,
     });
 
@@ -58,13 +71,13 @@ export const createJob = async (params: {
   } else {
     const { id } = await createJobStrategies.default({
       ...params,
-      ...retryParams,
+      ...callConfigParams,
       cluster,
     });
 
     onAfterJobCreated({
       ...params,
-      ...retryParams,
+      callConfig: params.callConfig,
       jobId: id,
     });
 
@@ -80,22 +93,18 @@ const createJobStrategies = {
     targetArgs,
     owner,
     deploymentId,
-    pool,
+    cacheTTLSeconds,
     cacheKey,
     timeoutIntervalSeconds,
     maxAttempts,
     cluster,
   }: CreateJobParams & {
     cacheKey: string;
+    cacheTTLSeconds: number;
     cluster: clusters.OperationalCluster;
   }) => {
-    const cacheTTL = await functionDefinition(owner, service, targetFn)
-      .then((d) => d?.cacheTTL ?? 0)
-      .catch(() => 0); // on error, just don't cache
-
     // has a job been completed within the TTL?
     // if so, return the jobId
-
     const [job] = await data.db
       .select({
         id: data.jobs.id,
@@ -109,7 +118,10 @@ const createJobStrategies = {
           eq(data.jobs.target_fn, targetFn),
           eq(data.jobs.status, "success"),
           eq(data.jobs.result_type, "resolution"),
-          gte(data.jobs.resulted_at, new Date(Date.now() - cacheTTL)),
+          gte(
+            data.jobs.resulted_at,
+            new Date(Date.now() - cacheTTLSeconds * 1000),
+          ),
         ),
       )
       .orderBy(desc(data.jobs.resulted_at))
@@ -174,7 +186,8 @@ const onAfterJobCreated = async ({
   targetArgs,
   owner,
   jobId,
-}: CreateJobParams & { jobId: string }) => {
+  callConfig,
+}: CreateJobParams & { jobId: string; callConfig?: CallConfig }) => {
   events.write({
     type: "jobCreated",
     clusterId: owner.clusterId,
@@ -183,6 +196,7 @@ const onAfterJobCreated = async ({
       targetFn,
       service,
       targetArgs,
+      callConfig,
     },
   });
 };

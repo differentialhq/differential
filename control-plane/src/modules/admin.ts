@@ -112,7 +112,6 @@ export const getClusterDetails = async ({
     .select({
       id: data.machines.id,
       description: data.machines.description,
-      pool: data.machines.machine_type,
       lastPingAt: data.machines.last_ping_at,
       ip: data.machines.ip,
       organizationId: data.machines.cluster_id,

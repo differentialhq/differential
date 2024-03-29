@@ -18,9 +18,6 @@ describe("verifyManagementToken", () => {
     expect(result).toEqual({
       userId: "user_2a1xE5pvSTPllVx6i8wCA7pVVHJ",
     });
-
-    // wait for the jwks request to finish
-    await new Promise((resolve) => setTimeout(resolve, 3000));
   });
 
   it("should throw on a malformed token", async () => {

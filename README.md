@@ -24,7 +24,7 @@ It also comes with batteries included:
 ### 1. Write a service that connects to the Differential control-plane
 
 ```ts
-import { Differential, cached } from "@differentialhq/core";
+import { Differential } from "@differentialhq/core";
 
 // You can get a token from
 // - curl https://api.differential.dev/demo/token
@@ -46,7 +46,7 @@ function get(url: string) {
 // Register your functions with the control-plane
 const myService = d.service("my-service", {
   sum: sum,
-  get: cached(get, { ttl: 60 }),
+  get: get,
 });
 
 // Start the service, and it will connect to the
@@ -72,8 +72,29 @@ const client = d.service<typeof myService>("my-service");
 
 client.sum(1, 2).then(console.log); // 3
 
-client.get("https://api.differential.dev/live").then(console.log); // { status: "ok" }
-client.get("https://api.differential.dev/live").then(console.log); // { status: "ok" } -> Cached! Doesn't make a network request.
+const url = "https://api.differential.dev/live";
+
+client
+  .get(url, {
+    $d: {
+      cache: {
+        key: url,
+        ttlSeconds: 60,
+      },
+    },
+  })
+  .then(console.log); // { status: "ok" }
+
+client
+  .get(url, {
+    $d: {
+      cache: {
+        key: url,
+        ttlSeconds: 60,
+      },
+    },
+  })
+  .then(console.log); // { status: "ok" } -> Cached! Doesn't make a network request.
 ```
 
 ## Documentation
