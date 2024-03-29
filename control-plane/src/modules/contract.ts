@@ -512,6 +512,29 @@ export const definition = {
       }),
     },
   },
+  getDeploymentLogs: {
+    method: "GET",
+    path: "/clusters/:clusterId/service/:serviceName/deployments/:deploymentId/logs",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    query: z.object({
+      next: z.string().optional(),
+    }),
+    body: z.undefined(),
+    responses: {
+      401: z.undefined(),
+      404: z.undefined(),
+      200: z.object({
+        events: z.array(
+          z.object({
+            message: z.string(),
+          }),
+        ),
+        next: z.string().optional(),
+      }),
+    },
+  },
   createClientLibraryVersion: {
     method: "POST",
     path: "/clusters/:clusterId/client-libraries",
