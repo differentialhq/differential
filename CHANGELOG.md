@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.18.0](https://github.com/differentialhq/differential/compare/v3.17.0...v3.18.0) (2024-03-29)
+
+### Bug Fixes
+
+- Additional Lambda permissions ([#195](https://github.com/differentialhq/differential/issues/195)) ([fbeb35a](https://github.com/differentialhq/differential/commit/fbeb35a6688e836d0cb4b9da0d65f86d11ff96e1))
+- Cache auth results in-memory ([#199](https://github.com/differentialhq/differential/issues/199)) ([504fd0e](https://github.com/differentialhq/differential/commit/504fd0e0d6e14583d84f0bc32a4b38bbbcd724c0))
+- Consult the function call instead of the cluster for predictive retries ([#198](https://github.com/differentialhq/differential/issues/198)) ([9f81a0a](https://github.com/differentialhq/differential/commit/9f81a0a26fd487e22cc9eb8241d3eab80c4a44c1))
+- Minor optimizations to decrease the job latencies ([#200](https://github.com/differentialhq/differential/issues/200)) ([743cb5f](https://github.com/differentialhq/differential/commit/743cb5fef49e5d1cf5ee127d54e6042323f57fcc))
+
+### Features
+
+- **cli:** REPL interface ([#190](https://github.com/differentialhq/differential/issues/190)) ([1fdecad](https://github.com/differentialhq/differential/commit/1fdecad9ec401940d62ffd8201f6a5b0ccf5c7de))
+- Deploy command shortcut ([#196](https://github.com/differentialhq/differential/issues/196)) ([52a8231](https://github.com/differentialhq/differential/commit/52a8231fe2ee95fd846bc4d844f04962e1365609))
+- Initial deployment log rendering ([#197](https://github.com/differentialhq/differential/issues/197)) ([99c0cb6](https://github.com/differentialhq/differential/commit/99c0cb615007cbd870cb3cd9cac49739a4fe63d6))
+
 # [3.17.0](https://github.com/differentialhq/differential/compare/v3.16.0...v3.17.0) (2024-03-28)
 
 ### Bug Fixes

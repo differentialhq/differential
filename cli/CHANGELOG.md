@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.18.0](https://github.com/differentialhq/differential/compare/v3.17.0...v3.18.0) (2024-03-29)
+
+### Bug Fixes
+
+- Cache auth results in-memory ([#199](https://github.com/differentialhq/differential/issues/199)) ([504fd0e](https://github.com/differentialhq/differential/commit/504fd0e0d6e14583d84f0bc32a4b38bbbcd724c0))
+
+### Features
+
+- **cli:** REPL interface ([#190](https://github.com/differentialhq/differential/issues/190)) ([1fdecad](https://github.com/differentialhq/differential/commit/1fdecad9ec401940d62ffd8201f6a5b0ccf5c7de))
+- Deploy command shortcut ([#196](https://github.com/differentialhq/differential/issues/196)) ([52a8231](https://github.com/differentialhq/differential/commit/52a8231fe2ee95fd846bc4d844f04962e1365609))
+- Initial deployment log rendering ([#197](https://github.com/differentialhq/differential/issues/197)) ([99c0cb6](https://github.com/differentialhq/differential/commit/99c0cb615007cbd870cb3cd9cac49739a4fe63d6))
+
 # [3.17.0](https://github.com/differentialhq/differential/compare/v3.16.0...v3.17.0) (2024-03-28)
 
 ### Features

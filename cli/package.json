@@ -1,6 +1,6 @@
 {
   "name": "@differentialhq/cli",
-  "version": "3.17.0",
+  "version": "3.18.0",
   "description": "CLI for differential.dev",
   "bin": {
     "differential": "bin/index.js"
@@ -15,7 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@differentialhq/core": "^3.17.0",
+    "@differentialhq/core": "^3.18.0",
     "@inquirer/prompts": "^4.0.0",
     "@ts-rest/core": "^3.28.0",
     "acorn": "^8.11.3",
