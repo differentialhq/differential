@@ -51,32 +51,19 @@ export const router = s.router(contract, {
 
     const limit = request.body.limit ?? 1;
 
-    let collection: {
-      id: string;
-      targetFn: string;
-      targetArgs: string;
-    }[];
-
-    const start = Date.now();
-
-    do {
-      collection = await jobs.nextJobs({
-        owner,
-        limit,
-        machineId: request.headers["x-machine-id"],
-        deploymentId: request.headers["x-deployment-id"],
-        ip: request.request.ip,
-        service: request.body.service,
-        definition: {
-          name: request.body.service,
-          functions: request.body.functions,
-        },
-      });
-
-      if (collection.length === 0) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-    } while (collection.length === 0 && Date.now() - start < request.body.ttl);
+    const collection = await jobs.nextJobs({
+      owner,
+      limit,
+      machineId: request.headers["x-machine-id"],
+      deploymentId: request.headers["x-deployment-id"],
+      ip: request.request.ip,
+      service: request.body.service,
+      definition: {
+        name: request.body.service,
+        functions: request.body.functions,
+      },
+      ttl: request.body.ttl,
+    });
 
     return {
       status: 200,
