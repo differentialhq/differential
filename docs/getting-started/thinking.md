@@ -47,7 +47,7 @@ src/
  └- index.ts
 ```
 
-**4. Starting a service is as simple as calling `service.start()`. Stopping is done via a `servuce.stop()`**.
+**4. Starting a service is as simple as calling `service.start()`. Stopping is done via a `service.stop()`**.
 
 You can have 1:1 services to processes, or you can have multiple services running in the same process. It's up to you. You can also start and stop services dynamically at runtime.
 
@@ -71,7 +71,15 @@ graph LR
 
 **6. You can call any function in any service from any other service.**
 
-You don't need to know where the service is running, or how to connect to it. You just need to know the name of the service and the name of the function.
+You don't need to know where the service is running, or how to connect to it. You just need to know the name of the service and the name of the function. Function calls get routed to the correct service by the control-plane.
+
+```mermaid
+graph LR
+  A[My App] --> B[Control Plane]
+  B --> C[emailService]
+  B --> D[authService]
+  B --> E[crawlerService]
+```
 
 ```ts
 import { d } from "../d";

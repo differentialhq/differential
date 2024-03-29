@@ -6,18 +6,19 @@
 
 # Differential
 
-Differential is an open-source "Durable RPC" platform. By using a centralised control-plane, Differential transparently handles network faults and machine restarts with retries, all without changing your existing programming paradigm. It is designed to be a drop-in replacement for any function call that you'd like to make distributed and reliable.
+Differential is an open-source application code aware service mesh (control-plane) and a set of adapters (client libraries) which connects your services together with first-class support for Typescript.
 
-It also comes with batteries included:
+1. Differential builds on the concepts developers are already familiar with, and doesn't require you to learn a new programming model.
+2. Services are collections of plain old javascript functions which can be deployed in almost any compute. Services ship their own type-safe Typescript clients.
+3. The control plane takes care of routing data between the functions, and recovering from transient failures, transparently.
 
-- [x] Distributed caching: Cache results of functions with a single line of code, and let all your services share the same cache.
-- [x] Rate limiting: Limit the number of times a function can be called globally in a given time period with a simple decorator.
-- [x] End to end encryption: All communication between the control-plane and your services can be encrypted with a single line of code.
-- [x] Observability: Differential comes with a built-in logging and metrics system, so you can see what's happening in your services in real-time.
-- [x] Unopinionated: Differential is designed to be as unopinionated as possible. It works on your own compute, CI/CD, and cloud provider. The only requirement is that workers can connect to the control-plane.
-- [x] Self-hostable: The control-plane can be run on your own infrastructure, and is open-source. You can have full control over your data and infrastructure.
+## Why would I use it?
 
-## Differential in 60 seconds
+1. Create services out of plain old Typescript functions, and get type-safe clients for free.
+2. Adopt a service-oriented architecture without changing your codebase / programming model.
+3. Recover your workloads from crashes and network failures without custom code.
+
+## What does the code look like?
 
 ![Alt text](assets/image-3.png)
 
@@ -45,8 +46,10 @@ function get(url: string) {
 
 // Register your functions with the control-plane
 const myService = d.service("my-service", {
-  sum: sum,
-  get: get,
+  functions: {
+    sum,
+    get,
+  },
 });
 
 // Start the service, and it will connect to the
@@ -66,47 +69,28 @@ import type { myService } from "./my-service";
 const d = new Differential("MY_API_SECRET");
 
 // Create a client for the service.
+// (Notice that you don't have to provide an endpoint. Clients talk to the control-plane)
 const client = d.service<typeof myService>("my-service");
 
 // call the remote functions as if they were local, with full type safety
-
 client.sum(1, 2).then(console.log); // 3
 
-const url = "https://api.differential.dev/live";
-
-client
-  .get(url, {
-    $d: {
-      cache: {
-        key: url,
-        ttlSeconds: 60,
-      },
-    },
-  })
-  .then(console.log); // { status: "ok" }
-
-client
-  .get(url, {
-    $d: {
-      cache: {
-        key: url,
-        ttlSeconds: 60,
-      },
-    },
-  })
-  .then(console.log); // { status: "ok" } -> Cached! Doesn't make a network request.
+client.get("https://api.differential.dev/live").then(console.log); // { status: "ok" }
 ```
 
-## Documentation
+## How can I get started?
+
+1. [Build your first end-to-end Differential service in 2 minutes](https://docs.differential.dev/getting-started/quick-start/)
+2. [Sign up for Differential Cloud](https://forms.fillout.com/t/9M1VhL8Wxyus) (managed version of Differential)
+3. [Self-host Differential yourself](https://docs.differential.dev/advanced/self-hosting/)
+
+## More Documentation
 
 All documentation is hosted at [docs.differential.dev](https://docs.differential.dev). Here are some quick links to get you started:
 
-- [Build your first end-to-end Differential service in 2 minutes](https://docs.differential.dev/getting-started/quick-start/)
 - [Thinking in Differential](https://docs.differential.dev/getting-started/thinking/)
-- [How it works under the hood](https://docs.differential.dev/advanced/architecture/)
-- [Self-hosting](https://docs.differential.dev/advanced/self-hosting/)
-
-...and more! Join our [Discord](https://discord.gg/WtZkXv74) to stay up to date.
+- [How it works under the hood](https://docs.differential.dev/advanced/how-things-work/architecture/)
+- [Customizing Function Call Behavior](https://docs.differential.dev/getting-started/customizing-function-calls/)
 
 # Differential Cloud
 
@@ -119,12 +103,12 @@ Differential Cloud is a managed version of Differential. It is currently in beta
 
 This is a mono-repo for almost all of the Differential codebase. It contains the following repositories:
 
-## Application
-
 - [Control Plane](./control-plane/) The control plane is the central command & control for a differential cluster. This is fully open source and can be run on your own infrastructure. We also offer a hosted version of the control plane at [www.differential.dev](https://differential.dev).
 - [Typescript SDK](./ts-core/) The Typescript SDK is the main way to interact with Differential. It is used to define, run and call services.
 - [Admin Console](./admin) The admin console is a web-based UI for Differential. It is used to visualize the service registry, view logs, and more.
-
-## Auxiliary
-
+- [CLI](./cli) The CLI is a command-line interface for Differential. It is used to interact with the control plane, deploy services, and more.
 - [Docs](https://docs.differential.dev) The docs are the main source of information for Differential. They are hosted at [/docs](./docs/).
+
+# Contributing
+
+We welcome contributions to Differential! Please see our [contributing guide](./CONTRIBUTING.md) for more information.
