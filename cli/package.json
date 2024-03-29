@@ -9,12 +9,13 @@
     "test": "exit 0",
     "start": "node ./bin/index.js",
     "build": "tsc",
-    "clean": "rm -rf ./bin"
+    "clean": "rm -rf ./bin",
+    "dev": "npm run build && npm run start"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@differentialhq/core": "^3.16.0",
+    "@differentialhq/core": "^3.17.0",
     "@inquirer/prompts": "^4.0.0",
     "@ts-rest/core": "^3.28.0",
     "acorn": "^8.11.3",
