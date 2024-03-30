@@ -3,6 +3,8 @@ import jwksClient from "jwks-rsa";
 import { env } from "../utilities/env";
 
 export class AuthenticationError extends Error {
+  statusCode = 401;
+
   constructor(message: string) {
     super(message);
     this.name = "AuthenticationError";

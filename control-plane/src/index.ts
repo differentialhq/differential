@@ -47,7 +47,7 @@ app.setErrorHandler((error, request, reply) => {
     error,
   });
 
-  return reply.status(500).send();
+  return reply.status(error.statusCode ?? 500).send();
 });
 
 app.addHook("onRequest", (request, _reply, done) => {
@@ -76,6 +76,11 @@ app.addHook("onTimeout", (request, reply, done) => {
   const route = request.routerPath;
 
   timeoutErrors.labels(request.method, route).inc();
+  done();
+});
+
+app.addHook("onError", (request, reply, error, done) => {
+  console.error(error);
   done();
 });
 
