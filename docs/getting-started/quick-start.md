@@ -1,122 +1,128 @@
 ---
-order: 2000
+order: 1990
 ---
 
-# Buiding your first service
+# Writing your first app with Differential
 
-Learn to build an end to end Differential app in under 2 minutes with TypeScript and Node.js.
+## 1. Install the Differential CLI
 
-## Running the hello world example
-
-### 1. Set up and Install
-
-Run the following command in your terminal to set up a hello world project
-
-```bash
-git clone git@github.com:differentialhq/app.git my-app && \
-cd my-app && \
-npm run setup && \
-npm i -g tsx
+```sh
+npm install -g @differentialhq/cli
 ```
 
-This will:
+## 2. Authenticate with Differential
 
-- Clone the [Differential app template](https://github.com/differentialhq/app) into a dirctory called `my-app`
-- Install the dependencies
-- Fetch a temporary API secret for you to use and insert it to src/d.ts file
-- Install the `tsx` CLI tool globally so you can run ts files directly
-
-### 2. Start the hello service
-
-```
-tsx --watch src/run/hello-service.ts
+```sh
+differential auth login
 ```
 
-This will start a [service called `hello`](https://github.com/differentialhq/app/blob/master/src/services/hello.ts) and register itself with the Cloud control-plane.
+## 3. Create a directory for your service
 
-### 3. Call the running service
-
+```sh
+mkdir my-app
+cd my-app
 ```
-tsx --watch src/commands/greet.ts
+
+## 4. Initialize your project
+
+The following command will create a new project in the current directory. And install the necessary dependencies.
+
+```sh
+npm init -y
+npm install @differentialhq/core typescript tsx
 ```
 
-This will call the [`greet` command](https://github.com/differentialhq/app/blob/master/src/commands/greet.ts) on the `hello` service and print the result.
+## 5. Create a Differential cluster
 
-## Extending the hello service
+```sh
+differential clusters create
+```
 
-Let's add a new command to the hello service that will greet someone in a different language, so you can write some code.
+This will give you a API Secret. Copy this to the clipboard so we can use it in the next step.
 
-### 1. Add a new function to the hello service
+## 6. Initialize your Differential client.
 
-Open up the `src/services/hello.ts` file and add the following function, under the exising `hello` function:
+Create a new file called `src/d.ts` and add the following code:
 
 ```typescript
-async function helloInAnotherLanguage(params: {
-  from: string;
-  language: string;
-}) {
-  console.log("Responding to hello request in", params.language);
+// d.ts
 
-  const languageDefinitions = await fetch(
-    `https://raw.githubusercontent.com/differentialhq/app/master/fake-api/hello.json`,
-  ).then((res) => res.json());
+import { Differential } from "@differentialhq/core";
 
-  const greeting = languageDefinitions[params.language];
+export const d = new Differential("YOUR_API_SECRET");
+```
 
-  if (!greeting) {
-    throw new Error(`Language ${params.language} not supported`);
-  }
+Make sure to replace YOUR_API_SECRET with the API Secret you copied in the previous step.
 
-  return {
-    message: `${greeting} ${params.from}! I'm a service running on pid ${process.pid}!`,
-  };
+## 7. Create your first service
+
+Now we'll create a simple hello world service in the `src/service.ts` file.
+
+```typescript
+// src/service.ts
+
+import { d } from "./d";
+
+async function hello(from: { name: string }) {
+  return `Hello, ${from.name}!`;
 }
+
+export const helloService = d.service({
+  name: "hello",
+  functions: {
+    hello,
+  },
+});
+
+helloService.start().then(() => {
+  console.log("Service started");
+});
 ```
 
-As you can see, this function fetches a list of greetings from a fake API and returns the appropriate one. A Differential function can do anything a normal Node.js function can do, including making network requests.
+You can now run your service with the following command:
 
-### 2. Register the function with the service
-
-```diff
- export const helloService = d.service({
-   name: "hello",
-   functions: {
-     hello,
-+    helloInAnotherLanguage,
-   },
- });
+```sh
+tsx src/service.ts
 ```
 
-### 3. Change the `greet` command to call the new function
+8. Call your service
 
-You can replace the greet.ts file with the following. We're just extending the existing command to take a new `language` parameter and call the new function.
+Now that your service is running, you can call it from anywhere, as long as it can connect with the correct Differential cluster.
+
+Let's create a simple script that calls the `hello` function on the `hello` service.
+
+Create a new file called `src/call-hello.ts` and add the following code:
 
 ```typescript
-// src/commands/greet.ts
+// src/call-hello.ts
 
-import { d } from "../d";
-import type { helloService } from "../services/hello";
+import { d } from "./d";
+import type { helloService } from "./service";
 
 const client = d.client<typeof helloService>("hello");
 
-async function greet(name: string = "World", language: string = "english") {
-  const result = await client.helloInAnotherLanguage({
-    from: name,
-    language,
+(async function main() {
+  const result = await client.hello({
+    name: "World",
   });
 
-  console.log(`Received response: ${result.message}`);
-}
+  console.log(result);
+})();
 ```
 
-### 4. Call the new command
+You can run this script with the following command:
 
-```bash
-tsx src/commands/greet.ts -- "Dali" "spanish"
-# => Received response: Hola Dali! I'm a service running on pid 1234!
-
-tsx src/commands/greet.ts -- "Mario" "italian"
-# => Received response: Ciao Mario! I'm a service running on pid 1234!
-
-# try other languages!
+```sh
+tsx src/call-hello.ts
+# => Hello, World!
 ```
+
+9. Check out the cluter activity
+
+You've just created your first Differential service! To see the internal of your cluster, you can run the following command:
+
+```sh
+differential clusters open
+```
+
+You can now build more complex services by adding more functions to your service and calling them from your client.
