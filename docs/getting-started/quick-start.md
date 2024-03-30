@@ -4,13 +4,24 @@ order: 1990
 
 # Writing your first app with Differential
 
+In this guide, we'll walk you through creating a simple service with Differential. We will:
+
+1. Create your first Differential cluster
+2. Create a simple service that returns a greeting
+3. Call the service from a client
+4. See the cluster activity from the Differential Dashboard
+
 ## 1. Install the Differential CLI
 
+To get started with Differential, you'll need to install the Differential CLI. You can do this by running the following command:
+
 ```sh
-npm install -g @differentialhq/cli
+npm install -g @differentialhq/cli # this will install the Differential CLI globally
 ```
 
 ## 2. Authenticate with Differential
+
+To authenticate with Differential, run the following command:
 
 ```sh
 differential auth login
@@ -45,7 +56,7 @@ This will give you a API Secret. Copy this to the clipboard so we can use it in 
 Create a new file called `src/d.ts` and add the following code:
 
 ```typescript
-// d.ts
+// src/d.ts
 
 import { Differential } from "@differentialhq/core";
 
@@ -85,7 +96,7 @@ You can now run your service with the following command:
 tsx src/service.ts
 ```
 
-8. Call your service
+## 8. Call your service
 
 Now that your service is running, you can call it from anywhere, as long as it can connect with the correct Differential cluster.
 
@@ -117,7 +128,7 @@ tsx src/call-hello.ts
 # => Hello, World!
 ```
 
-9. Check out the cluter activity
+## 9. Check out the cluter activity
 
 You've just created your first Differential service! To see the internal of your cluster, you can run the following command:
 
