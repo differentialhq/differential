@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.18.1](https://github.com/differentialhq/differential/compare/v3.18.0...v3.18.1) (2024-03-30)
+
+### Bug Fixes
+
+- Minor UX improvements to the CLI ([#201](https://github.com/differentialhq/differential/issues/201)) ([a9be753](https://github.com/differentialhq/differential/commit/a9be753bcddeab8994d0304e1808514fa98ed26f))
+- Respond with a 401 for auth errors ([dedd266](https://github.com/differentialhq/differential/commit/dedd266d3a900e89ef37ce69d46c43f5b0ca16e4))
+
 # [3.18.0](https://github.com/differentialhq/differential/compare/v3.17.0...v3.18.0) (2024-03-29)
 
 ### Bug Fixes
