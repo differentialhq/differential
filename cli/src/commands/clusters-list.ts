@@ -20,6 +20,13 @@ export const ClusterList: CommandModule<{}, ClusterCreateArgs> = {
       return;
     }
 
-    console.log(d.body);
+    console.log(
+      d.body.map((c) => ({
+        ...c,
+        apiSecret:
+          c.apiSecret.substring(0, 8) + "*".repeat(c.apiSecret.length - 8),
+        info: `differential clusters info --cluster ${c.id}`,
+      })),
+    );
   },
 };

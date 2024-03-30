@@ -284,7 +284,7 @@ export const buildClientPackage = async ({
     main: "index.d.ts",
     version: version,
     peerDependencies: {
-      "@differentialhq/core": "^3.13.1",
+      "@differentialhq/core": "latest",
     },
     exports: {
       ".": {

@@ -9,7 +9,8 @@
     "test": "exit 0",
     "start": "node ./bin/index.js",
     "build": "tsc",
-    "clean": "rm -rf ./bin"
+    "clean": "rm -rf ./bin",
+    "dev": "npm run build && npm run start"
   },
   "author": "",
   "license": "ISC",
