@@ -2,7 +2,7 @@
 order: 1980
 ---
 
-# Customizing Function Call Behavior
+# Call Configuration and Customizing Function Calls
 
 Any function call in Differential can be customized with additional metadata. The configuration is passed as the second argument to the function call. This metadata can be used to control the behavior of the function call, such as setting a cache key, specifying a timeout, etc.
 
