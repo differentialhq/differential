@@ -52,6 +52,10 @@ Resources:
           Statement:
             - Effect: Allow
               Action:
+                - "logs:FilterLogEvents"
+              Resource: "arn:aws:logs:*:*:log-group:/aws/lambda/differential-deployment-*"
+            - Effect: Allow
+              Action:
                 - "lambda:GetFunction"
                 - "lambda:DeleteFunction"
                 - "lambda:CreateFunction"
