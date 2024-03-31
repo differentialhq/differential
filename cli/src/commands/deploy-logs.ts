@@ -8,6 +8,8 @@ interface DeployLogsArgs {
   cluster?: string;
   service?: string;
   deployment?: string;
+  start?: number;
+  end?: number;
 }
 export const DeployLogs: CommandModule<{}, DeployLogsArgs> = {
   command: "logs",
@@ -28,8 +30,18 @@ export const DeployLogs: CommandModule<{}, DeployLogsArgs> = {
         describe: "Deployment ID",
         demandOption: false,
         type: "string",
+      })
+      .option("start", {
+        describe: "Start time (Unix timestamp, milliseconds)",
+        demandOption: false,
+        type: "number",
+      })
+      .option("end", {
+        describe: "End time (Unix timestamp, milliseconds)",
+        demandOption: false,
+        type: "number",
       }),
-  handler: async ({ cluster, service, deployment }) => {
+  handler: async ({ cluster, service, deployment, start, end }) => {
     if (!cluster) {
       cluster = await selectCluster();
       if (!cluster) {
@@ -62,6 +74,10 @@ export const DeployLogs: CommandModule<{}, DeployLogsArgs> = {
       clusterId: cluster,
       serviceName: service,
       deploymentId: deployment,
+      options: {
+        ...(start !== undefined && { start: new Date(start) }),
+        ...(end !== undefined && { end: new Date(end) }),
+      },
     });
     logs.forEach((log) => {
       console.log(log.message);
@@ -73,10 +89,12 @@ const getDeploymentLogs = async ({
   clusterId,
   serviceName,
   deploymentId,
+  options,
 }: {
   clusterId: string;
   serviceName: string;
   deploymentId: string;
+  options?: { start?: Date; end?: Date };
 }) => {
   const result = await client.getDeploymentLogs({
     params: {
@@ -84,6 +102,7 @@ const getDeploymentLogs = async ({
       serviceName,
       deploymentId,
     },
+    query: options,
   });
 
   if (result.status !== 200) {

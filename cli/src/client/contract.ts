@@ -503,10 +503,11 @@ export const definition = {
     }),
     query: z.object({
       next: z.string().optional(),
+      start: z.date().optional(),
+      end: z.date().optional(),
     }),
     body: z.undefined(),
     responses: {
-      400: z.undefined(),
       401: z.undefined(),
       404: z.undefined(),
       200: z.object({

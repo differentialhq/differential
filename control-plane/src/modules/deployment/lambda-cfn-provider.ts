@@ -118,7 +118,11 @@ export class LambdaCfnProvider implements DeploymentProvider {
 
   public async getLogs(
     deployment: Deployment,
-    nextToken?: string,
+    options: {
+      start?: Date;
+      end?: Date;
+      next?: string;
+    } = {},
   ): Promise<{ message: string }[]> {
     const logGroupName = `/aws/lambda/${this.buildFunctionName(deployment)}`;
 
@@ -128,9 +132,11 @@ export class LambdaCfnProvider implements DeploymentProvider {
     );
 
     const request = new FilterLogEventsCommand({
-      nextToken,
+      startTime: options.start?.getTime(),
+      endTime: options.end?.getTime(),
+      nextToken: options.next,
       logGroupName,
-      limit: 500,
+      limit: 1000,
     });
 
     try {

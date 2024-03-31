@@ -201,10 +201,25 @@ export const releaseDeployment = async (
 
 export const getDeploymentLogs = async (
   deployment: Deployment,
-  nextToken?: string,
+  options: {
+    start?: Date;
+    end?: Date;
+    next?: string;
+  } = {},
 ): Promise<{ message: string }[]> => {
+  let start = options.start ?? new Date(Date.now() - 3600000);
+  let end = options.end ?? new Date();
+
+  if (start >= end) {
+    throw new Error("Log start time must be before end time");
+  }
+
   const provider = getDeploymentProvider(deployment.provider);
-  return await provider.getLogs(deployment, nextToken);
+  return await provider.getLogs(deployment, {
+    next: options.next,
+    start,
+    end,
+  });
 };
 
 const inactivateExistingDeployments = async (
