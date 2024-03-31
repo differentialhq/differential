@@ -7,6 +7,7 @@ import { jobDurations } from "./job-metrics";
 import * as clusterActivity from "../cluster-activity";
 
 type CreateJobParams = {
+  jobId: string;
   service: string;
   targetFn: string;
   targetArgs: string;
@@ -45,19 +46,23 @@ export const createJob = async (params: {
 
   const cluster = await clusters.operationalCluster(params.owner.clusterId);
 
-  const callConfigParams = {
+  const jobConfig = {
     timeoutIntervalSeconds: params.callConfig?.timeoutSeconds,
     maxAttempts:
       (params.callConfig?.retryCountOnStall ?? DEFAULT_RETRY_COUNT_ON_STALL) +
       1,
     predictiveRetriesEnabled: params.callConfig?.predictiveRetriesOnRejection,
-    id: params.callConfig?.executionId,
+    jobId: params.callConfig?.executionId ?? ulid(),
   };
 
   if (params.callConfig?.cache?.key && params.callConfig?.cache?.ttlSeconds) {
     const { id } = await createJobStrategies.cached({
-      ...params,
-      ...callConfigParams,
+      ...jobConfig,
+      service: params.service,
+      targetFn: params.targetFn,
+      targetArgs: params.targetArgs,
+      owner: params.owner,
+      deploymentId: params.deploymentId,
       cacheKey: params.callConfig.cache.key,
       cacheTTLSeconds: params.callConfig.cache.ttlSeconds,
       cluster,
@@ -73,8 +78,12 @@ export const createJob = async (params: {
     return { id };
   } else {
     const { id } = await createJobStrategies.default({
-      ...params,
-      ...callConfigParams,
+      service: params.service,
+      targetFn: params.targetFn,
+      targetArgs: params.targetArgs,
+      owner: params.owner,
+      deploymentId: params.deploymentId,
+      ...jobConfig,
       cluster,
     });
 
@@ -100,8 +109,8 @@ const createJobStrategies = {
     cacheKey,
     timeoutIntervalSeconds,
     maxAttempts,
-    cluster,
     predictiveRetriesEnabled,
+    jobId,
   }: CreateJobParams & {
     cacheKey: string;
     cacheTTLSeconds: number;
@@ -135,22 +144,22 @@ const createJobStrategies = {
       return { id: job.id };
     }
 
-    // if not, create a job
-    const jobId = ulid();
-
-    await data.db.insert(data.jobs).values({
-      id: jobId,
-      target_fn: targetFn,
-      target_args: targetArgs,
-      status: "pending",
-      owner_hash: owner.clusterId,
-      deployment_id: deploymentId,
-      service,
-      cache_key: cacheKey,
-      remaining_attempts: maxAttempts ?? 1,
-      timeout_interval_seconds: timeoutIntervalSeconds,
-      predictive_retry_enabled: predictiveRetriesEnabled,
-    });
+    await data.db
+      .insert(data.jobs)
+      .values({
+        id: jobId,
+        target_fn: targetFn,
+        target_args: targetArgs,
+        status: "pending",
+        owner_hash: owner.clusterId,
+        deployment_id: deploymentId,
+        service,
+        cache_key: cacheKey,
+        remaining_attempts: maxAttempts ?? 1,
+        timeout_interval_seconds: timeoutIntervalSeconds,
+        predictive_retry_enabled: predictiveRetriesEnabled,
+      })
+      .onConflictDoNothing();
 
     return { id: jobId };
   },
@@ -160,26 +169,26 @@ const createJobStrategies = {
     targetArgs,
     owner,
     deploymentId,
-    pool,
     timeoutIntervalSeconds,
     maxAttempts,
-    cluster,
     predictiveRetriesEnabled,
+    jobId,
   }: CreateJobParams & { cluster: clusters.OperationalCluster }) => {
-    const jobId = ulid();
-
-    await data.db.insert(data.jobs).values({
-      id: jobId,
-      target_fn: targetFn,
-      target_args: targetArgs,
-      status: "pending",
-      owner_hash: owner.clusterId,
-      deployment_id: deploymentId,
-      service,
-      remaining_attempts: maxAttempts ?? 1,
-      timeout_interval_seconds: timeoutIntervalSeconds,
-      predictive_retry_enabled: predictiveRetriesEnabled,
-    });
+    await data.db
+      .insert(data.jobs)
+      .values({
+        id: jobId,
+        target_fn: targetFn,
+        target_args: targetArgs,
+        status: "pending",
+        owner_hash: owner.clusterId,
+        deployment_id: deploymentId,
+        service,
+        remaining_attempts: maxAttempts ?? 1,
+        timeout_interval_seconds: timeoutIntervalSeconds,
+        predictive_retry_enabled: predictiveRetriesEnabled,
+      })
+      .onConflictDoNothing();
 
     return { id: jobId };
   },

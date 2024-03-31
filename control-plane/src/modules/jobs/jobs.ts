@@ -52,19 +52,24 @@ export const nextJobs = async ({
   ]);
 
   do {
-    results = await data.db.execute<Result>(
-      sql`UPDATE
+    results = await data.db.execute<Result>(sql`
+    UPDATE
       jobs SET status = 'running',
       remaining_attempts = remaining_attempts - 1,
       last_retrieved_at=${new Date().toISOString()},
       executing_machine_id=${machineId}
     WHERE
-      id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining_attempts > 0))
+      id IN (
+        SELECT id 
+        FROM jobs 
+        WHERE 
+          status = 'pending'
+          AND owner_hash = ${owner.clusterId}
+          AND service = ${service}
+        LIMIT ${limit}
+      )
       AND owner_hash = ${owner.clusterId}
-      AND service = ${service}
-    LIMIT ${limit})
-    RETURNING id, target_fn, target_args`,
-    );
+    RETURNING id, target_fn, target_args`);
 
     const timeout = clusterActivity.isClusterActivityHigh(owner.clusterId)
       ? 100

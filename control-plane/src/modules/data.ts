@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import {
   boolean,
   foreignKey,
+  index,
   integer,
   json,
   pgTable,
@@ -90,7 +91,14 @@ export const jobs = pgTable(
     predictive_retry_count: integer("predictive_retry_count").default(0),
   },
   (table) => ({
-    pk: primaryKey(table.owner_hash, table.target_fn, table.id),
+    pk: primaryKey(table.owner_hash, table.id),
+    idx1: index("idx1").on(table.owner_hash, table.service, table.status),
+    idx2: index("idx2").on(
+      table.owner_hash,
+      table.service,
+      table.target_fn,
+      table.status,
+    ),
   }),
 );
 

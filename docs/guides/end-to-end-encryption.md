@@ -1,4 +1,4 @@
-# End to End Encryption
+# How to end-to-end encrypt function arguments and return values
 
 You might wish to encrypt all function arguments and return values, so that the control plane cannot see them. This is possible with Differential, but it requires you to configure your own encryption keys.
 

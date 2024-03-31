@@ -133,7 +133,7 @@ describe("updateDeploymentResult", () => {
     jest.clearAllMocks();
   });
 
-  it.only("should mark existing deployment status inactive", async () => {
+  it("should mark existing deployment status inactive", async () => {
     const deployment = await createDeployment({
       clusterId: owner.clusterId,
       serviceName: "testService",
