@@ -3,39 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.765086261315">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.765166408332">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
 
     <!-- Primary Meta Tags -->
-    <title>Self-hosting</title>
-    <meta name="title" content="Self-hosting">
-    <meta name="description" content="You can self-host the Differential control-plane using your own compute, as long as you can run a Docker container.">
+    <title>How to cache results of function calls</title>
+    <meta name="title" content="How to cache results of function calls">
+    <meta name="description" content="Since all function calls within Differential are durable, the control-plane can cache the results of function calls.">
 
     <!-- Canonical -->
-    <link rel="canonical" href="https://docs.differential.dev/guides/self-hosting/">
+    <link rel="canonical" href="https://docs.differential.dev/guides/caching/">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://docs.differential.dev/guides/self-hosting/">
-    <meta property="og:title" content="Self-hosting">
-    <meta property="og:description" content="You can self-host the Differential control-plane using your own compute, as long as you can run a Docker container.">
+    <meta property="og:url" content="https://docs.differential.dev/guides/caching/">
+    <meta property="og:title" content="How to cache results of function calls">
+    <meta property="og:description" content="Since all function calls within Differential are durable, the control-plane can cache the results of function calls.">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://docs.differential.dev/guides/self-hosting/">
-    <meta property="twitter:title" content="Self-hosting">
-    <meta property="twitter:description" content="You can self-host the Differential control-plane using your own compute, as long as you can run a Docker container.">
+    <meta property="twitter:url" content="https://docs.differential.dev/guides/caching/">
+    <meta property="twitter:title" content="How to cache results of function calls">
+    <meta property="twitter:description" content="Since all function calls within Differential are durable, the control-plane can cache the results of function calls.">
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../../resources/css/retype.css?v=3.5.0.765086261315" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.765166408332" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.765086261315" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.765166408332" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.765086261315" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.765086261315" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.765166408332" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.765166408332" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -179,196 +179,103 @@
                                 <!-- Rendered if sidebar right is enabled -->
                                 <div id="docs-sidebar-right-toggle"></div>
                                 <!-- Page content  -->
-<doc-anchor-target id="self-hosting" class="break-words">
+<doc-anchor-target id="how-to-cache-results-of-function-calls" class="break-words">
     <h1>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#self-hosting">#</doc-anchor-trigger>
-        <span>Self-hosting</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#how-to-cache-results-of-function-calls">#</doc-anchor-trigger>
+        <span>How to cache results of function calls</span>
     </h1>
 </doc-anchor-target>
-<p>You can self-host the Differential control-plane using your own compute, as long as you can run a Docker container. Differential only requires a postgres database for persistence.</p>
-<doc-anchor-target id="guide-to-self-hosting-using-flyio">
+<p>Since all function calls within Differential are durable, the control-plane can cache the results of function calls. When subsequent function calls are made for the same operation, you can opt to return the cached result instead of executing the operation again.</p>
+<p>This will save you compute and network resources, and also reduce the latency of the function call.</p>
+<doc-anchor-target id="configuring-the-cache-key-and-ttl">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#guide-to-self-hosting-using-flyio">#</doc-anchor-trigger>
-        <span>Guide to self-hosting using fly.io</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#configuring-the-cache-key-and-ttl">#</doc-anchor-trigger>
+        <span>Configuring the Cache Key and TTL</span>
     </h2>
 </doc-anchor-target>
-<doc-anchor-target id="creating-the-fly-app">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#creating-the-fly-app">#</doc-anchor-trigger>
-        <span>Creating the fly app</span>
-    </h3>
-</doc-anchor-target>
-<ol>
-<li>Clone the repo:</li>
-</ol>
+<p>You can configure the key and time-to-live (TTL) for the cache (in seconds) whenever you call a function.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">git clone git@github.com:differentialhq/differential.git &amp;&amp; cd differential/control-plane</code></pre>
-</doc-codeblock></div>
-<ol start="2">
-<li>Create a fly app, and note the app name:</li>
-</ol>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">fly apps create</code></pre>
-</doc-codeblock></div>
-<ol start="3">
-<li><p>Open the fly.toml file and replace <code v-pre>&quot;differential-core&quot;</code> with the app name you noted in the previous step.</p>
-</li>
-<li><p>Deploy to fly.io:</p>
-</li>
-</ol>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">fly deploy --vm-cpu-kind &quot;shared&quot; --vm-cpus &quot;1&quot; --vm-memory &quot;512&quot;</code></pre>
-</doc-codeblock></div>
-<ol start="5">
-<li>You will need to set a secret to access to the management functions of the control-plane. We will save the secret to a <code v-pre>management-secret.txt</code> file for now. You can do this by running:</li>
-</ol>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash"># MANAGEMENT_SECRET must start with &quot;sk_management_&quot; and contain at least 32 characters
-MANAGEMENT_SECRET=&quot;sk_management_$(openssl rand -base64 32)&quot;
-echo &quot;$MANAGEMENT_SECRET&quot; &gt; management-secret.txt
-fly secrets set MANAGEMENT_SECRET=&quot;$MANAGEMENT_SECRET&quot;</code></pre>
-</doc-codeblock></div>
-<doc-anchor-target id="creating-the-postgres-instance">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#creating-the-postgres-instance">#</doc-anchor-trigger>
-        <span>Creating the postgres instance</span>
-    </h3>
-</doc-anchor-target>
-<ol>
-<li>Next, you will need to provision a postgres instance. You can use any postgres provider, but for this purpose, we will use fly postgres. Note the fly postgres app name when you create it.</li>
-</ol>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">fly postgres create</code></pre>
-</doc-codeblock></div>
-<ol start="2">
-<li>Attach the postgres instance to the fly app. This will set the DATABASE_URL environment variable in the fly app.</li>
-</ol>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">fly postgres attach &lt;postgres app name from step 6&gt;</code></pre>
-</doc-codeblock></div>
-<doc-anchor-target id="creating-your-first-cluster">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#creating-your-first-cluster">#</doc-anchor-trigger>
-        <span>Creating your first cluster</span>
-    </h3>
-</doc-anchor-target>
-<ol>
-<li>Assuming the app is created and the postgres instance is attached, you can now create your first cluster. Assuming your app is exposed at <code v-pre>differential-core.fly.dev</code>, you can create a cluster by running:</li>
-</ol>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">curl -X POST -H &quot;Authorization: Basic $(cat management-secret.txt)&quot; -H &quot;Content-Type: application/json&quot; https://differential-core.fly.dev/clusters</code></pre>
-</doc-codeblock></div>
-<ol start="2">
-<li>Now, you can retrieve the cluster information by running:</li>
-</ol>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">curl -H &quot;Authorization: Basic $(cat management-secret.txt)&quot; https://differential-core.fly.dev/clusters</code></pre>
-</doc-codeblock></div>
-<p>You will only need the <code v-pre>apiSecret</code> from the response.</p>
-<doc-anchor-target id="connecting-to-the-control-plane">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#connecting-to-the-control-plane">#</doc-anchor-trigger>
-        <span>Connecting to the control-plane</span>
-    </h3>
-</doc-anchor-target>
-<p>To connect to the cluster, you need:</p>
-<ol>
-<li>The Typescript SDK</li>
-<li>The endpoint where the control-plane is hosted</li>
-<li>The <code v-pre>apiSecret</code> from the previous step</li>
-</ol>
-<p>When initializing the SDK, you will need to pass the <code v-pre>apiSecret</code> and the <code v-pre>endpoint</code> to the <code v-pre>Differential</code> class.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-typescript"><code v-pre class="language-typescript">import { Differential } from &quot;@differentialhq/core&quot;;
+<pre class="language-typescript"><code v-pre class="language-typescript">const result = await client.myFunction(&quot;arg1&quot;, &quot;arg2&quot;, {
+  $d: {
+    cache: {
+      key: &quot;myCacheKey&quot;,
+      ttlSeconds: 60,
+    },
+  },
+});
 
-const differential = new Differential(&quot;MY_API_SECRET&quot;, {
-  endpoint: &quot;https://MY_CONTROL_PLANE_APP.fly.dev&quot;,
-});</code></pre>
+const result2 = await client.myFunction(&quot;arg1&quot;, &quot;arg2&quot;, {
+  $d: {
+    cache: {
+      key: &quot;myCacheKey&quot;,
+      ttlSeconds: 60,
+    },
+  },
+});
+
+assert.deepEqual(result, result2); // result and result2 will be the same</code></pre>
 </doc-codeblock></div>
-<p>And that&#x27;s it!</p>
-<doc-anchor-target id="additional-infrastructure-resources">
+<p>In the above example, the result of the function call will be cached with the key <code v-pre>myCacheKey</code> for 60 seconds. If the same function is called again within 60 seconds with the same key, the cached result will be returned instead of executing the function again.</p>
+<doc-anchor-target id="multiple-cache-configurations-for-the-same-function">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#additional-infrastructure-resources">#</doc-anchor-trigger>
-        <span>Additional infrastructure resources</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#multiple-cache-configurations-for-the-same-function">#</doc-anchor-trigger>
+        <span>Multiple Cache Configurations for the same function</span>
     </h2>
 </doc-anchor-target>
-<p>Some Differential features require additional infrastructure resources, these include:</p>
-<ul>
-<li>Client library registry</li>
-<li>Cloud deployments</li>
-</ul>
-<p>In order to take advantage of these features, you will need to provision the associated resources and provide the control-plane with access.</p>
-<doc-anchor-target id="previsioning-cloudformation-resources">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#previsioning-cloudformation-resources">#</doc-anchor-trigger>
-        <span>Previsioning CloudFormation resources</span>
-    </h3>
-</doc-anchor-target>
-<p>Infrastructure as code (IaC) definitions for all additional resources, as well as instructions for provisioning them reside in <a href="https://github.com/differentialhq/differential/tree/main/infrastructure">./infrastructure</a>.</p>
-<doc-anchor-target id="providing-the-control-plane-with-aws-access">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#providing-the-control-plane-with-aws-access">#</doc-anchor-trigger>
-        <span>Providing the control-plane with AWS access</span>
-    </h3>
-</doc-anchor-target>
-<p>The stack created in the previous step, provisions an <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users.html">IAM User</a> with the name <code v-pre>DifferentialControlPlane</code> that has <a href="https://aws.amazon.com/iam/">IAM</a> permissions to interact with resources hosted in AWS.</p>
-<p>Create an Access Key using the AWS CLI&#x27;s <a href="https://awscli.amazonaws.com/v2/documentation/api/latest/reference/iam/create-access-key.html">create-access-key</a> command which can be used by the control-plane.</p>
-<ol>
-<li>Create the access key for <code v-pre>DifferentialControlPlane</code></li>
-</ol>
+<p>You can configure multiple cache configurations for the same function call at different call sites. The configuration the function call honors is the only one that is configured in the function call config.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">aws iam create-access-key --user-name DifferentialControlPlane</code></pre>
+<pre class="language-typescript"><code v-pre class="language-typescript">const result = await client.myFunction(&quot;arg1&quot;, &quot;arg2&quot;, {
+  $d: {
+    cache: {
+      key: &quot;myCacheKey&quot;,
+      ttlSeconds: 60,
+    },
+  },
+});
+
+const result2 = await client.myFunction(&quot;arg1&quot;, &quot;arg2&quot;, {
+  $d: {
+    cache: {
+      key: &quot;myCacheKey2&quot;,
+      ttlSeconds: 60,
+    },
+  },
+});
+
+assert.notDeepEqual(result, result2); // result and result2 will be different, because the cache keys are different
+
+// call with the same cache key as the first call, but with a different TTL
+const result3 = await client.myFunction(&quot;arg1&quot;, &quot;arg2&quot;, {
+  $d: {
+    cache: {
+      key: &quot;myCacheKey&quot;,
+      ttlSeconds: 30,
+    },
+  },
+});
+
+assert.deepEqual(result, result3); // result and result3 will be the same, because the cache key is the same, and the `result` is still in the cache</code></pre>
 </doc-codeblock></div>
-<ol start="2">
-<li>Take note of the <code v-pre>AccessKeyId</code> and <code v-pre>SecretAccessKey</code></li>
-</ol>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-json"><code v-pre class="language-json">{
-  &quot;AccessKey&quot;: {
-    &quot;UserName&quot;: &quot;DifferentialControlPlane&quot;,
-    &quot;AccessKeyId&quot;: &quot;xxxxxxxxxxxxxxxxxxxx&quot;,
-    &quot;Status&quot;: &quot;Active&quot;,
-    &quot;SecretAccessKey&quot;: &quot;xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&quot;,
-    &quot;CreateDate&quot;: &quot;2024-00-00T00:00:00+00:00&quot;
-  }
-}</code></pre>
-</doc-codeblock></div>
-<ol start="3">
-<li>Add the <code v-pre>AccessKeyId</code> and <code v-pre>SecretAccessKey</code> as <a href="https://fly.io/docs/reference/secrets/">Fly.io secrets</a></li>
-</ol>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash"># From wihin `./control-plane`
-fly secrets set AWS_ACCESS_KEY_ID=xxx
-fly secrets set AWS_SECRET_ACCESS_KEY=xxx</code></pre>
-</doc-codeblock></div>
-<doc-anchor-target id="providing-the-control-plane-with-resource-references">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#providing-the-control-plane-with-resource-references">#</doc-anchor-trigger>
-        <span>Providing the control-plane with resource references</span>
-    </h3>
+<doc-anchor-target id="cache-invalidation">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#cache-invalidation">#</doc-anchor-trigger>
+        <span>Cache Invalidation</span>
+    </h2>
 </doc-anchor-target>
-<p>The following environment variables will need to be made available to the control-plane:</p>
-<ul>
-<li><code v-pre>ASSET_UPLOAD_BUCKET</code></li>
-<li><code v-pre>DEPLOYMENT_TEMPLATE_BUCKET</code></li>
-<li><code v-pre>DEPLOYMENT_SNS_TOPIC</code></li>
-</ul>
-<p>Values for these can be retrieved from the previously created CloudFormation stack:</p>
+<p>Since the cache key and the TTL are configured in the call to the function, to invalidate the cache, you can simply call the function without the cache configuration.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-none"><code v-pre class="language-none">aws cloudformation describe-stacks --stack-name &lt;STACK_NAME&gt; --query &quot;Stacks[0].Outputs&quot;</code></pre>
-</doc-codeblock></div>
-<p>These can either be hard-coded in the control-plane&#x27;s <code v-pre>fly.toml</code> or set as secrets using <code v-pre>fly secrets set</code>.</p>
-<doc-anchor-target id="upload-deployment-templates">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#upload-deployment-templates">#</doc-anchor-trigger>
-        <span>Upload deployment templates</span>
-    </h3>
-</doc-anchor-target>
-<p>The control-plane retrieves template files from the <code v-pre>DEPLOYMENT_TEMPLATE_BUCKET</code> S3 bucket in order to create deployments.</p>
-<p>Upload the contents of <code v-pre>./infrastructure/deployment-templates/</code> to the <code v-pre>DEPLOYMENT_TEMPLATE_BUCKET</code> provisioned earlier.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-none"><code v-pre class="language-none">cd ./infrastructure/deployment-templates/
-aws s3 sync --exclude &quot;.*&quot; ./ s3://&lt;DEPLOYMENT_TEMPLATE_BUCKET&gt;</code></pre>
+<pre class="language-typescript"><code v-pre class="language-typescript">const result = await client.myFunction(&quot;arg1&quot;, &quot;arg2&quot;, {
+  $d: {
+    cache: {
+      key: &quot;myCacheKey&quot;,
+      ttlSeconds: 60,
+    },
+  },
+});
+
+const result2 = await client.myFunction(&quot;arg1&quot;, &quot;arg2&quot;);
+
+assert.notDeepEqual(result, result2); // result and result2 will be different</code></pre>
 </doc-codeblock></div>
 
                                 
@@ -379,20 +286,20 @@ aws s3 sync --exclude &quot;.*&quot; ./ s3://&lt;DEPLOYMENT_TEMPLATE_BUCKET&gt;<
                             
                                 <nav class="flex mt-14">
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../guides/predictive-retries/">
+                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../guides/shared-client-libraries/">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                             <span>
                                                 <span class="block text-xs font-normal text-gray-400 dark:text-dark-400">Previous</span>
-                                                <span class="block mt-1">Predictive Retries on Promise Rejection</span>
+                                                <span class="block mt-1">Building Shared Client Libraries for Services</span>
                                             </span>
                                         </a>
                                     </div>
                             
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../advanced/calling-functions/arguments-and-return-values/">
+                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../guides/deduplicating/">
                                             <span>
                                                 <span class="block text-xs font-normal text-right text-gray-400 dark:text-dark-400">Next</span>
-                                                <span class="block mt-1">Argument and return values</span>
+                                                <span class="block mt-1">How to deduplicate function calls</span>
                                             </span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                         </a>
@@ -436,6 +343,6 @@ aws s3 sync --exclude &quot;.*&quot; ./ s3://&lt;DEPLOYMENT_TEMPLATE_BUCKET&gt;<
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": "Self-hosting", level: 2, icon: "file", hasPrism: true, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": "How to cache results of function calls", level: 2, icon: "file", hasPrism: true, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
 </body>
 </html>

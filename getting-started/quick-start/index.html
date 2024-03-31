@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.765086261315">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.765166408332">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -11,7 +11,7 @@
     <!-- Primary Meta Tags -->
     <title>Writing your first app with Differential</title>
     <meta name="title" content="Writing your first app with Differential">
-    <meta name="description" content="The following command will create a new project in the current directory. And install the necessary dependencies.">
+    <meta name="description" content="In this guide, we'll walk you through creating a simple service with Differential. We will:">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://docs.differential.dev/getting-started/quick-start/">
@@ -20,22 +20,22 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://docs.differential.dev/getting-started/quick-start/">
     <meta property="og:title" content="Writing your first app with Differential">
-    <meta property="og:description" content="The following command will create a new project in the current directory. And install the necessary dependencies.">
+    <meta property="og:description" content="In this guide, we'll walk you through creating a simple service with Differential. We will:">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://docs.differential.dev/getting-started/quick-start/">
     <meta property="twitter:title" content="Writing your first app with Differential">
-    <meta property="twitter:description" content="The following command will create a new project in the current directory. And install the necessary dependencies.">
+    <meta property="twitter:description" content="In this guide, we'll walk you through creating a simple service with Differential. We will:">
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../../resources/css/retype.css?v=3.5.0.765086261315" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.765166408332" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.765086261315" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.765166408332" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.765086261315" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.765086261315" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.765166408332" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.765166408332" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -185,14 +185,22 @@
         <span>Writing your first app with Differential</span>
     </h1>
 </doc-anchor-target>
+<p>In this guide, we&#x27;ll walk you through creating a simple service with Differential. We will:</p>
+<ol>
+<li>Create your first Differential cluster</li>
+<li>Create a simple service that returns a greeting</li>
+<li>Call the service from a client</li>
+<li>See the cluster activity from the Differential Dashboard</li>
+</ol>
 <doc-anchor-target id="1-install-the-differential-cli">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#1-install-the-differential-cli">#</doc-anchor-trigger>
         <span>1. Install the Differential CLI</span>
     </h2>
 </doc-anchor-target>
+<p>To get started with Differential, you&#x27;ll need to install the Differential CLI. You can do this by running the following command:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">npm install -g @differentialhq/cli</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">npm install -g @differentialhq/cli # this will install the Differential CLI globally</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="2-authenticate-with-differential">
     <h2>
@@ -200,6 +208,7 @@
         <span>2. Authenticate with Differential</span>
     </h2>
 </doc-anchor-target>
+<p>To authenticate with Differential, run the following command:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-bash"><code v-pre class="language-bash">differential auth login</code></pre>
 </doc-codeblock></div>
@@ -242,7 +251,7 @@ npm install @differentialhq/core typescript tsx</code></pre>
 </doc-anchor-target>
 <p>Create a new file called <code v-pre>src/d.ts</code> and add the following code:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-typescript"><code v-pre class="language-typescript">// d.ts
+<pre class="language-typescript"><code v-pre class="language-typescript">// src/d.ts
 
 import { Differential } from &quot;@differentialhq/core&quot;;
 
@@ -280,9 +289,12 @@ helloService.start().then(() =&gt; {
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-bash"><code v-pre class="language-bash">tsx src/service.ts</code></pre>
 </doc-codeblock></div>
-<ol start="8">
-<li>Call your service</li>
-</ol>
+<doc-anchor-target id="8-call-your-service">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#8-call-your-service">#</doc-anchor-trigger>
+        <span>8. Call your service</span>
+    </h2>
+</doc-anchor-target>
 <p>Now that your service is running, you can call it from anywhere, as long as it can connect with the correct Differential cluster.</p>
 <p>Let&#x27;s create a simple script that calls the <code v-pre>hello</code> function on the <code v-pre>hello</code> service.</p>
 <p>Create a new file called <code v-pre>src/call-hello.ts</code> and add the following code:</p>
@@ -307,9 +319,12 @@ const client = d.client&lt;typeof helloService&gt;(&quot;hello&quot;);
 <pre class="language-bash"><code v-pre class="language-bash">tsx src/call-hello.ts
 # =&gt; Hello, World!</code></pre>
 </doc-codeblock></div>
-<ol start="9">
-<li>Check out the cluter activity</li>
-</ol>
+<doc-anchor-target id="9-check-out-the-cluter-activity">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#9-check-out-the-cluter-activity">#</doc-anchor-trigger>
+        <span>9. Check out the cluter activity</span>
+    </h2>
+</doc-anchor-target>
 <p>You&#x27;ve just created your first Differential service! To see the internal of your cluster, you can run the following command:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-bash"><code v-pre class="language-bash">differential clusters open</code></pre>
@@ -334,10 +349,10 @@ const client = d.client&lt;typeof helloService&gt;(&quot;hello&quot;);
                                     </div>
                             
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../getting-started/customizing-function-calls/">
+                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../guides/predictive-retries/">
                                             <span>
                                                 <span class="block text-xs font-normal text-right text-gray-400 dark:text-dark-400">Next</span>
-                                                <span class="block mt-1">Customizing Function Call Behavior</span>
+                                                <span class="block mt-1">AI-​Powered Retry Logic for Promise</span>
                                             </span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                         </a>
