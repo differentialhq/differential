@@ -11,7 +11,7 @@ If a machine fails to send any heartbeats within an interval (default 90 seconds
 
 If the machine comes back online, Differential will mark it as healthy, and start sending new requests to it. However, it will disregard any results from the machine for the functions that were marked as failed.
 
-```mermaidjs
+```mermaid
 sequenceDiagram
     participant ControlPlane as Control Plane
     participant UnhealthyMachine as Unhealthy Machine
