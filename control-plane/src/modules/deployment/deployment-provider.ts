@@ -51,7 +51,11 @@ export interface DeploymentProvider {
   ) => Promise<any>;
   getLogs: (
     deployment: Deployment,
-    nextToken?: string,
+    options: {
+      start?: Date;
+      end?: Date;
+      next?: string;
+    },
   ) => Promise<{ message: string }[]>;
   // How frequently the provider should be notified of new jobs
   minimumNotificationInterval: () => number;

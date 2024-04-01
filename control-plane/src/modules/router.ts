@@ -461,7 +461,7 @@ export const router = s.router(contract, {
     }
 
     const { clusterId, deploymentId } = request.params;
-    const { next } = request.query;
+    const { start, end, next } = request.query;
 
     const deployment = await getDeployment(deploymentId);
 
@@ -474,7 +474,7 @@ export const router = s.router(contract, {
     return {
       status: 200,
       body: {
-        events: await getDeploymentLogs(deployment, next),
+        events: await getDeploymentLogs(deployment, { start, end, next }),
       },
     };
   },
