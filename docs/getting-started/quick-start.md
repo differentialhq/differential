@@ -23,32 +23,16 @@ npm install -g @differentialhq/cli # this will install the Differential CLI glob
 
 To authenticate with Differential, run the following command:
 
-<<<<<<< HEAD
-
-### 2. Start the hello service
-
-````
-tsx --watch src/run/hello-service.ts
-=======
 ```sh
 differential auth login
->>>>>>> d28e247d4dae2bed4fe671d514433b89f944f9d0
-````
+```
 
 ## 3. Create a directory for your service
 
-<<<<<<< HEAD
-
-### 3. Call the running service
-
-````
-tsx --watch src/commands/greet.ts
-=======
 ```sh
 mkdir my-app
 cd my-app
->>>>>>> d28e247d4dae2bed4fe671d514433b89f944f9d0
-````
+```
 
 ## 4. Initialize your project
 
