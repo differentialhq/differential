@@ -658,6 +658,36 @@ export const definition = {
       400: z.undefined(),
     },
   },
+  createOrUpdateClusterAccessPoint: {
+    method: "PUT",
+    path: "/clusters/:clusterId/access-point/:name",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      allowedServices: z.string(),
+    }),
+    responses: {
+      200: z.object({
+        token: z.string(),
+      }),
+      401: z.undefined(),
+      404: z.undefined(),
+    },
+  },
+  deleteClusterAccessPoint: {
+    method: "DELETE",
+    path: "/clusters/:clusterId/access-point/:name",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.undefined(),
+    responses: {
+      204: z.undefined(),
+      401: z.undefined(),
+      404: z.undefined(),
+    },
+  },
 } as const;
 
 export const contract = c.router(definition);

@@ -286,6 +286,35 @@ export const predictiveRetriesCache = pgTable(
   }),
 );
 
+export const clusterAccessPoints = pgTable(
+  "cluster_access_points",
+  {
+    cluster_id: varchar("cluster_id")
+      .references(() => clusters.id)
+      .notNull(),
+    name: varchar("name", { length: 1024 }).notNull(),
+    allowed_services_csv: text("allowed_services_csv").notNull(),
+    token: varchar("token", { length: 1024 }).notNull(),
+    created_at: timestamp("created_at", {
+      withTimezone: true,
+      precision: 6,
+    })
+      .defaultNow()
+      .notNull(),
+    updated_at: timestamp("updated_at", {
+      withTimezone: true,
+      precision: 6,
+    }).notNull(),
+  },
+  (table) => ({
+    unique: {
+      uniqueAccessPoint: {
+        columns: [table.cluster_id, table.name],
+      },
+    },
+  }),
+);
+
 export const db = drizzle(pool);
 
 export const isAlive = async () => {

@@ -796,4 +796,53 @@ export const router = s.router(contract, {
       body: undefined,
     };
   },
+  createOrUpdateClusterAccessPoint: async (request) => {
+    const access = await routingHelpers.validateManagementAccess({
+      authorization: request.headers.authorization,
+      clusterId: request.params.clusterId,
+    });
+
+    if (!access) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { clusterId } = request.params;
+
+    const token = await management.upsertAccessPointForCluster({
+      clusterId,
+      name: request.params.name,
+      allowedServices: request.body.allowedServices,
+    });
+
+    return {
+      status: 200,
+      body: token,
+    };
+  },
+  deleteClusterAccessPoint: async (request) => {
+    const access = await routingHelpers.validateManagementAccess({
+      authorization: request.headers.authorization,
+      clusterId: request.params.clusterId,
+    });
+
+    if (!access) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { clusterId, name } = request.params;
+
+    await management.deleteClusterAccessPoint({
+      clusterId,
+      name,
+    });
+
+    return {
+      status: 204,
+      body: undefined,
+    };
+  },
 });
