@@ -8,6 +8,7 @@ interface DeployLogsArgs {
   cluster?: string;
   service?: string;
   deployment?: string;
+  filter?: string;
   start?: number;
   end?: number;
 }
@@ -31,6 +32,11 @@ export const DeployLogs: CommandModule<{}, DeployLogsArgs> = {
         demandOption: false,
         type: "string",
       })
+      .option("filter", {
+        describe: "Filter logs (Prefix with '-' to exclude)",
+        demandOption: false,
+        type: "string",
+      })
       .option("start", {
         describe: "Start time (Unix timestamp, milliseconds)",
         demandOption: false,
@@ -41,7 +47,7 @@ export const DeployLogs: CommandModule<{}, DeployLogsArgs> = {
         demandOption: false,
         type: "number",
       }),
-  handler: async ({ cluster, service, deployment, start, end }) => {
+  handler: async ({ cluster, service, deployment, start, end, filter }) => {
     if (!cluster) {
       cluster = await selectCluster();
       if (!cluster) {
@@ -77,6 +83,7 @@ export const DeployLogs: CommandModule<{}, DeployLogsArgs> = {
       options: {
         ...(start !== undefined && { start: new Date(start) }),
         ...(end !== undefined && { end: new Date(end) }),
+        filter,
       },
     });
     logs.forEach((log) => {
@@ -94,7 +101,7 @@ const getDeploymentLogs = async ({
   clusterId: string;
   serviceName: string;
   deploymentId: string;
-  options?: { start?: Date; end?: Date };
+  options?: { filter?: string; start?: Date; end?: Date };
 }) => {
   const result = await client.getDeploymentLogs({
     params: {

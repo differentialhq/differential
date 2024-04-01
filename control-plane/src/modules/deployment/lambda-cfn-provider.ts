@@ -122,6 +122,7 @@ export class LambdaCfnProvider implements DeploymentProvider {
       start?: Date;
       end?: Date;
       next?: string;
+      filter?: string;
     } = {},
   ): Promise<{ message: string }[]> {
     const logGroupName = `/aws/lambda/${this.buildFunctionName(deployment)}`;
@@ -135,6 +136,7 @@ export class LambdaCfnProvider implements DeploymentProvider {
       startTime: options.start?.getTime(),
       endTime: options.end?.getTime(),
       nextToken: options.next,
+      filterPattern: options.filter ?? undefined,
       logGroupName,
       limit: 1000,
     });

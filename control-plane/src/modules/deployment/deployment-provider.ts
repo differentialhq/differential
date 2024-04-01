@@ -54,6 +54,7 @@ export interface DeploymentProvider {
     options: {
       start?: Date;
       end?: Date;
+      filter?: string;
       next?: string;
     },
   ) => Promise<{ message: string }[]>;
