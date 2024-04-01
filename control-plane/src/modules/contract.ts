@@ -503,6 +503,7 @@ export const definition = {
     }),
     query: z.object({
       next: z.string().optional(),
+      filter: z.string().optional(),
       start: z.coerce.date().optional(),
       end: z.coerce.date().optional(),
     }),

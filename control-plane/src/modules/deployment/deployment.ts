@@ -203,8 +203,9 @@ export const getDeploymentLogs = async (
   deployment: Deployment,
   options: {
     start?: Date;
+    query?: string;
     end?: Date;
-    next?: string;
+    filter?: string;
   } = {},
 ): Promise<{ message: string }[]> => {
   let start = options.start ?? new Date(Date.now() - 3600000);
@@ -216,7 +217,7 @@ export const getDeploymentLogs = async (
 
   const provider = getDeploymentProvider(deployment.provider);
   return await provider.getLogs(deployment, {
-    next: options.next,
+    ...options,
     start,
     end,
   });
