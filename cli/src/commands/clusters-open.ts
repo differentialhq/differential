@@ -23,6 +23,6 @@ export const ClusterOpen: CommandModule<{}, ClusterOpenArgs> = {
       }
     }
 
-    openBrowser(`${CONSOLE_URL}/clusters/${cluster}`);
+    openBrowser(`${CONSOLE_URL}/clusters/${cluster}/overview`);
   },
 };

@@ -1,6 +1,7 @@
 import { ZodSchema, z } from "zod";
 import { Deployment } from "./deployment";
 import { DeploymentProvider } from "./deployment-provider";
+import { logger } from "../../utilities/logger";
 
 export class MockProvider implements DeploymentProvider {
   public name(): string {
@@ -16,11 +17,15 @@ export class MockProvider implements DeploymentProvider {
   }
 
   public async create(deployment: Deployment): Promise<any> {
-    console.log("Would create new deployment", deployment);
+    logger.info("Would create new deployment", {
+      deployment,
+    });
   }
 
   public async update(deployment: Deployment): Promise<any> {
-    console.log("Would update existing deployment", deployment);
+    logger.info("Would update existing deployment", {
+      deployment,
+    });
   }
 
   public async notify(
@@ -28,10 +33,14 @@ export class MockProvider implements DeploymentProvider {
     pendingJobs: number,
     runningMachines: number,
   ): Promise<any> {
-    console.log("Would notify provider of new jobs", {
+    logger.info("Would notify provider of new jobs", {
       deployment,
       pendingJobs,
       runningMachines,
     });
+  }
+
+  public async getLogs(): Promise<{ message: string }[]> {
+    return [{ message: "Test log" }];
   }
 }

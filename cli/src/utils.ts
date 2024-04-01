@@ -85,3 +85,32 @@ export const selectService = async (
 
   return selection;
 };
+
+export const selectDeployment = async (
+  clusterId: string,
+  serviceName: string,
+): Promise<string | undefined> => {
+  const d = await client.getDeployments({
+    params: {
+      clusterId,
+      serviceName,
+    },
+  });
+  if (d.status !== 200) {
+    console.error(`Failed to get deployments: ${d.status}`);
+    return;
+  }
+
+  if (!d.body || !d.body.length) {
+    console.log("No deployments found");
+    return;
+  }
+
+  return select({
+    message: "Select a deployment",
+    choices: d.body.map((c: any) => ({
+      name: `${c.id} (${c.status})`,
+      value: c.id,
+    })),
+  });
+};

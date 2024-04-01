@@ -8,12 +8,19 @@ import {
   AlreadyExistsException,
   Parameter,
 } from "@aws-sdk/client-cloudformation";
+import { logger } from "../../utilities/logger";
+
+import {
+  CloudWatchLogsClient,
+  FilterLogEventsCommand,
+} from "@aws-sdk/client-cloudwatch-logs";
 
 const LAMBDA_CFN_TEMPLATE_KEY = "lambda-cfn.yaml";
 
 export class LambdaCfnProvider implements DeploymentProvider {
   private lambdaClient = new LambdaClient();
   private cfnManager = new CloudFormationManager();
+  private cloudWatchClient = new CloudWatchLogsClient();
 
   public name(): string {
     return "lambda";
@@ -33,7 +40,10 @@ export class LambdaCfnProvider implements DeploymentProvider {
   public async create(deployment: Deployment): Promise<any> {
     const functionName = this.buildFunctionName(deployment);
 
-    console.log("Creating new lambda deployment", functionName);
+    logger.info("Creating new lambda deployment", {
+      deploymentId: deployment.id,
+      functionName,
+    });
 
     try {
       return await this.cfnManager.create({
@@ -44,7 +54,7 @@ export class LambdaCfnProvider implements DeploymentProvider {
       });
     } catch (error: any) {
       if (error instanceof AlreadyExistsException) {
-        console.warn("Stack already exists. It will be updated instead.");
+        logger.warn("Stack already exists. It will be updated instead.");
         return this.update(deployment);
       }
       throw error;
@@ -54,10 +64,14 @@ export class LambdaCfnProvider implements DeploymentProvider {
   public async update(deployment: Deployment): Promise<any> {
     const functionName = this.buildFunctionName(deployment);
 
-    console.log("Updating existing lambda deployment", functionName);
+    logger.info("Updating existing lambda deployment", {
+      deploymentId: deployment.id,
+      functionName,
+    });
+
     const exists = await this.cfnManager.stackExists(functionName);
     if (!exists) {
-      console.warn("Stack does not exist. It will be created instead.");
+      logger.warn("Stack does not exist. It will be created instead.");
       return this.create(deployment);
     }
 
@@ -85,7 +99,7 @@ export class LambdaCfnProvider implements DeploymentProvider {
     }
 
     try {
-      console.log("Triggering lambda", {
+      logger.info("Triggering lambda", {
         functionName,
         pendingJobs,
         runningMachines,
@@ -99,6 +113,56 @@ export class LambdaCfnProvider implements DeploymentProvider {
       );
     } catch (error: any) {
       console.error("Failed to trigger lambda", functionName, error);
+    }
+  }
+
+  public async getLogs(
+    deployment: Deployment,
+    options: {
+      start?: Date;
+      end?: Date;
+      next?: string;
+      filter?: string;
+    } = {},
+  ): Promise<{ message: string }[]> {
+    const logGroupName = `/aws/lambda/${this.buildFunctionName(deployment)}`;
+
+    // TODO: Exclude these as part of the query
+    const excludePattern = new RegExp(
+      "^START|^INIT_START|^END|^REPORT|Task timed out after",
+    );
+
+    const request = new FilterLogEventsCommand({
+      startTime: options.start?.getTime(),
+      endTime: options.end?.getTime(),
+      nextToken: options.next,
+      filterPattern: options.filter ?? undefined,
+      logGroupName,
+      limit: 1000,
+    });
+
+    try {
+      const reponse = await this.cloudWatchClient.send(request);
+      return (
+        (reponse.events
+          ?.map((event) => {
+            return {
+              message: event.message?.replace(/[\n\r]/g, ""),
+            };
+          })
+          .filter((event) => {
+            if (event.message == undefined) {
+              return false;
+            }
+            return !excludePattern.test(event.message);
+          }) as { message: string }[]) ?? []
+      );
+    } catch (error: any) {
+      logger.error("Failed to get CloudWatch logs", {
+        deploymentId: deployment.id,
+        error: error,
+      });
+      return [];
     }
   }
 

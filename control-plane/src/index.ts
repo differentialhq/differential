@@ -1,4 +1,4 @@
-import "./utilities/env";
+import { env } from "./utilities/env";
 import "./utilities/profiling";
 
 import cors from "@fastify/cors";
@@ -10,6 +10,7 @@ import * as deploymentScheduler from "./modules/deployment/scheduler";
 import * as jobs from "./modules/jobs/jobs";
 import * as events from "./modules/observability/events";
 import * as router from "./modules/router";
+import { logContext, logger } from "./utilities/logger";
 
 export const httpDurations = new Summary({
   name: "differential_http_operations_duration_ms",
@@ -24,7 +25,7 @@ export const timeoutErrors = new Counter({
 });
 
 const app = fastify({
-  logger: process.env.ENABLE_FASTIFY_LOGGER === "true",
+  logger: env.ENABLE_FASTIFY_LOGGER,
 });
 
 const metrics = fastify();
@@ -37,13 +38,28 @@ const s = initServer();
 app.register(s.plugin(router.router));
 
 app.register(cors, {
-  origin: process.env.CONSOLE_ORIGIN || "https://console.differential.dev",
+  origin: env.CONSOLE_ORIGIN,
 });
 
 app.setErrorHandler((error, request, reply) => {
-  console.error(error);
+  logger.error("Error in request", {
+    path: request.routerPath,
+    error,
+  });
 
-  return reply.status(500).send();
+  return reply.status(error.statusCode ?? 500).send();
+});
+
+app.addHook("onRequest", (request, _reply, done) => {
+  const context = {
+    request: {
+      id: request.id,
+      path: request.routerPath,
+      method: request.method,
+    },
+  };
+
+  logContext.run(context, done);
 });
 
 app.addHook("onResponse", (request, reply, done) => {
@@ -63,6 +79,11 @@ app.addHook("onTimeout", (request, reply, done) => {
   done();
 });
 
+app.addHook("onError", (request, reply, error, done) => {
+  console.error(error);
+  done();
+});
+
 const start = async () => {
   await jobs.start();
   await events.initialize();
@@ -74,12 +95,12 @@ const start = async () => {
 
   try {
     await app.listen({ port: 4000, host: "0.0.0.0" });
-    console.log("Server listening on port 4000");
+    logger.info("Server started", { port: 4000 });
 
     await metrics.listen({ port: 9091, host: "0.0.0.0" });
-    console.log("Metrics server listening on port 9091");
+    logger.info("Metrics server started", { port: 9091 });
   } catch (err) {
-    console.log(err);
+    logger.error("Failed to start server", { error: err });
     process.exit(1);
   }
 };

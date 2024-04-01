@@ -3,14 +3,15 @@ import { createClient } from "./create-client";
 import { DifferentialError } from "./errors";
 import { unpack } from "./serialize";
 import { Result } from "./task-queue";
+import { CallConfig } from "./call-config";
 
 const log = debug("differential:client");
 
 type Workload = {
   jobId: string;
-  attempts: number;
+  callConfig: CallConfig;
   result?: Result;
-  onResult: (err: Error, result: Result) => void;
+  onResult: (result: Result) => void;
 };
 
 // this is a utility function that polls a batch job until it's done
@@ -36,11 +37,12 @@ export class ResultsPoller {
 
   private addJob(
     jobId: string,
-    onResult: (err: Error, result: Result) => void,
+    callConfig: CallConfig,
+    onResult: (result: Result) => void,
   ) {
     this.jobs[jobId] = {
       jobId,
-      attempts: 0,
+      callConfig,
       onResult,
     };
 
@@ -48,10 +50,8 @@ export class ResultsPoller {
     // This is to avoid slow jobs from blocking the queue.
     if (this.polling) {
       setTimeout(() => {
-        if (this.jobs[jobId].attempts === 0) {
-          log("Forcing new poll attempt");
-          this.next();
-        }
+        log("Forcing new poll attempt");
+        this.next();
       }, ResultsPoller.FORCE_POLL_DELAY);
     }
   }
@@ -60,7 +60,6 @@ export class ResultsPoller {
     this.polling = true;
 
     const unresolved = Object.values(this.jobs).filter((job) => {
-      job.attempts++;
       return job.result === undefined;
     });
 
@@ -69,9 +68,17 @@ export class ResultsPoller {
       return;
     }
 
+    const minTimeout =
+      unresolved.reduce(
+        (min, current) => Math.min(min, current.callConfig.timeoutSeconds ?? 0),
+        Infinity,
+      ) * 1000;
+
     const result = await this.client.getJobStatuses({
       body: {
         jobIds: unresolved.map((job) => job.jobId),
+        ttl:
+          minTimeout < 5000 ? 5000 : minTimeout >= 20_000 ? 20_000 : minTimeout,
       },
       headers: {
         authorization: this.authHeader,
@@ -83,15 +90,16 @@ export class ResultsPoller {
         for (const job of result.body.filter(
           (job) => job.status === "success",
         )) {
-          this.jobs[job.id].result = {
-            content: unpack(job.result!),
-            type: job.resultType!,
-          };
+          // since we delete the job from the list, we need to check if it still exists
+          // in case this job was already resolved by another polling cycle
+          if (this.jobs[job.id]) {
+            this.jobs[job.id].result = {
+              content: unpack(job.result!),
+              type: job.resultType!,
+            };
 
-          this.jobs[job.id]?.onResult(
-            null!,
-            this.jobs[job.id].result as Result,
-          );
+            this.jobs[job.id].onResult(this.jobs[job.id].result as Result);
+          }
         }
 
         for (const job of result.body.filter(
@@ -104,7 +112,7 @@ export class ResultsPoller {
             type: "rejection", // interpret as rejection
           };
 
-          this.jobs[job.id].onResult(null!, this.jobs[job.id].result as Result);
+          this.jobs[job.id].onResult(this.jobs[job.id].result as Result);
         }
 
         this.currentErrorCycle = 0;
@@ -130,16 +138,20 @@ export class ResultsPoller {
         if (this.currentErrorCycle > ResultsPoller.MAX_ERROR_CYCLES) {
           log("Too many errors occurred while polling jobs", result);
 
-          const error = new DifferentialError(
-            DifferentialError.TOO_MANY_NETWORK_ERRORS,
-          );
-
           for (const job of unresolved) {
             log(
               "Failing job due to too many errors on control-plane",
               job.jobId,
             );
-            job.onResult(error, null!);
+
+            job.result = {
+              content: new DifferentialError(
+                DifferentialError.TOO_MANY_NETWORK_ERRORS,
+              ),
+              type: "rejection",
+            };
+
+            job.onResult(job.result);
           }
         }
 
@@ -174,10 +186,11 @@ export class ResultsPoller {
 
   public getResult = (
     jobId: string,
-    onResult: (err: Error, r: Result) => void,
+    callConfig: CallConfig,
+    onResult: (r: Result) => void,
   ) => {
-    this.addJob(jobId, (err, result) => {
-      onResult(err, result);
+    this.addJob(jobId, callConfig, (result) => {
+      onResult(result);
       delete this.jobs[jobId];
     });
   };

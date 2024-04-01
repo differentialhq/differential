@@ -1,33 +1,19 @@
 import jwt, { GetPublicKeyOrSecret } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
+import { env } from "../utilities/env";
 
 export class AuthenticationError extends Error {
+  statusCode = 401;
+
   constructor(message: string) {
     super(message);
     this.name = "AuthenticationError";
   }
 }
 
-if (!process.env.JWKS_URL && !process.env.MANAGEMENT_SECRET) {
-  throw new Error("No JWKS_URL or MANAGEMENT_SECRET in env. One is required.");
-}
-
-if (process.env.MANAGEMENT_SECRET) {
-  const hasPrefix = process.env.MANAGEMENT_SECRET.startsWith("sk_management_");
-  const hasLength = process.env.MANAGEMENT_SECRET.length > 64;
-
-  if (!hasPrefix) {
-    throw new Error("MANAGEMENT_SECRET must start with sk_management_");
-  }
-
-  if (!hasLength) {
-    throw new Error("MANAGEMENT_SECRET must be longer than 64 characters");
-  }
-}
-
-const client = process.env.JWKS_URL
+const client = env.JWKS_URL
   ? jwksClient({
-      jwksUri: process.env.JWKS_URL,
+      jwksUri: env.JWKS_URL,
     })
   : null;
 
@@ -55,10 +41,10 @@ export const verifyManagementToken = async ({
 }): Promise<{
   userId: string;
 }> => {
-  const managementSecretAuthEnabled = Boolean(process.env.MANAGEMENT_SECRET);
+  const managementSecretAuthEnabled = Boolean(env.MANAGEMENT_SECRET);
 
   if (managementSecretAuthEnabled && managementToken) {
-    const secretsMatch = managementToken === process.env.MANAGEMENT_SECRET;
+    const secretsMatch = managementToken === env.MANAGEMENT_SECRET;
 
     if (secretsMatch) {
       return {
@@ -75,7 +61,7 @@ export const verifyManagementToken = async ({
       getKey,
       {
         algorithms: ["RS256"],
-        ignoreExpiration: Boolean(process.env.IGNORE_EXPIRATION),
+        ignoreExpiration: env.JWT_IGNORE_EXPIRATION,
       },
       function (err, decoded) {
         if (err) {

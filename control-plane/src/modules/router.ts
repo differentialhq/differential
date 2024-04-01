@@ -9,9 +9,11 @@ import { operationalCluster } from "./cluster";
 import { contract } from "./contract";
 import * as data from "./data";
 import {
+  Deployment,
   createDeployment,
   findActiveDeployment,
   getDeployment,
+  getDeploymentLogs,
   getDeployments,
   releaseDeployment,
   updateDeploymentResult,
@@ -23,14 +25,15 @@ import * as eventAggregation from "./observability/event-aggregation";
 import * as events from "./observability/events";
 import * as clientLib from "./packages/client-lib";
 import * as routingHelpers from "./routing-helpers";
-import { UPLOAD_BUCKET, getObject } from "./s3";
+import { getObject } from "./s3";
 import {
-  DELOYMENT_SNS_TOPIC,
   confirmSubscription,
   parseCloudFormationMessage,
   validateSignature,
 } from "./sns";
 import { deploymentResultFromNotification } from "./deployment/cfn-manager";
+import { env } from "../utilities/env";
+import { logger } from "../utilities/logger";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -48,32 +51,19 @@ export const router = s.router(contract, {
 
     const limit = request.body.limit ?? 1;
 
-    let collection: {
-      id: string;
-      targetFn: string;
-      targetArgs: string;
-    }[];
-
-    const start = Date.now();
-
-    do {
-      collection = await jobs.nextJobs({
-        owner,
-        limit,
-        machineId: request.headers["x-machine-id"],
-        deploymentId: request.headers["x-deployment-id"],
-        ip: request.request.ip,
-        service: request.body.service,
-        definition: {
-          name: request.body.service,
-          functions: request.body.functions,
-        },
-      });
-
-      if (collection.length === 0) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-    } while (collection.length === 0 && Date.now() - start < request.body.ttl);
+    const collection = await jobs.nextJobs({
+      owner,
+      limit,
+      machineId: request.headers["x-machine-id"],
+      deploymentId: request.headers["x-deployment-id"],
+      ip: request.request.ip,
+      service: request.body.service,
+      definition: {
+        name: request.body.service,
+        functions: request.body.functions,
+      },
+      ttl: request.body.ttl,
+    });
 
     return {
       status: 200,
@@ -116,7 +106,7 @@ export const router = s.router(contract, {
       };
     }
 
-    const { targetFn, targetArgs, pool, service, cacheKey } = request.body;
+    const { targetFn, targetArgs, service, callConfig } = request.body;
 
     const deployment = owner.cloudEnabled
       ? await findActiveDeployment(owner.clusterId, service)
@@ -128,7 +118,7 @@ export const router = s.router(contract, {
       targetArgs,
       owner,
       deploymentId: deployment?.id,
-      cacheKey,
+      callConfig,
     });
 
     return {
@@ -195,27 +185,6 @@ export const router = s.router(contract, {
             encoding: "utf-8",
           },
         ),
-      },
-    };
-  },
-  // TODO: deprecate
-  createCredential: async (request) => {
-    if (!auth.machineAuthSuccess(request.headers.authorization)) {
-      return {
-        status: 401,
-      };
-    }
-
-    const { organizationId } = request.params;
-
-    const created = await admin.createCredential({
-      organizationId,
-    });
-
-    return {
-      status: 201,
-      body: {
-        apiSecret: created.apiSecret,
       },
     };
   },
@@ -375,11 +344,12 @@ export const router = s.router(contract, {
 
     const { clusterId } = request.params;
 
-    const { jobId } = request.query;
+    const { jobId, deploymentId } = request.query;
 
     const result = await eventAggregation.getJobActivityByJobId({
       clusterId,
       jobId,
+      deploymentId,
     });
 
     return {
@@ -388,6 +358,15 @@ export const router = s.router(contract, {
     };
   },
   createDeployment: async (request) => {
+    if (!env.CLOUD_FEATURES_AVAILABLE) {
+      logger.warn(
+        "Received deployment request but cloud features are not available",
+      );
+      return {
+        status: 501,
+      };
+    }
+
     const access = await routingHelpers.validateManagementRequest(request);
     const { cloudEnabled } = await operationalCluster(request.params.clusterId);
     if (!access || !cloudEnabled) {
@@ -397,12 +376,6 @@ export const router = s.router(contract, {
     }
 
     const { clusterId, serviceName } = request.params;
-
-    if (UPLOAD_BUCKET === undefined) {
-      return {
-        status: 501,
-      };
-    }
 
     const deployment = await createDeployment({
       clusterId,
@@ -478,6 +451,32 @@ export const router = s.router(contract, {
       ),
     };
   },
+  getDeploymentLogs: async (request) => {
+    const access = await routingHelpers.validateManagementRequest(request);
+    const { cloudEnabled } = await operationalCluster(request.params.clusterId);
+    if (!access || !cloudEnabled) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { clusterId, deploymentId } = request.params;
+
+    const deployment = await getDeployment(deploymentId);
+
+    if (!deployment || deployment.clusterId !== clusterId) {
+      return {
+        status: 404,
+      };
+    }
+
+    return {
+      status: 200,
+      body: {
+        events: await getDeploymentLogs(deployment, request.query),
+      },
+    };
+  },
   setClusterSettings: async (request) => {
     const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
@@ -541,6 +540,15 @@ export const router = s.router(contract, {
     };
   },
   createClientLibraryVersion: async (request) => {
+    if (!env.CLOUD_FEATURES_AVAILABLE) {
+      logger.warn(
+        "Received client library request but cloud features are not available",
+      );
+      return {
+        status: 501,
+      };
+    }
+
     const access = await routingHelpers.validateManagementRequest(request);
     const { cloudEnabled } = await operationalCluster(request.params.clusterId);
     if (!access || !cloudEnabled) {
@@ -610,13 +618,24 @@ export const router = s.router(contract, {
         },
       };
     } catch (e) {
-      console.error(e);
+      logger.error("Failed to create asset", {
+        error: e,
+      });
       return {
         status: 400,
       };
     }
   },
   npmRegistryDefinition: async (request) => {
+    if (!env.CLOUD_FEATURES_AVAILABLE) {
+      logger.warn(
+        "Received NPM registry request but cloud features are not available",
+      );
+      return {
+        status: 501,
+      };
+    }
+
     const fullPackageName = request.params.packageName;
     const encodedPackageName = encodeURIComponent(fullPackageName);
 
@@ -704,7 +723,8 @@ export const router = s.router(contract, {
     };
   },
   sns: async (request) => {
-    if (!DELOYMENT_SNS_TOPIC) {
+    if (!env.CLOUD_FEATURES_AVAILABLE) {
+      logger.warn("Received SNS request but cloud features are not available");
       return {
         status: 501,
       };
@@ -712,25 +732,39 @@ export const router = s.router(contract, {
 
     try {
       await validateSignature(request.request.body as Record<string, unknown>);
-    } catch {
-      console.error("SNS Signature validation failed");
+    } catch (error) {
+      logger.error("SNS Signature validation failed", {
+        error,
+      });
       return {
         status: 400,
       };
     }
 
-    if (request.body.TopicArn != DELOYMENT_SNS_TOPIC) {
-      console.warn("Received request for unknown SNS topic");
+    if (request.body.TopicArn != env.DEPLOYMENT_SNS_TOPIC) {
+      logger.warn("Received request for unknown SNS topic");
       return {
         status: 400,
       };
     }
 
     if (request.body.Type == "SubscriptionConfirmation" && request.body.Token) {
-      await confirmSubscription({
-        Token: request.body.Token,
-        TopicArn: DELOYMENT_SNS_TOPIC,
-      });
+      try {
+        await confirmSubscription({
+          Token: request.body.Token,
+          TopicArn: env.DEPLOYMENT_SNS_TOPIC,
+        });
+        logger.info("Confirmed SNS subscription", {
+          TopicArn: env.DEPLOYMENT_SNS_TOPIC,
+        });
+      } catch (error) {
+        logger.error("Failed to confirm SNS subscription", {
+          error,
+        });
+        return {
+          status: 500,
+        };
+      }
     }
 
     if (
@@ -741,7 +775,10 @@ export const router = s.router(contract, {
       const message = parseCloudFormationMessage(request.body.Message);
       const result = deploymentResultFromNotification(message);
 
-      console.log("Received deployment result from CloudFormation", result);
+      logger.info("Received deployment result from CloudFormation", {
+        result,
+      });
+
       const status = result.pending
         ? "uploading"
         : result.success

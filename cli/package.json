@@ -1,6 +1,6 @@
 {
   "name": "@differentialhq/cli",
-  "version": "3.15.0",
+  "version": "3.18.1",
   "description": "CLI for differential.dev",
   "bin": {
     "differential": "bin/index.js"
@@ -9,11 +9,13 @@
     "test": "exit 0",
     "start": "node ./bin/index.js",
     "build": "tsc",
-    "clean": "rm -rf ./bin"
+    "clean": "rm -rf ./bin",
+    "dev": "npm run build && npm run start"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@differentialhq/core": "^3.18.0",
     "@inquirer/prompts": "^4.0.0",
     "@ts-rest/core": "^3.28.0",
     "acorn": "^8.11.3",

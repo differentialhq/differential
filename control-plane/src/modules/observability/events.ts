@@ -2,20 +2,27 @@ import { sql } from "drizzle-orm";
 import { Counter } from "prom-client";
 import { ulid } from "ulid";
 import * as data from "../data";
+import { logger } from "../../utilities/logger";
 
 export type EventTypes =
   | "jobCreated"
   | "jobReceived"
   | "jobStatusRequest"
   | "jobResulted"
+  | "jobResultedButNotPersisted"
   | "jobStalled"
+  | "jobStalledTooManyTimes"
   | "jobRecovered"
   | "machinePing"
+  | "machineStalled"
   | "machineResourceProbe"
   | "functionInvocation"
   | "predictorRetryableResult"
   | "predictorRecovered"
-  | "machineStalled";
+  | "deploymentInitiated"
+  | "deploymentInactivated"
+  | "deploymentResulted"
+  | "deploymentNotified";
 
 type Event = {
   clusterId: string;
@@ -37,6 +44,11 @@ type Event = {
     attemptsRemaining?: number;
     retryable?: boolean;
     reason?: string;
+    pendingJobs?: number;
+    machineCount?: number;
+    replacedBy?: string;
+    deploymentStatus?: string;
+    callConfig?: object;
   };
 };
 
@@ -75,7 +87,7 @@ class EventWriterBuffer {
 
   async quit() {
     if (this.flushTimeout !== null) {
-      console.log("Flushing events before exit");
+      logger.info("Flushing events before exit");
       clearTimeout(this.flushTimeout);
       await this.flush();
     }
@@ -106,16 +118,20 @@ class EventWriterBuffer {
         `,
       );
 
-      console.log("Wrote events", {
+      logger.debug("Wrote events", {
         count: result.rowCount,
       });
     } catch (e) {
       if (attempt < 3) {
-        console.error("Failed to write events, retrying", e);
+        logger.error("Failed to write events, retrying", {
+          error: e,
+        });
         await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
         await this.writeEvents(events, attempt + 1);
       } else {
-        console.error("Failed to write events", e);
+        logger.error("Failed to write events", {
+          e,
+        });
       }
     }
   }
@@ -137,6 +153,10 @@ export const write = (event: Event, syntheticDelay = 0) => {
   if (buffer === null) {
     return;
   }
+
+  logger.debug("Adding event to buffer", {
+    event: event,
+  });
 
   buffer?.push({
     ...event,

@@ -8,6 +8,7 @@ import {
 } from "../service-definitions";
 import { jobDurations } from "./job-metrics";
 import { selfHealJobs } from "./persist-result";
+import * as clusterActivity from "../cluster-activity";
 
 export { createJob } from "./create-job";
 export { persistJobResult } from "./persist-result";
@@ -20,6 +21,7 @@ export const nextJobs = async ({
   deploymentId,
   ip,
   definition,
+  ttl = 1_000,
 }: {
   service: string;
   owner: { clusterId: string };
@@ -28,27 +30,53 @@ export const nextJobs = async ({
   deploymentId?: string;
   ip: string;
   definition?: ServiceDefinition;
+  ttl?: number;
 }) => {
+  const start = Date.now();
   const end = jobDurations.startTimer({ operation: "nextJobs" });
 
-  const results = await data.db.execute(
-    sql`UPDATE
-      jobs SET status = 'running',
-      remaining_attempts = remaining_attempts - 1,
-      last_retrieved_at=${new Date().toISOString()},
-      executing_machine_id=${machineId}
-    WHERE
-      id IN (SELECT id FROM jobs WHERE (status = 'pending' OR (status = 'failure' AND remaining_attempts > 0))
-      AND owner_hash = ${owner.clusterId}
-      AND service = ${service}
-    LIMIT ${limit})
-    RETURNING id, target_fn, target_args`,
-  );
+  type Result = {
+    id: string;
+    target_fn: string;
+    target_args: string;
+  };
+
+  let results: { rowCount: number | null; rows: Result[] } = {
+    rowCount: null,
+    rows: [],
+  };
 
   await Promise.all([
     storeMachineInfo(machineId, ip, owner, deploymentId),
     definition ? storeServiceDefinition(service, definition, owner) : undefined,
   ]);
+
+  do {
+    results = await data.db.execute<Result>(sql`
+    UPDATE
+      jobs SET status = 'running',
+      remaining_attempts = remaining_attempts - 1,
+      last_retrieved_at=${new Date().toISOString()},
+      executing_machine_id=${machineId}
+    WHERE
+      id IN (
+        SELECT id 
+        FROM jobs 
+        WHERE 
+          status = 'pending'
+          AND owner_hash = ${owner.clusterId}
+          AND service = ${service}
+        LIMIT ${limit}
+      )
+      AND owner_hash = ${owner.clusterId}
+    RETURNING id, target_fn, target_args`);
+
+    const timeout = clusterActivity.isClusterActivityHigh(owner.clusterId)
+      ? 100
+      : 1000;
+
+    await new Promise((resolve) => setTimeout(resolve, timeout));
+  } while (!results.rowCount && Date.now() - start < ttl);
 
   if (results.rowCount === 0) {
     end();
@@ -149,7 +177,12 @@ export const getJobStatuses = async ({
     resultType: InferModel<typeof data.jobs>["result_type"];
   }>;
 
+  let attempt = 0;
+
   do {
+    attempt++;
+    const backoff = Math.min(100 * attempt, 1000);
+
     jobs = await data.db
       .select({
         id: data.jobs.id,
@@ -171,7 +204,7 @@ export const getJobStatuses = async ({
     );
 
     if (!hasResolved) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, backoff));
     }
   } while (!hasResolved && Date.now() - start < longPollTimeout);
 
@@ -226,4 +259,4 @@ export async function storeMachineInfo(
 }
 
 export const start = () =>
-  cron.registerCron(selfHealJobs, { interval: 1000 * 10 }); // 10 seconds
+  cron.registerCron(selfHealJobs, { interval: 1000 * 5 }); // 10 seconds

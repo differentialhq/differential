@@ -1,0 +1,1 @@
+ALTER TABLE "services" RENAME COLUMN "deployment_provider" TO "preferred_deployment_provider";

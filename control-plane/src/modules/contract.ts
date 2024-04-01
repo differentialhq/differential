@@ -26,19 +26,6 @@ export const definition = {
         .array(
           z.object({
             name: z.string(),
-            rate: z
-              .object({
-                per: z.enum(["minute", "hour"]),
-                limit: z.number(),
-              })
-              .optional(),
-            cacheTTL: z.number().optional(),
-            retryConfig: z
-              .object({
-                maxAttempts: z.number(),
-                timeoutIntervalSeconds: z.number(),
-              })
-              .optional(),
           }),
         )
         .optional(),
@@ -63,9 +50,22 @@ export const definition = {
     body: z.object({
       targetFn: z.string(),
       targetArgs: z.string(),
-      pool: z.string().optional(),
-      service: z.string().default("unknown"),
-      cacheKey: z.string().optional(),
+      service: z.string(),
+      callConfig: z
+        .object({
+          cache: z
+            .object({
+              key: z.string(),
+              ttlSeconds: z.number(),
+            })
+            .optional(),
+          retryCountOnStall: z.number(),
+          predictiveRetriesOnRejection: z.boolean(),
+          timeoutSeconds: z.number(),
+          executionId: z.string().optional(),
+          background: z.boolean().default(false),
+        })
+        .optional(),
     }),
   },
   getJobStatus: {
@@ -82,7 +82,7 @@ export const definition = {
     }),
     responses: {
       200: z.object({
-        status: z.enum(["pending", "running", "success", "failure"]),
+        status: z.enum(["pending", "running", "success", "failure", "stalled"]),
         result: z.string().nullable(),
         resultType: z.enum(["resolution", "rejection"]).nullable(),
       }),
@@ -104,7 +104,13 @@ export const definition = {
       200: z.array(
         z.object({
           id: z.string(),
-          status: z.enum(["pending", "running", "success", "failure"]),
+          status: z.enum([
+            "pending",
+            "running",
+            "success",
+            "failure",
+            "stalled",
+          ]),
           result: z.string().nullable(),
           resultType: z.enum(["resolution", "rejection"]).nullable(),
         }),
@@ -150,23 +156,6 @@ export const definition = {
         contract: z.string(),
       }),
     },
-  },
-  createCredential: {
-    method: "POST",
-    path: "/organizations/:organizationId/clusters",
-    headers: z.object({
-      authorization: z.string(),
-    }),
-    responses: {
-      201: z.object({
-        apiSecret: z.string(),
-      }),
-      401: z.undefined(),
-    },
-    pathParams: z.object({
-      organizationId: z.string(),
-    }),
-    body: z.object({}),
   },
   getTemporaryToken: {
     method: "GET",
@@ -222,9 +211,9 @@ export const definition = {
           z.object({
             id: z.string(),
             description: z.string().nullable(),
-            pool: z.string().nullable(),
             lastPingAt: z.date().nullable(),
             ip: z.string().nullable(),
+            deploymentId: z.string().nullable(),
           }),
         ),
         jobs: z.array(
@@ -394,6 +383,7 @@ export const definition = {
           type: z.string(),
           meta: z.unknown(),
           machineId: z.string().nullable(),
+          deploymentId: z.string().nullable(),
           timestamp: z.date(),
           service: z.string().nullable(),
         }),
@@ -402,7 +392,8 @@ export const definition = {
       404: z.undefined(),
     },
     query: z.object({
-      jobId: z.string(),
+      jobId: z.string().optional(),
+      deploymentId: z.string().optional(),
     }),
   },
   createDeployment: {
@@ -501,6 +492,32 @@ export const definition = {
         service: z.string(),
         provider: z.string(),
         createdAt: z.date(),
+      }),
+    },
+  },
+  getDeploymentLogs: {
+    method: "GET",
+    path: "/clusters/:clusterId/service/:serviceName/deployments/:deploymentId/logs",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    query: z.object({
+      next: z.string().optional(),
+      filter: z.string().optional(),
+      start: z.coerce.date().optional(),
+      end: z.coerce.date().optional(),
+    }),
+    body: z.undefined(),
+    responses: {
+      401: z.undefined(),
+      404: z.undefined(),
+      200: z.object({
+        events: z.array(
+          z.object({
+            message: z.string(),
+          }),
+        ),
+        next: z.string().optional(),
       }),
     },
   },

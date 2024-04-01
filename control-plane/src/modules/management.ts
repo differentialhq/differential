@@ -1,14 +1,14 @@
 import crypto from "crypto";
-import { and, eq, gte } from "drizzle-orm";
+import { and, desc, eq, gte } from "drizzle-orm";
 import * as errors from "../utilities/errors";
 import * as data from "./data";
+import { getDeployments } from "./deployment/deployment";
 import * as jwt from "./jwt";
 import { randomName } from "./names";
 import {
   ServiceDefinition,
   parseServiceDefinition,
 } from "./service-definitions";
-import { getDeployments } from "./deployment/deployment";
 
 type Job = {
   id: string;
@@ -23,9 +23,9 @@ type Job = {
 type Machine = {
   id: string;
   description: string | null;
-  pool: string | null;
   lastPingAt: Date | null;
   ip: string | null;
+  deploymentId: string | null;
 };
 
 export const getClusters = async ({
@@ -127,7 +127,6 @@ export const getClusterDetailsForUser = async ({
       id: data.clusters.id,
       apiSecret: data.clusters.api_secret,
       createdAt: data.clusters.created_at,
-      foo: data.services.cluster_id,
       definitions: data.services.definition,
     })
     .from(data.clusters)
@@ -142,9 +141,9 @@ export const getClusterDetailsForUser = async ({
     .select({
       id: data.machines.id,
       description: data.machines.description,
-      pool: data.machines.machine_type,
       lastPingAt: data.machines.last_ping_at,
       ip: data.machines.ip,
+      deploymentId: data.machines.deployment_id,
     })
     .from(data.machines)
     .where(
@@ -172,10 +171,12 @@ export const getClusterDetailsForUser = async ({
     .where(
       and(
         eq(data.jobs.owner_hash, clusterId),
-        // in the last 5 minutes
-        gte(data.jobs.created_at, new Date(Date.now() - 1000 * 60 * 5)),
+        // in the last 12 hours
+        gte(data.jobs.created_at, new Date(Date.now() - 1000 * 60 * 60 * 12)),
       ),
-    );
+    )
+    .orderBy(desc(data.jobs.created_at))
+    .limit(500);
 
   const deployments = await getDeployments(clusterId);
 

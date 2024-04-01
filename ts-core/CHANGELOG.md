@@ -3,6 +3,29 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.18.0](https://github.com/differentialhq/differential/compare/v3.17.0...v3.18.0) (2024-03-29)
+
+### Bug Fixes
+
+- Cache auth results in-memory ([#199](https://github.com/differentialhq/differential/issues/199)) ([504fd0e](https://github.com/differentialhq/differential/commit/504fd0e0d6e14583d84f0bc32a4b38bbbcd724c0))
+
+# [3.17.0](https://github.com/differentialhq/differential/compare/v3.16.0...v3.17.0) (2024-03-28)
+
+### Features
+
+- Call configuration and docs ([#192](https://github.com/differentialhq/differential/issues/192)) ([f1d405a](https://github.com/differentialhq/differential/commit/f1d405a6f5614343816d1577f2ebbf56577a41ed))
+- Retry config via call config ([#191](https://github.com/differentialhq/differential/issues/191)) ([b69f603](https://github.com/differentialhq/differential/commit/b69f6033a780d8bce6f00fb124ac841114ee7fdd))
+
+# [3.16.0](https://github.com/differentialhq/differential/compare/v3.15.0...v3.16.0) (2024-03-24)
+
+### Bug Fixes
+
+- Fix polling cycle race condition ([#181](https://github.com/differentialhq/differential/issues/181)) ([e51bc6f](https://github.com/differentialhq/differential/commit/e51bc6fcefaa2f2a3fabfb5e789176fcee4926bb))
+
+### Features
+
+- Add FORCE_POLL_DELAY to ResultsPoller ([#177](https://github.com/differentialhq/differential/issues/177)) ([9bf1407](https://github.com/differentialhq/differential/commit/9bf14072bd41d06a52b16f225188f9b6f7cd7858))
+
 # [3.15.0](https://github.com/differentialhq/differential/compare/v3.14.0...v3.15.0) (2024-03-23)
 
 ### Bug Fixes

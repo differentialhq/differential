@@ -18,4 +18,4 @@
 
 export { Differential } from "./Differential";
 
-export { cached } from "./functions";
+export { CallConfig } from "./call-config";
