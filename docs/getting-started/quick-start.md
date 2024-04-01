@@ -2,53 +2,74 @@
 order: 1990
 ---
 
-# Buiding your first service
+# Writing your first app with Differential
 
-Learn to build an end to end Differential app in under 2 minutes with TypeScript and Node.js.
+In this guide, we'll walk you through creating a simple service with Differential. We will:
 
-## Running the hello world example
+1. Create your first Differential cluster
+2. Create a simple service that returns a greeting
+3. Call the service from a client
+4. See the cluster activity from the Differential Dashboard
 
-### 1. Set up and Install
+## 1. Install the Differential CLI
 
-Run the following command in your terminal to set up a hello world project
+To get started with Differential, you'll need to install the Differential CLI. You can do this by running the following command:
 
-```bash
-git clone git@github.com:differentialhq/app.git my-app && \
-cd my-app && \
-npm run setup && \
-npm i -g tsx
+```sh
+npm install -g @differentialhq/cli # this will install the Differential CLI globally
 ```
 
-This will:
+## 2. Authenticate with Differential
 
-- Clone the [Differential app template](https://github.com/differentialhq/app) into a dirctory called `my-app`
-- Install the dependencies
-- Fetch a temporary API secret for you to use and insert it to src/d.ts file
-- Install the `tsx` CLI tool globally so you can run ts files directly
+To authenticate with Differential, run the following command:
+
+<<<<<<< HEAD
 
 ### 2. Start the hello service
 
-```
-tsx src/run/hello-service.ts
-```
+````
+tsx --watch src/run/hello-service.ts
+=======
+```sh
+differential auth login
+>>>>>>> d28e247d4dae2bed4fe671d514433b89f944f9d0
+````
 
-This will start a [service called `hello`](https://github.com/differentialhq/app/blob/master/src/services/hello.ts) and register itself with the Cloud control-plane.
+## 3. Create a directory for your service
+
+<<<<<<< HEAD
 
 ### 3. Call the running service
 
+````
+tsx --watch src/commands/greet.ts
+=======
+```sh
+mkdir my-app
+cd my-app
+>>>>>>> d28e247d4dae2bed4fe671d514433b89f944f9d0
+````
+
+## 4. Initialize your project
+
+The following command will create a new project in the current directory. And install the necessary dependencies.
+
+```sh
+npm init -y
+npm install @differentialhq/core typescript tsx
 ```
-tsx src/commands/greet.ts
+
+## 5. Create a Differential cluster
+
+```sh
+differential clusters create
 ```
 
-This will call the [`greet` command](https://github.com/differentialhq/app/blob/master/src/commands/greet.ts) on the `hello` service and print the result.
+This will give you a API Secret. Copy this to the clipboard so we can use it in the next step.
 
-## Extending the hello service
+## 6. Initialize your Differential client.
 
-Let's add a new command to the hello service that will greet someone in a different language, so you can write some code.
-
-### 1. Add a new function to the hello service
-
-Open up the `src/services/hello.ts` file and add the following function, under the exising `hello` function:
+Create a new file called `src/d.ts` and add the following code:
 
 ```typescript
 // src/d.ts
