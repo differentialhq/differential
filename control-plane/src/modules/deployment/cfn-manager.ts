@@ -72,6 +72,7 @@ export class CloudFormationManager {
       OnFailure: "DELETE",
       NotificationARNs: [env.DEPLOYMENT_SNS_TOPIC],
       ClientRequestToken: clientRequestToken,
+      RoleARN: env.DEPLOYMENT_DEFAULT_SERVICE_ROLE,
     });
 
     const response = await this.cloudFormationClient.send(createStackCommand);
@@ -103,6 +104,7 @@ export class CloudFormationManager {
       Parameters: params,
       NotificationARNs: [env.DEPLOYMENT_SNS_TOPIC],
       ClientRequestToken: clientRequestToken,
+      RoleARN: env.DEPLOYMENT_DEFAULT_SERVICE_ROLE,
     });
 
     const response = await this.cloudFormationClient.send(updateStackCommand);
