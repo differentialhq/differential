@@ -139,6 +139,7 @@ The following environment variables will need to be made available to the contro
 - `ASSET_UPLOAD_BUCKET`
 - `DEPLOYMENT_TEMPLATE_BUCKET`
 - `DEPLOYMENT_SNS_TOPIC`
+- `DEPLOYMENT_DEFAULT_SERVICE_ROLE`
 
 Values for these can be retrieved from the previously created CloudFormation stack:
 

@@ -57,19 +57,8 @@ Resources:
             - Effect: Allow
               Action:
                 - "lambda:GetFunction"
-                - "lambda:DeleteFunction"
-                - "lambda:CreateFunction"
-                - "lambda:UpdateFunctionCode"
-                - "lambda:UpdateFunctionConfiguration"
-                - "lambda:PutFunctionConcurrency"
-                - "lambda:PutFunctionEventInvokeConfig"
-                - "lambda:ListTags"
-                - "lambda:TagResource"
                 - "lambda:InvokeFunction"
               Resource: "arn:aws:lambda:*:*:function:differential-deployment-*"
-            - Effect: Allow
-              Action: iam:PassRole
-              Resource: !GetAtt DeploymentLambdaRuntimeRole.Arn
         Users:
           - !Ref ControlPlaneUser
 
@@ -82,9 +71,12 @@ Resources:
           Statement:
             - Effect: Allow
               Action:
-                - "sns:Publish"
                 - "sns:ConfirmSubscription"
               Resource: !Ref DeploymentCloudFormationTopic
+            - Effect: Allow
+              Action:
+                - "iam:PassRole"
+              Resource: !GetAtt DeploymentCloudFormationServiceRole.Arn
             - Effect: Allow
               Action:
                 - "cloudformation:CreateStack"
@@ -140,6 +132,60 @@ Resources:
                   - "logs:PutLogEvents"
                 Resource: "arn:aws:logs:*:*:*"
 
+  DeploymentLambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: DeploymentLambdaPolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - "s3:GetObject"
+            Resource: !Sub "arn:aws:s3:::${AssetUploadBucket}/service_bundle/*"
+          - Effect: Allow
+            Action:
+              - "lambda:GetFunction"
+              - "lambda:DeleteFunction"
+              - "lambda:CreateFunction"
+              - "lambda:UpdateFunctionCode"
+              - "lambda:UpdateFunctionConfiguration"
+              - "lambda:PutFunctionConcurrency"
+              - "lambda:DeleteFunctionEventInvokeConfig"
+              - "lambda:PutFunctionEventInvokeConfig"
+              - "lambda:ListTags"
+              - "lambda:TagResource"
+              - "lambda:InvokeFunction"
+            Resource: "arn:aws:lambda:*:*:function:differential-deployment-*"
+          - Effect: Allow
+            Action: iam:PassRole
+            Resource: !GetAtt DeploymentLambdaRuntimeRole.Arn
+      Roles:
+        - !Ref DeploymentCloudFormationServiceRole
+
+  DeploymentCloudFormationServiceRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: "DeploymentCloudFormationServiceRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "cloudformation.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "DeploymentCloudFormationServicePolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "sns:ListSubscriptions"
+                  - "sns:ListTopics"
+                  - "sns:Publish"
+                Resource: "*"
+
   ControlPlaneUser:
     Type: AWS::IAM::User
     Properties:
@@ -155,3 +201,6 @@ Outputs:
   DeploymentCloudFormationTopic:
     Description: SNS topic for subscribing to CloudFormation status updates
     Value: !Ref DeploymentCloudFormationTopic
+  DeploymentCloudFormationServiceRole:
+    Description: IAM Role used by CloudFormation to apply deployments
+    Value: !Ref DeploymentCloudFormationServiceRole
