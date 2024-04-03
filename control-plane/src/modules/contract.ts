@@ -688,6 +688,30 @@ export const definition = {
       404: z.undefined(),
     },
   },
+  executeJobSync: {
+    method: "POST",
+    path: "/clusters/:clusterId/execute",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      service: z.string(),
+      function: z.string(),
+      args: z.array(z.any()),
+    }),
+    responses: {
+      401: z.undefined(),
+      404: z.undefined(),
+      200: z.object({
+        resultType: z.string(),
+        result: z.any(),
+        status: z.string(),
+      }),
+      500: z.object({
+        error: z.string(),
+      }),
+    },
+  },
 } as const;
 
 export const contract = c.router(definition);

@@ -3,7 +3,12 @@ import * as eventAggregation from "../observability/event-aggregation";
 import * as events from "../observability/events";
 import { serializeError } from "../predictor/serialize-error";
 import { createOwner } from "../test/util";
-import { createJob, getJobStatus, nextJobs, persistJobResult } from "./jobs";
+import {
+  createJob,
+  getJobStatusSync,
+  nextJobs,
+  persistJobResult,
+} from "./jobs";
 import { selfHealJobs } from "./persist-result";
 
 describe("persistJobResult", () => {
@@ -39,7 +44,7 @@ describe("persistJobResult", () => {
 
     expect(count).toBe(1);
 
-    const status = await getJobStatus({
+    const status = await getJobStatusSync({
       jobId: createJobResult.id,
       owner,
     });
@@ -204,7 +209,7 @@ describe("persistJobResult", () => {
       machineId: "otherMachineId",
     });
 
-    const status = await getJobStatus({
+    const status = await getJobStatusSync({
       jobId: createJobResult.id,
       owner,
     });

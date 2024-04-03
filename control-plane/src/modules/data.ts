@@ -307,11 +307,7 @@ export const clusterAccessPoints = pgTable(
     }).notNull(),
   },
   (table) => ({
-    unique: {
-      uniqueAccessPoint: {
-        columns: [table.cluster_id, table.name],
-      },
-    },
+    pk: primaryKey(table.cluster_id, table.name),
   }),
 );
 

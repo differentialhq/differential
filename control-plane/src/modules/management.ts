@@ -292,6 +292,10 @@ export const upsertAccessPointForCluster = async ({
       },
     ])
     .onConflictDoUpdate({
+      where: and(
+        eq(data.clusterAccessPoints.cluster_id, clusterId),
+        eq(data.clusterAccessPoints.name, name),
+      ),
       target: [
         data.clusterAccessPoints.cluster_id,
         data.clusterAccessPoints.name,

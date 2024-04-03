@@ -344,6 +344,20 @@
       "when": 1711849937632,
       "tag": "0049_gray_ben_grimm",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "5",
+      "when": 1712150514249,
+      "tag": "0050_slimy_hulk",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "5",
+      "when": 1712152413769,
+      "tag": "0051_loving_phil_sheldon",
+      "breakpoints": true
     }
   ]
 }

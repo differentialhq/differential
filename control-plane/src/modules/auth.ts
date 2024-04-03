@@ -1,6 +1,7 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import * as data from "./data";
 import Cache from "node-cache";
+import * as errors from "../utilities/errors";
 
 type Cluster = {
   organizationId: string | null;
@@ -43,4 +44,44 @@ export const jobOwnerHash = async (
   cache.set<Cluster>(secret, result);
 
   return result;
+};
+
+export const accessPointServices = async ({
+  clusterId,
+  token,
+}: {
+  clusterId: string;
+  token: string;
+}): Promise<{
+  allowedServices: string[];
+  name: string;
+}> => {
+  const [accessPoint] = await data.db
+    .select({
+      name: data.clusterAccessPoints.name,
+      allowedServices: data.clusterAccessPoints.allowed_services_csv,
+    })
+    .from(data.clusterAccessPoints)
+    .where(
+      and(
+        eq(data.clusterAccessPoints.cluster_id, clusterId),
+        eq(data.clusterAccessPoints.token, token),
+      ),
+    );
+
+  if (!accessPoint) {
+    return {
+      allowedServices: [],
+      name: "",
+    };
+  }
+
+  const allowedServices = accessPoint.allowedServices
+    .split(",")
+    .map((s) => s.trim());
+
+  return {
+    allowedServices,
+    name: accessPoint.name,
+  };
 };
