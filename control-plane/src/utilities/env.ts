@@ -59,6 +59,7 @@ let envSchema = z
     DEPLOYMENT_SNS_TOPIC: z.string().optional(),
     DEPLOYMENT_SCHEDULING_ENABLED: truthy.default(false),
     DEPLOYMENT_DEFAULT_PROVIDER: z.enum(["lambda", "mock"]).default("mock"),
+    DEPLOYMENT_DEFAULT_SERVICE_ROLE: z.string().optional(),
     AWS_ACCESS_KEY_ID: z.string().optional(),
     AWS_SECRET_ACCESS_KEY: z.string().optional(),
   })
