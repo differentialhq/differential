@@ -14,8 +14,15 @@ export const openBrowser = async (url: string) => {
 
 export const selectCluster = async (): Promise<string | undefined> => {
   const d = await client.getClustersForUser();
+  if (d.status === 401) {
+    console.log(
+      "You are not logged in. Please run:\n\t$ differential auth login",
+    );
+    return;
+  }
+
   if (d.status !== 200) {
-    console.error(`Failed to get clusters: ${d.status}`);
+    console.error(`Failed to get clusters: ${d.status}.`);
     return;
   }
 

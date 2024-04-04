@@ -268,3 +268,77 @@ export const getClusterSettings = async (clusterId: string) => {
 
   return settings;
 };
+
+export const upsertAccessPointForCluster = async ({
+  clusterId,
+  name,
+  allowedServices,
+}: {
+  clusterId: string;
+  name: string;
+  allowedServices: string;
+}) => {
+  const token = `sk_ap_${crypto.randomBytes(16).toString("hex")}`;
+
+  const [accessPoint] = await data.db
+    .insert(data.clusterAccessPoints)
+    .values([
+      {
+        cluster_id: clusterId,
+        name,
+        allowed_services_csv: allowedServices,
+        token,
+        updated_at: new Date(),
+      },
+    ])
+    .onConflictDoUpdate({
+      where: and(
+        eq(data.clusterAccessPoints.cluster_id, clusterId),
+        eq(data.clusterAccessPoints.name, name),
+      ),
+      target: [
+        data.clusterAccessPoints.cluster_id,
+        data.clusterAccessPoints.name,
+      ],
+      set: {
+        allowed_services_csv: allowedServices,
+        token,
+        updated_at: new Date(),
+      },
+    })
+    .returning({
+      token: data.clusterAccessPoints.token,
+    });
+
+  if (!accessPoint) {
+    throw new errors.NotFoundError("Access point not found");
+  }
+
+  return accessPoint;
+};
+
+export const deleteClusterAccessPoint = async ({
+  clusterId,
+  name,
+}: {
+  clusterId: string;
+  name: string;
+}) => {
+  const [accessPoint] = await data.db
+    .delete(data.clusterAccessPoints)
+    .where(
+      and(
+        eq(data.clusterAccessPoints.cluster_id, clusterId),
+        eq(data.clusterAccessPoints.name, name),
+      ),
+    )
+    .returning({
+      token: data.clusterAccessPoints.token,
+    });
+
+  if (!accessPoint) {
+    throw new errors.NotFoundError("Access point not found");
+  }
+
+  return accessPoint;
+};

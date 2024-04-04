@@ -1,0 +1,1 @@
+ALTER TABLE "cluster_access_points" ADD CONSTRAINT "cluster_access_points_cluster_id_name" PRIMARY KEY("cluster_id","name");

@@ -112,42 +112,63 @@ export const nextJobs = async ({
   return jobs;
 };
 
-export const getJobStatus = async ({
+export const getJobStatusSync = async ({
   jobId,
   owner,
+  ttl = 20_000,
 }: {
   jobId: string;
   owner: { clusterId: string };
+  ttl?: number;
 }) => {
   const end = jobDurations.startTimer({ operation: "getJobStatus" });
 
-  const [job] = await data.db
-    .select({
-      service: data.jobs.service,
-      status: data.jobs.status,
-      result: data.jobs.result,
-      resultType: data.jobs.result_type,
-    })
-    .from(data.jobs)
-    .where(
-      and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
-    );
+  let jobResult:
+    | {
+        service: string;
+        status: "pending" | "running" | "success" | "failure" | "stalled";
+        result: string | null;
+        resultType: "resolution" | "rejection" | null;
+      }
+    | undefined;
 
-  if (job) {
+  const start = Date.now();
+
+  do {
+    const [job] = await data.db
+      .select({
+        service: data.jobs.service,
+        status: data.jobs.status,
+        result: data.jobs.result,
+        resultType: data.jobs.result_type,
+      })
+      .from(data.jobs)
+      .where(
+        and(eq(data.jobs.id, jobId), eq(data.jobs.owner_hash, owner.clusterId)),
+      );
+
+    if (job.status === "success" || job.status === "failure") {
+      jobResult = job;
+    } else {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  } while (!jobResult && Date.now() - start < ttl);
+
+  if (jobResult) {
     events.write({
-      service: job.service,
+      service: jobResult.service,
       clusterId: owner.clusterId,
       jobId,
       type: "jobStatusRequest",
       meta: {
-        status: job.status,
-        resultType: job.resultType ?? undefined,
+        status: jobResult.status,
+        resultType: jobResult.resultType ?? undefined,
       },
     });
   }
 
   end();
-  return job;
+  return jobResult;
 };
 
 export const getJobStatuses = async ({

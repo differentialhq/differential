@@ -1,3 +1,5 @@
+import * as msgpackr from "msgpackr";
+import * as clusters from "./cluster";
 import { initServer } from "@ts-rest/fastify";
 import fs from "fs";
 import path from "path";
@@ -139,12 +141,12 @@ export const router = s.router(contract, {
 
     const { jobId } = request.params;
 
-    let job: Awaited<ReturnType<typeof jobs.getJobStatus>>;
+    let job: Awaited<ReturnType<typeof jobs.getJobStatusSync>>;
 
     const start = Date.now();
 
     do {
-      job = await jobs.getJobStatus({
+      job = await jobs.getJobStatusSync({
         jobId,
         owner,
       });
@@ -794,6 +796,115 @@ export const router = s.router(contract, {
     return {
       status: 200,
       body: undefined,
+    };
+  },
+  createOrUpdateClusterAccessPoint: async (request) => {
+    const access = await routingHelpers.validateManagementAccess({
+      authorization: request.headers.authorization,
+      clusterId: request.params.clusterId,
+    });
+
+    if (!access) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { clusterId } = request.params;
+
+    const token = await management.upsertAccessPointForCluster({
+      clusterId,
+      name: request.params.name,
+      allowedServices: request.body.allowedServices,
+    });
+
+    return {
+      status: 200,
+      body: token,
+    };
+  },
+  deleteClusterAccessPoint: async (request) => {
+    const access = await routingHelpers.validateManagementAccess({
+      authorization: request.headers.authorization,
+      clusterId: request.params.clusterId,
+    });
+
+    if (!access) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { clusterId, name } = request.params;
+
+    await management.deleteClusterAccessPoint({
+      clusterId,
+      name,
+    });
+
+    return {
+      status: 204,
+      body: undefined,
+    };
+  },
+  executeJobSync: async (request) => {
+    const { allowedServices } = await auth.accessPointServices({
+      clusterId: request.params.clusterId,
+      token: request.headers.authorization.split(" ")[1],
+    });
+
+    const { function: fn, args, service } = request.body;
+
+    if (!allowedServices.includes("*") && !allowedServices.includes(service)) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { cloudEnabled } = await clusters.operationalCluster(
+      request.params.clusterId,
+    );
+
+    const deployment = cloudEnabled
+      ? await findActiveDeployment(request.params.clusterId, service)
+      : null;
+
+    const { id } = await jobs.createJob({
+      service: service,
+      targetFn: fn,
+      targetArgs: msgpackr.pack(args).toString("base64"),
+      owner: { clusterId: request.params.clusterId },
+      deploymentId: deployment?.id,
+    });
+
+    const ttl = 20_000;
+
+    const jobResult = await jobs.getJobStatusSync({
+      jobId: id,
+      owner: { clusterId: request.params.clusterId },
+      ttl,
+    });
+
+    if (!jobResult || jobResult.resultType === null) {
+      return {
+        status: 500,
+        body: {
+          error: `Your function did not return a result within the time limit of ${ttl}ms`,
+        },
+      };
+    }
+
+    const { status, result, resultType } = jobResult;
+
+    return {
+      status: 200,
+      body: {
+        status,
+        result: result
+          ? JSON.stringify(msgpackr.unpack(Buffer.from(result, "base64")))
+          : null,
+        resultType,
+      },
     };
   },
 });
