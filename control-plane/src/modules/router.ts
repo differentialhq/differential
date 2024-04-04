@@ -6,7 +6,6 @@ import path from "path";
 import util from "util";
 import * as admin from "./admin";
 import { createAssetUploadWithTarget } from "./assets";
-import * as auth from "./auth";
 import { operationalCluster } from "./cluster";
 import { contract } from "./contract";
 import * as data from "./data";
@@ -43,7 +42,9 @@ const s = initServer();
 
 export const router = s.router(contract, {
   createJobsRequest: async (request) => {
-    const owner = await auth.jobOwnerHash(request.headers.authorization);
+    const owner = await routingHelpers.validateClusterTokenAccess(
+      request.headers.authorization,
+    );
 
     if (!owner) {
       return {
@@ -73,7 +74,9 @@ export const router = s.router(contract, {
     };
   },
   persistJobResult: async (request) => {
-    const owner = await auth.jobOwnerHash(request.headers.authorization);
+    const owner = await routingHelpers.validateClusterTokenAccess(
+      request.headers.authorization,
+    );
 
     if (!owner) {
       return {
@@ -100,7 +103,9 @@ export const router = s.router(contract, {
     };
   },
   createJob: async (request) => {
-    const owner = await auth.jobOwnerHash(request.headers.authorization);
+    const owner = await routingHelpers.validateClusterTokenAccess(
+      request.headers.authorization,
+    );
 
     if (!owner) {
       return {
@@ -131,7 +136,9 @@ export const router = s.router(contract, {
     };
   },
   getJobStatus: async (request) => {
-    const owner = await auth.jobOwnerHash(request.headers.authorization);
+    const owner = await routingHelpers.validateClusterTokenAccess(
+      request.headers.authorization,
+    );
 
     if (!owner) {
       return {
@@ -305,7 +312,9 @@ export const router = s.router(contract, {
     };
   },
   ingestClientEvents: async (request) => {
-    const owner = await auth.jobOwnerHash(request.headers.authorization);
+    const owner = await routingHelpers.validateClusterTokenAccess(
+      request.headers.authorization,
+    );
 
     if (!owner) {
       return {
@@ -521,7 +530,9 @@ export const router = s.router(contract, {
     };
   },
   getJobStatuses: async (request) => {
-    const owner = await auth.jobOwnerHash(request.headers.authorization);
+    const owner = await routingHelpers.validateClusterTokenAccess(
+      request.headers.authorization,
+    );
 
     if (!owner) {
       return {
@@ -645,7 +656,7 @@ export const router = s.router(contract, {
 
     const access = await routingHelpers.validateManagementAccess({
       authorization: request.headers.authorization,
-      clusterId: clusterId,
+      clusterId,
     });
     if (!access) {
       return {
@@ -654,7 +665,7 @@ export const router = s.router(contract, {
     }
 
     const versions = await clientLib.getClientLibraryVersions({
-      clusterId: clusterId,
+      clusterId,
     });
 
     if (versions.length === 0) {
@@ -695,7 +706,7 @@ export const router = s.router(contract, {
 
     const access = await routingHelpers.validateManagementAccess({
       authorization: request.headers.authorization,
-      clusterId: clusterId,
+      clusterId,
     });
 
     if (!access) {
@@ -705,7 +716,7 @@ export const router = s.router(contract, {
     }
 
     const library = await clientLib.getClientLibraryVersion({
-      clusterId: clusterId,
+      clusterId,
       version,
     });
 
@@ -848,10 +859,11 @@ export const router = s.router(contract, {
     };
   },
   executeJobSync: async (request) => {
-    const { allowedServices } = await auth.accessPointServices({
-      clusterId: request.params.clusterId,
-      token: request.headers.authorization.split(" ")[1],
-    });
+    const { allowedServices, clusterId } =
+      await routingHelpers.validateAccessPointOrClusterTokenAccess(
+        request.headers.authorization,
+        request.params.clusterId,
+      );
 
     const { function: fn, args, service } = request.body;
 
@@ -861,19 +873,17 @@ export const router = s.router(contract, {
       };
     }
 
-    const { cloudEnabled } = await clusters.operationalCluster(
-      request.params.clusterId,
-    );
+    const { cloudEnabled } = await clusters.operationalCluster(clusterId);
 
     const deployment = cloudEnabled
-      ? await findActiveDeployment(request.params.clusterId, service)
+      ? await findActiveDeployment(clusterId, service)
       : null;
 
     const { id } = await jobs.createJob({
       service: service,
       targetFn: fn,
       targetArgs: msgpackr.pack(args).toString("base64"),
-      owner: { clusterId: request.params.clusterId },
+      owner: { clusterId },
       deploymentId: deployment?.id,
     });
 
@@ -881,7 +891,7 @@ export const router = s.router(contract, {
 
     const jobResult = await jobs.getJobStatusSync({
       jobId: id,
-      owner: { clusterId: request.params.clusterId },
+      owner: { clusterId },
       ttl,
     });
 
