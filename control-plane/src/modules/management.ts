@@ -269,8 +269,6 @@ export const getClusterSettings = async (clusterId: string) => {
   return settings;
 };
 
-export const ACCESS_POINT_TOKEN_PREFIX = "sk_ap_";
-
 export const upsertAccessPointForCluster = async ({
   clusterId,
   name,
@@ -280,7 +278,7 @@ export const upsertAccessPointForCluster = async ({
   name: string;
   allowedServices: string;
 }) => {
-  const token = `${ACCESS_POINT_TOKEN_PREFIX}${crypto.randomBytes(16).toString("hex")}`;
+  const token = `sk_ap_${crypto.randomBytes(16).toString("hex")}`;
 
   const [accessPoint] = await data.db
     .insert(data.clusterAccessPoints)
