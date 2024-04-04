@@ -3,7 +3,10 @@ import * as management from "./management";
 import { and, eq } from "drizzle-orm";
 import * as data from "./data";
 import Cache from "node-cache";
-import * as errors from "../utilities/errors";
+
+const tokenFromHeader = (authorization: string): string => {
+  return authorization?.split(" ")[1] || "";
+};
 
 const cache = new Cache({ stdTTL: 60, checkperiod: 10, maxKeys: 1000 });
 
@@ -32,7 +35,7 @@ export const validateManagementAccess = async ({
     return false;
   }
 
-  const managementToken = authorization.split(" ")[1];
+  const managementToken = tokenFromHeader(authorization);
 
   try {
     const clusterAccess = await management.hasAccessToCluster({
@@ -58,7 +61,7 @@ export const validateAccessPointAccess = async ({
   allowedServices: string[];
   name: string;
 }> => {
-  const secret = authorization.split(" ")[1];
+  const secret = tokenFromHeader(authorization);
 
   const cached = cache.get<{
     allowedServices: string[];
@@ -114,7 +117,7 @@ export const validateClusterTokenAccess = async (
   clusterId: string;
   cloudEnabled: boolean | null;
 } | null> => {
-  const secret = authorization.split(" ")[1];
+  const secret = tokenFromHeader(authorization);
 
   const cached = cache.get<{
     organizationId: string | null;
