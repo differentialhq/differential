@@ -194,8 +194,8 @@ export default async function Page({
               </p>
               <p>
                 This curl will interact with the service you just ran. Normally,
-                you'll build a client with d.client(). But this is a quick way
-                to test your cluster.
+                you&apos;ll build a client with d.client(). But this is a quick
+                way to test your cluster.
               </p>
               <p>
                 Monitor your cluster{" "}
