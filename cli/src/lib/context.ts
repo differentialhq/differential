@@ -1,44 +1,67 @@
-import os from "os";
 import path from "path";
 import fs from "fs";
+import { DEFAULT_CLI_CONTEXT } from "../constants";
 
 export type CliContext = {
   apiUrl: string;
   consoleUrl: string;
+  npmRegistryUrl: string;
   cluster?: string;
   service?: string;
+  deployment?: string;
 };
 
-const BASE_CONTEXT_PATH = path.join(os.homedir(), ".differential");
+let CURRENT_CONTEXT = "default";
 
-export const saveContext = (inputContext: CliContext, name: string) => {
-  const contextPath = path.join(BASE_CONTEXT_PATH, `context.${name}`);
-  const dir = path.dirname(contextPath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
+export const setCurrentContext = ({ context }: { context: string }) => {
+  console.log(`Running with configuration context: ${context}`);
+  CURRENT_CONTEXT = context;
+};
 
+export const getCurrentContext = () => {
+  return CURRENT_CONTEXT;
+};
+
+export const saveContext = (
+  inputContext: Partial<CliContext>,
+  name?: string,
+) => {
   const updatedContext = {
     ...readContext(name),
     ...inputContext,
   };
 
-  fs.writeFileSync(contextPath, JSON.stringify(updatedContext));
+  fs.writeFileSync(getContextPath(name), JSON.stringify(updatedContext));
 };
 
-export const readContext = (name: string) => {
-  const contextPath = path.join(BASE_CONTEXT_PATH, `context.${name}`);
-  if (fs.existsSync(contextPath)) {
-    const file = fs.readFileSync(contextPath, { encoding: "utf-8" });
-    // TODO: Replace with zod parsing
-    return JSON.parse(file) as CliContext;
+// Loads the context specified or the "default" context if not.
+export const readContext = (name?: string): CliContext => {
+  let context = DEFAULT_CLI_CONTEXT;
+
+  // Load the default context for merging
+  if (name) {
+    context = readContext();
   }
-  return {};
+
+  const contextFile = getContextPath(name);
+  if (fs.existsSync(contextFile)) {
+    const file = fs.readFileSync(contextFile, { encoding: "utf-8" });
+    // Merge default context
+    context = {
+      ...context,
+      ...JSON.parse(file),
+    };
+  }
+  return context;
 };
 
-export const switchContext = (name: string) => {
-  const contextPath = path.join(BASE_CONTEXT_PATH, `context.${name}`);
-  const currentLink = path.join(BASE_CONTEXT_PATH, `context.current`);
-  fs.rmSync(currentLink, { force: true });
-  fs.symlinkSync(contextPath, currentLink);
+export const readCurrentContext = () => {
+  return readContext(getCurrentContext());
+};
+
+const getContextPath = (name: string = "default") => {
+  return path.join(
+    process.cwd(),
+    name === "default" ? "differential.json" : `differential.${name}.json`,
+  );
 };

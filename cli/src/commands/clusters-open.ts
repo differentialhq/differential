@@ -1,6 +1,6 @@
 import { CommandModule } from "yargs";
 import { openBrowser, selectCluster } from "../utils";
-import { CONSOLE_URL } from "../constants";
+import { readCurrentContext } from "../lib/context";
 
 interface ClusterOpenArgs {
   cluster?: string;
@@ -23,6 +23,8 @@ export const ClusterOpen: CommandModule<{}, ClusterOpenArgs> = {
       }
     }
 
-    openBrowser(`${CONSOLE_URL}/clusters/${cluster}/overview`);
+    openBrowser(
+      `${readCurrentContext().npmRegistryUrl}/clusters/${cluster}/overview`,
+    );
   },
 };
