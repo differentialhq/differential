@@ -51,9 +51,9 @@ npx tsx index.ts`
 
 const curl = (clusterId: string, apiSecret: string) =>
   `# set a value
-curl -v http://localhost:4000/clusters/${clusterId}/execute \n\t --header "Authorization: Bearer ${apiSecret}" \n\t --header "Content-Type: application/json" \n\t --data '{ "service":"db", "function":"put", "args":["foo","bar"] }' \n\n
+curl https://api.differential.dev/clusters/${clusterId}/execute \n\t --header "Authorization: Bearer ${apiSecret}" \n\t --header "Content-Type: application/json" \n\t --data '{ "service":"db", "function":"put", "args":["foo","bar"] }' \n\n
 # get the value back
-curl -v http://localhost:4000/clusters/${clusterId}/execute \n\t --header "Authorization: Bearer ${apiSecret}" \n\t --header "Content-Type: application/json" \n\t --data '{ "service":"db", "function":"get", "args":["foo"] }'`;
+curl https://api.differential.dev/clusters/${clusterId}/execute \n\t --header "Authorization: Bearer ${apiSecret}" \n\t --header "Content-Type: application/json" \n\t --data '{ "service":"db", "function":"get", "args":["foo"] }'`;
 
 export default async function Page({
   params,
