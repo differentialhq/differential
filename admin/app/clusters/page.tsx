@@ -31,8 +31,12 @@ export default async function Page() {
 
   return (
     <section className="flex w-full h-full px-8 mt-8 mb-2 flex-col">
-      <div className="flex items-center space-x-4">
-        <h1 className="text-2xl">My Clusters</h1>
+      <div>
+        <h1 className="text-2xl mb-2">My Clusters</h1>
+        <p className="mb-4">
+          Clusters are groups of services that you connect together to create
+          more complex applications.
+        </p>
         <CreateClusterButton token={token} />
       </div>
       <div className="mt-8">
@@ -55,7 +59,9 @@ export default async function Page() {
                 className="mr-4 mb-4 w-96"
                 key={i}
               >
-                <Card>
+                <Card
+                  className={`bg-gradient-to-br from-gray-900 to-gray-950 hover:from-gray-800 hover:-mt-1`}
+                >
                   <CardHeader>
                     <CardTitle>{`${cluster.id.split("-")[1]}-${
                       cluster.id.split("-")[2]
