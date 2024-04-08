@@ -28,11 +28,11 @@ These include:
 The `differential deploy` command contains subcommands for the management of Differential Cloud deployments.
 These include:
 
-- `differential deploy` create Create a new Differential service deployment
-- `differential deploy` list List Differential cloud deployments [aliases: ls]
-- `differential deploy` info Display information about a Differential cloud
+- `differential deploy create` Create a new Differential service deployment
+- `differential deploy list` List Differential cloud deployments [aliases: ls]
+- `differential deploy info` Display information about a Differential cloud
   deployment
-- `differential deploy` logs Retrieve logs for a service deployment
+- `differential deploy logs` Retrieve logs for a service deployment
 
 ### Read Evaluate Print Loop (REPL)
 
@@ -48,7 +48,7 @@ Context allows you to persist options which can be omitted from future use of th
 
 Context values are set with `differential context set`.
 
-The following set a `cluster` value in the context:
+The following command will set a `cluster` value in the context:
 
 ```
 differential context set --cluster=my-favourite-cluster
@@ -70,5 +70,5 @@ This can be useful when working across multiple clusters, for example different 
 To use a named context, provide the `--context` option with your command:
 
 ```
-differential --cluster=my-test-cluster repl
+differential -context-=staging repl
 ```
