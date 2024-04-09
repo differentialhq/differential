@@ -1,10 +1,10 @@
-# On-demand Compute (BETA)
+# Managed Compute (BETA)
 
-> On-demand compute is currently in private beta. To gain early access, please sign up for the waitlist [here](https://forms.fillout.com/t/9M1VhL8Wxyus).
+> Managed compute is currently in private beta. To gain early access, please reach out [here](mailto:hello@differential.dev)
 
 Status: **BETA**
 
-On-demand compute is Differential's managed compute offering that runs your Differential services on-demand.
+Managed compute is Differential's hosted compute offering that runs your Differential services.
 
 The control-plane has the knowledge of how many function calls are being made and how frequently, it can use this information to spin up a service on-demand and scale it down when it's not being used.
 
@@ -18,7 +18,7 @@ Differential deployments are run on AWS Lambda and the [same considerations appl
 
 ## Limitations
 
-> During the beta period, Differential on-demand compute will place some limitation on services, these will be removed / configurable in the future.
+> During the beta period, Differential managed compute will place some limitation on services, these will be removed / configurable in the future.
 
 - Differential deployed services run in an x86 environment with a total of 128mb of memory available.
 - Individual services are limited to 10 concurrent instances (each instance will handle multiple jobs, but this is the upper limit on concurrent execution environments).
