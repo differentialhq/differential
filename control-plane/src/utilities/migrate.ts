@@ -4,6 +4,10 @@ import * as data from "../modules/data";
 import { logger } from "./logger";
 
 (async function runMigrations() {
+  if (process.env.CI) {
+    logger.info("CI detected, skipping database migration");
+    return;
+  }
   logger.info("Migrating database...");
 
   try {
