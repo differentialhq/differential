@@ -1,4 +1,4 @@
-import { CommandModule } from "yargs";
+import { CommandModule, showHelp } from "yargs";
 import { DeployCreate } from "./deploy-create";
 import { DeployInfo } from "./deploy-info";
 import { DeployList } from "./deploy-list";
@@ -14,5 +14,7 @@ export const Deploy: CommandModule = {
       .command(DeployList)
       .command(DeployInfo)
       .command(DeployLogs),
-  handler: DeployCreate.handler,
+  handler: async () => {
+    showHelp();
+  },
 };
