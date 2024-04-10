@@ -6,7 +6,7 @@ import { ClusterInfo } from "./clusters-info";
 
 export const Clusters: CommandModule = {
   command: "clusters",
-  aliases: ["c"],
+  aliases: ["cluster", "c"],
   describe: "Manage Differential clusters",
   builder: (yargs) =>
     yargs

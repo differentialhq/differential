@@ -6,7 +6,7 @@ import { DeployLogs } from "./deploy-logs";
 
 export const Deploy: CommandModule = {
   command: "deployments",
-  aliases: ["deploy", "d"],
+  aliases: ["deployment", "deploy", "d"],
   describe: "Manage Differential cloud deployments",
   builder: (yargs) =>
     yargs

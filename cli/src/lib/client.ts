@@ -2,10 +2,10 @@ import { initClient, tsRestFetchApi } from "@ts-rest/core";
 import { contract } from "../client/contract";
 
 import { getToken } from "../lib/auth";
-import { API_URL } from "../constants";
+import { readCurrentContext } from "./context";
 
 export const client = initClient(contract, {
-  baseUrl: API_URL,
+  baseUrl: readCurrentContext().apiUrl,
   baseHeaders: {
     authorization: `Bearer ${getToken()}`,
   },

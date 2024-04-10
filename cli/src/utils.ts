@@ -1,6 +1,7 @@
 import { exec } from "child_process";
 import { client } from "./lib/client";
 import { select, input } from "@inquirer/prompts";
+import { getCurrentContext, readCurrentContext } from "./lib/context";
 
 export const openBrowser = async (url: string) => {
   if (process.platform === "darwin") {
@@ -13,6 +14,12 @@ export const openBrowser = async (url: string) => {
 };
 
 export const selectCluster = async (): Promise<string | undefined> => {
+  const context = readCurrentContext();
+  if (context.cluster) {
+    console.log(`Using cluster ${context.cluster} from context`);
+    return context.cluster;
+  }
+
   const d = await client.getClustersForUser();
   if (d.status === 401) {
     console.log(
@@ -41,6 +48,12 @@ export const selectService = async (
   clusterId: string,
   allowCreate = false,
 ): Promise<string | undefined> => {
+  const context = readCurrentContext();
+  if (context.service) {
+    console.log(`Using service ${context.service} from context`);
+    return context.service;
+  }
+
   const d = await client.getClusterDetailsForUser({
     params: { clusterId },
   });
@@ -103,6 +116,11 @@ export const selectDeployment = async (
       serviceName,
     },
   });
+  const context = readCurrentContext();
+  if (context.deployment) {
+    console.log(`Using deployment ${context.deployment} from context`);
+    return context.deployment;
+  }
   if (d.status !== 200) {
     console.error(`Failed to get deployments: ${d.status}`);
     return;

@@ -4,13 +4,10 @@ import fs from "fs";
 
 import http from "http";
 import { openBrowser } from "../utils";
-import {
-  CONSOLE_URL,
-  CLIENT_PACKAGE_SCOPE,
-  NPM_REGISTRY_URL,
-} from "../constants";
+import { CLIENT_PACKAGE_SCOPE } from "../constants";
 import * as childProcess from "child_process";
 import { client } from "./client";
+import { readCurrentContext } from "./context";
 
 const TOKEN_PATH = path.join(os.homedir(), ".differential", "credentials");
 const CLOUD_WAITLIST_URL = "https://forms.fillout.com/t/9M1VhL8Wxyus";
@@ -41,13 +38,11 @@ export const storeToken = (token: string) => {
 };
 
 const refreshNpmToken = async () => {
+  const registryUrl = readCurrentContext().npmRegistryUrl;
   const token = getToken();
   if (token) {
-    setNpmConfig(`${CLIENT_PACKAGE_SCOPE}:registry`, NPM_REGISTRY_URL);
-    setNpmConfig(
-      `${NPM_REGISTRY_URL.replace(/^http(s?):/, "")}:_authToken`,
-      token,
-    );
+    setNpmConfig(`${CLIENT_PACKAGE_SCOPE}:registry`, registryUrl);
+    setNpmConfig(`${registryUrl.replace(/^http(s?):/, "")}:_authToken`, token);
   }
 };
 
@@ -62,9 +57,9 @@ export const getToken = () => {
   return null;
 };
 
-const AUTH_URL = `${CONSOLE_URL}/cli-auth`;
 export const startTokenFlow = () => {
-  openBrowser(AUTH_URL);
+  const authUrl = `${readCurrentContext().consoleUrl}/cli-auth`;
+  openBrowser(authUrl);
 
   console.log("Listening at port 9999");
   const server = http

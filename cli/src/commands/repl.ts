@@ -71,7 +71,7 @@ export const Repl: CommandModule<{}, ReplArgs> = {
 
       const replServer = repl.start("> ");
 
-      replServer.context.d = require("@differentialhq/core").Differential(
+      replServer.context.d = new (require("@differentialhq/core").Differential)(
         apiSecret,
       );
       for (const service of project.serviceRegistrations.keys()) {
