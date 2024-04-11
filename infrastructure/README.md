@@ -1,7 +1,6 @@
 # Differential Infrastructure
 
 This directory provides infrastructure as code definitions for additional infrastructure resources used by Differential.
-For more details on self-hosing, please see [our guide](https://docs.differential.dev/advanced/self-hosting).
 
 ## AWS CloudFormation
 

@@ -14,10 +14,6 @@ This repo contains the source code for the Differential control plane. Control p
 
 See the [Documentation](https://docs.differential.dev) for more information.
 
-## How do I self-host?
-
-You can self-host the Differential control-plane using your own compute, as long as you can run a Docker container. Differential only requires a postgres database for persistence. See the detailed guide to self-hosting using fly.io [here](https://docs.differential.dev/advanced/self-hosting).
-
 ## Contributing
 
 We welcome contributions to Differential! Please see the [Contributing Guide](../CONTRIBUTING.md) for more information.

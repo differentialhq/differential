@@ -28,10 +28,7 @@ Differential is an open-source application code aware service mesh (control-plan
 ```ts
 import { Differential } from "@differentialhq/core";
 
-// You can get a token from
-// - curl https://api.differential.dev/demo/token
-// - self-hosting the control-plane: https://docs.differential.dev/advanced/self-hosting/
-// - or by signing up for Differential Cloud: https://forms.fillout.com/t/9M1VhL8Wxyus
+// You can get a token from console.differential.dev
 const d = new Differential("MY_API_SECRET");
 
 // Write your business logic as if it were local
@@ -82,8 +79,7 @@ client.get("https://api.differential.dev/live").then(console.log); // { status: 
 ## How can I get started?
 
 1. [Build your first end-to-end Differential service in 2 minutes](https://docs.differential.dev/getting-started/quick-start/)
-2. [Sign up for Differential Cloud](https://forms.fillout.com/t/9M1VhL8Wxyus) (managed version of Differential)
-3. [Self-host Differential yourself](https://docs.differential.dev/advanced/self-hosting/)
+2. [Sign up for Differential Cloud](https://console.differential.dev) (managed version of Differential)
 
 ## More Documentation
 
@@ -92,13 +88,6 @@ All documentation is hosted at [docs.differential.dev](https://docs.differential
 - [Thinking in Differential](https://docs.differential.dev/getting-started/thinking/)
 - [How it works under the hood](https://docs.differential.dev/advanced/how-things-work/architecture/)
 - [Customizing Function Call Behavior](https://docs.differential.dev/getting-started/customizing-function-calls/)
-
-# Differential Cloud
-
-Differential Cloud is a managed version of Differential. It is currently in beta. You can sign up for the waitlist [here](https://forms.fillout.com/t/9M1VhL8Wxyus).
-
-![](assets/differential-cloud.gif)
-![](assets/differential-cloud-2.png)
 
 # About this repo
 
