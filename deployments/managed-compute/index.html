@@ -3,38 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.765762853616">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.766190836094">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
 
     <!-- Primary Meta Tags -->
-    <title>On-demand Compute</title>
-    <meta name="title" content="On-demand Compute">
-    <meta name="description" content="Status: In Development">
+    <title>Managed Compute (BETA)</title>
+    <meta name="title" content="Managed Compute (BETA)">
+    <meta name="description" content="Managed compute is currently in private beta. To gain early access, please reach out here">
 
     <!-- Canonical -->
-    <link rel="canonical" href="https://docs.differential.dev/advanced/deployments/on-demand-compute/">
+    <link rel="canonical" href="https://docs.differential.dev/deployments/managed-compute/">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://docs.differential.dev/advanced/deployments/on-demand-compute/">
-    <meta property="og:title" content="On-demand Compute">
-    <meta property="og:description" content="Status: In Development">
+    <meta property="og:url" content="https://docs.differential.dev/deployments/managed-compute/">
+    <meta property="og:title" content="Managed Compute (BETA)">
+    <meta property="og:description" content="Managed compute is currently in private beta. To gain early access, please reach out here">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://docs.differential.dev/advanced/deployments/on-demand-compute/">
-    <meta property="twitter:title" content="On-demand Compute">
-    <meta property="twitter:description" content="Status: In Development">
+    <meta property="twitter:url" content="https://docs.differential.dev/deployments/managed-compute/">
+    <meta property="twitter:title" content="Managed Compute (BETA)">
+    <meta property="twitter:description" content="Managed compute is currently in private beta. To gain early access, please reach out here">
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../../../resources/css/retype.css?v=3.5.0.765762853616" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.766190836094" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.765762853616" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.765762853616" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.766190836094" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.766190836094" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.766190836094" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -54,10 +55,10 @@
                 <!-- Logo -->
                 <div class="flex items-center justify-between h-full py-2 md:w-75">
                     <div class="flex items-center px-2 md:px-6">
-                        <a id="docs-site-logo" href="../../../" class="flex items-center leading-snug text-xl">
+                        <a id="docs-site-logo" href="../../" class="flex items-center leading-snug text-xl">
                             <span class="w-10 mr-2 grow-0 shrink-0 overflow-hidden">
-                                <img class="max-h-10 dark:hidden md:inline-block" src="../../../256.png">
-                                <img class="max-h-10 hidden dark:inline-block" src="../../../256.png">
+                                <img class="max-h-10 dark:hidden md:inline-block" src="../../256.png">
+                                <img class="max-h-10 hidden dark:inline-block" src="../../256.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Differential Docs</span>
                         </a>
@@ -178,17 +179,110 @@
                                 <!-- Rendered if sidebar right is enabled -->
                                 <div id="docs-sidebar-right-toggle"></div>
                                 <!-- Page content  -->
-<doc-anchor-target id="on-demand-compute" class="break-words">
+<doc-anchor-target id="managed-compute-beta" class="break-words">
     <h1>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#on-demand-compute">#</doc-anchor-trigger>
-        <span>On-demand Compute</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#managed-compute-beta">#</doc-anchor-trigger>
+        <span>Managed Compute (BETA)</span>
     </h1>
 </doc-anchor-target>
-<p>Status: <strong>In Development</strong></p>
-<p>On-demand compute is Differential&#x27;s managed compute offering that runs your Differential services on-demand in a serverless setting.</p>
-<p>Since the control-plane has the knowledge of how many function calls are being made and how frequently, it can use this information to spin up the service on-demand and scale it down when it&#x27;s not being used.</p>
-<p>Because a single service session can execute multiple function calls, you don&#x27;t have to worry about the cold start time of the function. The service will be kept warm for a certain period of time after the last function call.</p>
-<p>On-demand compute is currently in development and will be available soon. To gain early access, please sign up for the waitlist <a href="https://forms.fillout.com/t/9M1VhL8Wxyus">here</a>.</p>
+<blockquote>
+<p>Managed compute is currently in private beta. To gain early access, please reach out <a href="mailto:hello@differential.dev">here</a></p>
+</blockquote>
+<p>Status: <strong>BETA</strong></p>
+<p>Managed compute is Differential&#x27;s hosted compute offering that runs your Differential services.</p>
+<p>The control-plane has the knowledge of how many function calls are being made and how frequently, it can use this information to spin up a service on-demand and scale it down when it&#x27;s not being used.</p>
+<p>Differential will provision additional instances of your service as the backlog of pending jobs increases.</p>
+<p>A single service session is used to execute multiple function calls, reducing the frequency of cold starts and services are kept warm for a period of time after each function call is handled.</p>
+<doc-anchor-target id="programming-model">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#programming-model">#</doc-anchor-trigger>
+        <span>Programming model</span>
+    </h2>
+</doc-anchor-target>
+<p>Differential deployments are run on AWS Lambda and the <a href="https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html">same considerations apply</a> with the exception that the same invocation will be used for handling multiple jobs.</p>
+<doc-anchor-target id="limitations">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#limitations">#</doc-anchor-trigger>
+        <span>Limitations</span>
+    </h2>
+</doc-anchor-target>
+<blockquote>
+<p>During the beta period, Differential managed compute will place some limitation on services, these will be removed / configurable in the future.</p>
+</blockquote>
+<ul>
+<li>Differential deployed services run in an x86 environment with a total of 128mb of memory available.</li>
+<li>Individual services are limited to 10 concurrent instances (each instance will handle multiple jobs, but this is the upper limit on concurrent execution environments).</li>
+<li>The total allotted execution time is 60 seconds, jobs longer than this will <em>not</em> complete successfully.</li>
+</ul>
+<doc-anchor-target id="create-a-deployment">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#create-a-deployment">#</doc-anchor-trigger>
+        <span>Create a deployment</span>
+    </h2>
+</doc-anchor-target>
+<p>Differential deployments are created with the <code v-pre>differential deploy create</code> command (See the <a href="https://github.com/differentialhq/differential/blob/main/cli/README.md">CLI readme</a> for more details).</p>
+<p>If options (service, cluster) are not provided explicitly, the CLI will prompt for these based on the eligible services in the project&#x27;s source code.</p>
+<doc-anchor-target id="entry-point">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#entry-point">#</doc-anchor-trigger>
+        <span>Entry point</span>
+    </h3>
+</doc-anchor-target>
+<p>By default, the <code v-pre>main</code> key specified in the project&#x27;s <code v-pre>package.json</code> will be used as the compilation entry point.</p>
+<p>To be eligible for deployment, A service must be either:</p>
+<ul>
+<li>exported by the entry point</li>
+<li>imported by the entry point, directly or indirectly</li>
+</ul>
+<p>You can specify an explicit entry point with <code v-pre>--entrypoint</code>.</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-bash"><code v-pre class="language-bash"># Will search the project for all available services, based on `package.json#main`
+differential deploy create
+
+# Explit entry point
+differential deploy create --entrypoint=&quot;./src/my-target-service.ts`</code></pre>
+</doc-codeblock></div>
+<doc-anchor-target id="project-building-and-module-exports">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#project-building-and-module-exports">#</doc-anchor-trigger>
+        <span>Project building and module exports</span>
+    </h3>
+</doc-anchor-target>
+<p>When creating a deployment, differential will build your project with <code v-pre>tsc</code>.</p>
+<p>Differential will evaluate your project&#x27;s source code, finding all services available for deployment.</p>
+<blockquote>
+<p>Currently, only <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export">default ES module exports</a> are evaluated.</p>
+</blockquote>
+<p>For example, the following service definition would be considered for deployment:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-typescript"><code v-pre class="language-typescript">export default d.service({
+  name: &quot;hello&quot;,
+  functions: {
+    hello,
+  },
+});</code></pre>
+</doc-codeblock></div>
+<doc-anchor-target id="view-deployment-logs">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#view-deployment-logs">#</doc-anchor-trigger>
+        <span>View deployment logs</span>
+    </h2>
+</doc-anchor-target>
+<p>Any <code v-pre>stdout</code> / <code v-pre>stderr</code> produced by a deployment is persisted and can be viewed with the <code v-pre>differential deploy logs</code> command.
+Logs are limited to the last 1000 events.</p>
+<doc-anchor-target id="log-filtering">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#log-filtering">#</doc-anchor-trigger>
+        <span>Log filtering</span>
+    </h3>
+</doc-anchor-target>
+<p>Logs can be filtered based on a pattern with the <code v-pre>--filter</code> option.</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-bash"><code v-pre class="language-bash">differential logs --filter=&quot;ERROR&quot;
+
+# Logs can be exluded by prefixing the pattern with '-'
+differential logs --filter=&quot;-Responding to request&quot;</code></pre>
+</doc-codeblock></div>
 
                                 
                                 <!-- Required only on API pages -->
@@ -198,20 +292,20 @@
                             
                                 <nav class="flex mt-14">
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../advanced/calling-functions/arguments-and-return-values/">
+                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../advanced/self-hosting/">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                             <span>
                                                 <span class="block text-xs font-normal text-gray-400 dark:text-dark-400">Previous</span>
-                                                <span class="block mt-1">Argument and return values</span>
+                                                <span class="block mt-1">Self-​hosting</span>
                                             </span>
                                         </a>
                                     </div>
                             
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../advanced/handling-failures/how-functions-fail/">
+                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../api/">
                                             <span>
                                                 <span class="block text-xs font-normal text-right text-gray-400 dark:text-dark-400">Next</span>
-                                                <span class="block mt-1">How functions fail</span>
+                                                <span class="block mt-1">Typescript SDK</span>
                                             </span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                         </a>
@@ -255,6 +349,6 @@
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": "On-demand Compute", level: 3, icon: "file", hasPrism: false, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": "Managed Compute (BETA)", level: 2, icon: "file", hasPrism: true, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
 </body>
 </html>
