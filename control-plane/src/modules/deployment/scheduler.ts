@@ -3,10 +3,15 @@ import { registerCron } from "../cron";
 import * as data from "../data";
 import { getDeploymentProvider } from "./deployment-provider";
 import { ulid } from "ulid";
-import { getDeployment } from "./deployment";
+import {
+  Deployment,
+  getDeployment,
+  updateDeploymentResult,
+} from "./deployment";
 import { env } from "../../utilities/env";
 import * as events from "../observability/events";
 import { logger } from "../../utilities/logger";
+import { backgrounded } from "../util";
 
 const getJobBacklog = async () => {
   return await data.db
@@ -19,9 +24,10 @@ const getJobBacklog = async () => {
     .groupBy(data.jobs.deployment_id);
 };
 
-const getLastNotification = async (
+const getRecentNotifications = async (
   deploymentId: string,
-): Promise<{ created_at: Date } | null> => {
+  count: number = 1,
+): Promise<{ created_at: Date }[]> => {
   const notificationResult = await data.db
     .select({
       created_at: data.deploymentNotification.created_at,
@@ -29,28 +35,53 @@ const getLastNotification = async (
     .from(data.deploymentNotification)
     .where(eq(data.deploymentNotification.deployment_id, deploymentId))
     .orderBy(desc(data.deploymentNotification.created_at))
-    .limit(1);
+    .limit(count);
 
-  return notificationResult[0];
+  return notificationResult;
 };
 
 const getMachineCount = async (
   deploymentId: string,
-  lastPingAfter: Date,
+  lastPingAfter?: Date,
 ): Promise<number> => {
+  const where = lastPingAfter
+    ? and(
+        eq(data.machines.deployment_id, deploymentId),
+        gt(data.machines.last_ping_at, lastPingAfter),
+      )
+    : eq(data.machines.deployment_id, deploymentId);
+
   const machines = await data.db
     .select({
       count: sql<number>`count(${data.machines.id})`,
     })
     .from(data.machines)
-    .where(
-      and(
-        eq(data.machines.deployment_id, deploymentId),
-        gt(data.machines.last_ping_at, lastPingAfter),
-      ),
-    );
+    .where(where);
 
   return machines[0].count ?? 0;
+};
+
+const stalledDeploymentCheck = async (deployment: Deployment) => {
+  // Check if we have ever receved a ping from a machine for this deployment
+  const allMachines = await getMachineCount(deployment.id);
+  if (allMachines > 0) {
+    return;
+  }
+
+  logger.warn("Marking deployment stalled", {
+    deploymentId: deployment.id,
+    service: deployment.service,
+    clusterId: deployment.clusterId,
+  });
+
+  await updateDeploymentResult(deployment, "failed");
+
+  events.write({
+    type: "deploymentStalled",
+    deploymentId: deployment.id,
+    service: deployment.service,
+    clusterId: deployment.clusterId,
+  });
 };
 
 // Scheduled job which checks for pending jobs and notifies the deployment providers.
@@ -71,17 +102,29 @@ export const start = async () => {
           continue;
         }
 
+        if (deployment.status == "failed") {
+          logger.info("Skipping notification, deployment has failed", {
+            deploymentId: deployment.id,
+            service: deployment.service,
+            clusterId: deployment.clusterId,
+          });
+          continue;
+        }
+
         const provider = getDeploymentProvider(deployment.provider);
         if (!provider) {
           continue;
         }
 
-        const lastNotification = await getLastNotification(deployment.id);
+        const recentNotifications = await getRecentNotifications(
+          deployment.id,
+          10,
+        );
 
-        if (lastNotification) {
+        if (recentNotifications.length > 0) {
           // Check if the last notification was within the minimum interval
           const notificationInterval =
-            Date.now() - lastNotification?.created_at.getTime();
+            Date.now() - recentNotifications[0]?.created_at.getTime();
           if (notificationInterval < provider.minimumNotificationInterval()) {
             continue;
           }
@@ -91,6 +134,10 @@ export const start = async () => {
           deployment.id,
           new Date(Date.now() - provider.minimumNotificationInterval()),
         );
+
+        if (runningMachines == 0 && recentNotifications.length >= 10) {
+          stalledDeploymentCheck(deployment);
+        }
 
         await data.db.insert(data.deploymentNotification).values({
           id: ulid(),

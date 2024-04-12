@@ -27,6 +27,8 @@ const typeToText: { [key: string]: (activity: Activity) => string } = {
     }
     return `Deployment failed. Jobs will not be scheduled for execution on the new machine.`;
   },
+  deploymentStalled: () =>
+    `Deployment did not produce a healthy machine after multiple attempts.`,
   deploymentNotified: () =>
     `Deployment provider was notified of pending jobs and will scale appropriately.`,
   deploymentInactivated: () =>
