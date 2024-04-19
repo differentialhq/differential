@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.766190836094">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.766884248383">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -11,7 +11,7 @@
     <!-- Primary Meta Tags -->
     <title>Concepts</title>
     <meta name="title" content="Concepts">
-    <meta name="description" content="A collection of functions that can be called by a consumer using the differential client. Defined using the SDK.">
+    <meta name="description" content="A central book-keeping stateful service that keeps track of all the services that are running, and their health.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://docs.differential.dev/advanced/how-things-work/concepts/">
@@ -20,21 +20,22 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://docs.differential.dev/advanced/how-things-work/concepts/">
     <meta property="og:title" content="Concepts">
-    <meta property="og:description" content="A collection of functions that can be called by a consumer using the differential client. Defined using the SDK.">
+    <meta property="og:description" content="A central book-keeping stateful service that keeps track of all the services that are running, and their health.">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://docs.differential.dev/advanced/how-things-work/concepts/">
     <meta property="twitter:title" content="Concepts">
-    <meta property="twitter:description" content="A collection of functions that can be called by a consumer using the differential client. Defined using the SDK.">
+    <meta property="twitter:description" content="A central book-keeping stateful service that keeps track of all the services that are running, and their health.">
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../../../resources/css/retype.css?v=3.5.0.766190836094" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.5.0.766884248383" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.766190836094" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.5.0.766884248383" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.766190836094" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.5.0.766884248383" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.5.0.766884248383" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -184,6 +185,28 @@
         <span>Concepts</span>
     </h1>
 </doc-anchor-target>
+<doc-anchor-target id="control-plane">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#control-plane">#</doc-anchor-trigger>
+        <span>Control Plane</span>
+    </h2>
+</doc-anchor-target>
+<p>A central book-keeping stateful service that keeps track of all the services that are running, and their health. It acts as a service registry, and a service mesh. Backed by a database, and deployed with multiple replicas. The managed control plane that Differential runs can be accessed at <a href="https://console.differential.dev">https://console.differential.dev</a>.</p>
+<doc-anchor-target id="cluster">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#cluster">#</doc-anchor-trigger>
+        <span>Cluster</span>
+    </h2>
+</doc-anchor-target>
+<p>A collection of services and workers. All services and workers connect to the control plane via a cluster.</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-bash"><code v-pre class="language-bash">$ differential clusters create
+Cluster created successfully
+{
+  id: 'cluster-aged-paper-cb2142f716',
+  apiSecret: 'sk_my_super_secret'
+}</code></pre>
+</doc-codeblock></div>
 <doc-anchor-target id="service">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#service">#</doc-anchor-trigger>
@@ -191,27 +214,40 @@
     </h2>
 </doc-anchor-target>
 <p>A collection of functions that can be called by a consumer using the differential client. Defined using the SDK.</p>
-<doc-anchor-target id="host">
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-typescript"><code v-pre class="language-typescript">const d = new Differential(&quot;sk_my_super_secret&quot;);
+
+export const myService = d.service({
+  name: &quot;myService&quot;,
+  functions: async function echo(value: string) {
+    return value;
+  },
+});</code></pre>
+</doc-codeblock></div>
+<doc-anchor-target id="machine">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#host">#</doc-anchor-trigger>
-        <span>Host</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#machine">#</doc-anchor-trigger>
+        <span>Machine</span>
     </h2>
 </doc-anchor-target>
-<p>A computer that you operate and own, that runs your services.</p>
-<doc-anchor-target id="cluster">
+<p>A computer that runs one or more services. For a machine to identify itself with the control plane, at least one service must be started.</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-typescript"><code v-pre class="language-typescript">await myService.start();</code></pre>
+</doc-codeblock></div>
+<doc-anchor-target id="client">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#cluster">#</doc-anchor-trigger>
-        <span>Cluster</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#client">#</doc-anchor-trigger>
+        <span>Client</span>
     </h2>
 </doc-anchor-target>
-<p>A group services that are running on a host. An API key is required to join a cluster.</p>
-<doc-anchor-target id="control-plane">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#control-plane">#</doc-anchor-trigger>
-        <span>Control Plane</span>
-    </h2>
-</doc-anchor-target>
-<p>A central service that keeps track of all the services that are running, and their health. It acts as a service registry, and a service bus.</p>
+<p>A type-safe entrypoint to your services.</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-typescript"><code v-pre class="language-typescript">const d = new Differential(&quot;sk_my_super_secret&quot;);
+
+const client = d.client&lt;typeof myService&gt;(&quot;myService&quot;);
+
+await d.echo(&quot;hello&quot;); // hello</code></pre>
+</doc-codeblock></div>
 
                                 
                                 <!-- Required only on API pages -->
@@ -278,6 +314,6 @@
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": "Concepts", level: 3, icon: "file", hasPrism: false, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": "Concepts", level: 3, icon: "file", hasPrism: true, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
 </body>
 </html>

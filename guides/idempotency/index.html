@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.766190836094">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.5.0.766884248383">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.5.0">
@@ -30,12 +30,12 @@
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
-    <link href="../../resources/css/retype.css?v=3.5.0.766190836094" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.5.0.766884248383" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.766190836094" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.5.0.766884248383" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.5.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.766190836094" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.766190836094" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.5.0.766884248383" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.5.0.766884248383" defer></script>
 
     <script>
       !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.async = !0, p.src = s.api_host + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
@@ -186,12 +186,18 @@
     </h1>
 </doc-anchor-target>
 <p>Idempotency is a property of an operation that means the operation can be applied multiple times without changing the result beyond the initial application. In other words, making the same request multiple times has the same effect as making the request once.</p>
-<p>In the context of Differential, you can easily achive this by the combination of:</p>
+<p>In other words, you&#x27;d have to ensure:</p>
 <ol>
-<li>Retrying the function call if it gets rejected, which would allow you ensure at-least-once execution.</li>
-<li>Checking a unique identifier in the request to ensure that the operation is not applied multiple times.</li>
+<li>The intended operation is applied at least once.</li>
+<li>The intended operation is not applied multiple times.</li>
 </ol>
-<p>The following is an example of how you can implement idempotency:</p>
+<doc-anchor-target id="1-making-sure-the-intended-operation-is-applied-at-least-once">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#1-making-sure-the-intended-operation-is-applied-at-least-once">#</doc-anchor-trigger>
+        <span>1. Making sure the intended operation is applied at least once</span>
+    </h2>
+</doc-anchor-target>
+<p>Checking whether the operation is applied successfully is a concern of the developer - in the context of Differential. You can use the <a href="https://docs.differential.dev/advanced/calling-functions/customizing-function-calls/#retries">retry policy</a> to make sure your functions can recover from machines stalling.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-typescript"><code v-pre class="language-typescript">// service.ts
 async function chargeOrder(orderId: string, paymentMethod: PaymantMethod) {
@@ -216,27 +222,33 @@ export const orderService = d.service({
 });
 
 // client.ts
-let attempt = 0;
-
 function chargeOrder() {
-  try {
-    await orderService.chargeOrder(orderId, paymentMethod);
-  } catch (error) {
-    if (attempt &lt; 3) {
-      attempt++;
-      return chargeOrder(orderId, paymentMethod);
-    }
-    throw error;
-  }
+  await orderService.chargeOrder(orderId, paymentMethod, {
+    $d: {
+      retryCountOnStall: 1, // function will be tried on stalling
+    },
+  });
 }</code></pre>
 </doc-codeblock></div>
-<doc-anchor-target id="guarding-against-duplicate-requests-due-to-stalled-machine-retries">
+<doc-anchor-target id="preventing-duplicate-calls">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#guarding-against-duplicate-requests-due-to-stalled-machine-retries">#</doc-anchor-trigger>
-        <span>Guarding against duplicate requests due to stalled machine retries</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#preventing-duplicate-calls">#</doc-anchor-trigger>
+        <span>Preventing duplicate calls</span>
     </h2>
 </doc-anchor-target>
-<p>If a machine processing a request stalls, Differential will retry the request on another machine. This can lead to the same request being processed multiple times. To guard against this, you must use a unique identifier in the execution chain and check if the operation has already been applied explicitly.</p>
+<p>At the same time, it&#x27;s important to make sure that additional clients do not apply the same operation.</p>
+<p>For this purpose, you can use <a href="https://docs.differential.dev/advanced/calling-functions/customizing-function-calls/#execution-id"><code v-pre>$d.executionId</code></a> in the call config that will prevent additional callers from triggering multiple calls.</p>
+<p>Therefore, the function will look like:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-typescript"><code v-pre class="language-typescript">function chargeOrder() {
+  await orderService.chargeOrder(orderId, paymentMethod, {
+    $d: {
+      retryCountOnStall: 1, // function will be tried on stalling
+      executionId: orderId, // additional clients will not execute `chargeOrder` again for the same key
+    },
+  });
+}</code></pre>
+</doc-codeblock></div>
 
                                 
                                 <!-- Required only on API pages -->
