@@ -22,6 +22,7 @@ export const nextJobs = async ({
   ip,
   definition,
   ttl = 1_000,
+  types,
 }: {
   service: string;
   owner: { clusterId: string };
@@ -31,6 +32,7 @@ export const nextJobs = async ({
   ip: string;
   definition?: ServiceDefinition;
   ttl?: number;
+  types?: string;
 }) => {
   const start = Date.now();
   const end = jobDurations.startTimer({ operation: "nextJobs" });
@@ -48,7 +50,9 @@ export const nextJobs = async ({
 
   await Promise.all([
     storeMachineInfo(machineId, ip, owner, deploymentId),
-    definition ? storeServiceDefinition(service, definition, owner) : undefined,
+    definition
+      ? storeServiceDefinition(service, definition, owner, types)
+      : undefined,
   ]);
 
   do {

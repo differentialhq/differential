@@ -14,6 +14,7 @@ import { pack, unpack } from "./serialize";
 import { deserializeError, serializeError } from "./serialize-error";
 import { Result, TaskQueue } from "./task-queue";
 import { AsyncFunction } from "./types";
+import { inferTypes } from "./metadata";
 
 const log = debug("differential:client");
 
@@ -92,6 +93,7 @@ type PollingAgentOptions = {
   ttl?: number;
   maxIdleCycles?: number;
   exitHandler: () => void;
+  inferredTypes?: string;
 };
 
 class PollingAgent {
@@ -114,6 +116,7 @@ class PollingAgent {
   private ttl?: number;
   private maxIdleCycles?: number;
   private validateBeforeSerialization: boolean;
+  private inferredTypes?: string;
 
   constructor(options: PollingAgentOptions) {
     this.authHeader = options.authHeader;
@@ -129,6 +132,8 @@ class PollingAgent {
       deploymentId: options.deploymentId,
       clientAbortController: this.abortController,
     });
+
+    this.inferredTypes = options.inferredTypes;
   }
 
   private async pollForNextJob(): Promise<{
@@ -162,6 +167,7 @@ class PollingAgent {
           service: this.service.name,
           // TODO: send this conditionally, only when it has changed
           functions,
+          types: this.inferredTypes,
         },
         headers: {
           authorization: this.authHeader,
@@ -191,6 +197,9 @@ class PollingAgent {
         ok: false,
       };
     } else if (pollResult.status === 200) {
+      // remove inferred types, so that they are not sent again
+      this.inferredTypes = undefined;
+
       log("Received jobs", pollResult.body.length);
 
       this.pollState.current += pollResult.body.length;
@@ -545,6 +554,8 @@ export class Differential {
       });
     }
 
+    const inferredTypes = await inferTypes();
+
     const pollingAgent = new PollingAgent({
       endpoint: this.endpoint,
       machineId: this.machineId,
@@ -563,6 +574,7 @@ export class Differential {
         }
       },
       validateBeforeSerialization: this.validateBeforeSerialization,
+      inferredTypes,
     });
 
     this.pollingAgents.push(pollingAgent);

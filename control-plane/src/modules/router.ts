@@ -10,7 +10,6 @@ import { operationalCluster } from "./cluster";
 import { contract } from "./contract";
 import * as data from "./data";
 import {
-  Deployment,
   createDeployment,
   findActiveDeployment,
   getDeployment,
@@ -66,6 +65,7 @@ export const router = s.router(contract, {
         functions: request.body.functions,
       },
       ttl: request.body.ttl,
+      types: request.body.types,
     });
 
     return {

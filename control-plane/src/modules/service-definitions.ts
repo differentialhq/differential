@@ -35,6 +35,7 @@ export async function storeServiceDefinition(
   service: string,
   definition: ServiceDefinition,
   owner: { clusterId: string },
+  types?: string,
 ) {
   const definitionSha = crypto
     .createHash("sha256")
@@ -52,6 +53,7 @@ export async function storeServiceDefinition(
       service,
       definition,
       cluster_id: owner.clusterId,
+      types,
     })
     .onConflictDoUpdate({
       target: [data.services.service, data.services.cluster_id],
@@ -97,16 +99,4 @@ export const parseServiceDefinition = (
   }
 
   return input ? serviceDefinitionsSchema.parse(input) : [];
-};
-
-export const functionDefinition = async (
-  owner: { clusterId: string },
-  service: string,
-  targetFn: string,
-): Promise<ServiceDefinitionFunction | undefined> => {
-  const defs = await getServiceDefinitions(owner);
-
-  return defs
-    ?.find((def) => def.name === service)
-    ?.functions?.find((fn) => fn.name === targetFn);
 };

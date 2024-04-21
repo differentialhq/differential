@@ -16,10 +16,6 @@ import { Pool } from "pg";
 import { env } from "../utilities/env";
 import { logger } from "../utilities/logger";
 
-logger.info("Attempting database connection", {
-  sslDisabled: env.DATABASE_SSL_DISABLED,
-});
-
 export const pool = new Pool({
   connectionString: env.DATABASE_URL,
   ssl: env.DATABASE_SSL_DISABLED
@@ -150,6 +146,7 @@ export const services = pgTable(
     preferred_deployment_provider: text("preferred_deployment_provider", {
       enum: ["lambda", "mock"],
     }),
+    types: text("types"),
   },
   (table) => ({
     pk: primaryKey(table.cluster_id, table.service),
