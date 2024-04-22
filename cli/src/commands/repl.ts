@@ -7,6 +7,7 @@ import debug from "debug";
 import { cloudEnabledCheck } from "../lib/auth";
 import repl from "repl";
 import { client } from "../lib/client";
+import { readCurrentContext } from "../lib/context";
 
 const log = debug("differential:cli:repl");
 
@@ -73,6 +74,9 @@ export const Repl: CommandModule<{}, ReplArgs> = {
 
       replServer.context.d = new (require("@differentialhq/core").Differential)(
         apiSecret,
+        {
+          endpoint: readCurrentContext().apiUrl,
+        },
       );
       for (const service of project.serviceRegistrations.keys()) {
         replServer.context[service] = replServer.context.d.client(service);

@@ -20,6 +20,7 @@ export type EventTypes =
   | "predictorRetryableResult"
   | "predictorRecovered"
   | "deploymentInitiated"
+  | "deploymentStalled"
   | "deploymentInactivated"
   | "deploymentResulted"
   | "deploymentNotified";
