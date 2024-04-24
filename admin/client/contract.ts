@@ -423,22 +423,14 @@ export const definition = {
       authorization: z.string(),
     }),
     query: z.object({
-      status: z
-        .enum(["uploading", "active", "inactive", "failed", "cancelled"])
-        .optional(),
+      status: z.enum(["uploading", "active", "inactive", "failed"]).optional(),
       limit: z.coerce.number().min(1).max(100).default(10),
     }),
     responses: {
       200: z.array(
         z.object({
           id: z.string(),
-          status: z.enum([
-            "uploading",
-            "active",
-            "inactive",
-            "failed",
-            "cancelled",
-          ]),
+          status: z.enum(["uploading", "active", "inactive", "failed"]),
           clusterId: z.string(),
           service: z.string(),
           provider: z.string(),

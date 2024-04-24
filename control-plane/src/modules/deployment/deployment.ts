@@ -15,7 +15,7 @@ export type Deployment = {
   id: string;
   clusterId: string;
   service: string;
-  status: "uploading" | "active" | "inactive" | "failed" | "cancelled";
+  status: "uploading" | "active" | "inactive" | "failed";
   provider: string;
   assetUploadId?: string | null;
   createdAt: Date;
