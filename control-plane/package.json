@@ -9,8 +9,7 @@
     "migrations": "npx drizzle-kit generate:pg --schema src/modules/data.ts",
     "build": "tsc",
     "start": "node dist/utilities/migrate.js && node dist/index.js",
-    "deploy": "git add . && git commit -m 'update' && git push origin main && fly deploy",
-    "sync-contracts": "cp control-plane/src/contract.ts ts-core/src/contract.ts && cp control-plane/src/contract.ts ts-core/src/contract.ts && cp control-plane/src/contract.ts admin/src/contract.ts && cp control-plane/src/contract.ts cli/src/contract.ts"
+    "deploy": "git add . && git commit -m 'update' && git push origin main && fly deploy"
   },
   "author": "",
   "license": "ISC",

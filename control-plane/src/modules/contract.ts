@@ -29,7 +29,6 @@ export const definition = {
           }),
         )
         .optional(),
-      types: z.string().optional(),
     }),
     responses: {
       200: z.array(NextJobSchema),

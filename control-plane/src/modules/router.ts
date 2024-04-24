@@ -66,7 +66,6 @@ export const router = s.router(contract, {
         functions: request.body.functions,
       },
       ttl: request.body.ttl,
-      types: request.body.types,
     });
 
     return {

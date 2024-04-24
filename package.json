@@ -21,6 +21,7 @@
     "*.{js,css,md,ts,tsx}": "prettier --write"
   },
   "scripts": {
-    "prepare": "npx husky install"
+    "prepare": "npx husky install",
+    "sync-contracts": "cp control-plane/src/modules/contract.ts ts-core/src/contract.ts && cp control-plane/src/modules/contract.ts ts-core/src/contract.ts && cp control-plane/src/modules/contract.ts admin/client/contract.ts && cp control-plane/src/modules/contract.ts cli/src/contract.ts"
   }
 }
