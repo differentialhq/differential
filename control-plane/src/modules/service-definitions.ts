@@ -35,7 +35,6 @@ export async function storeServiceDefinition(
   service: string,
   definition: ServiceDefinition,
   owner: { clusterId: string },
-  types?: string,
 ) {
   const definitionSha = crypto
     .createHash("sha256")
@@ -53,7 +52,6 @@ export async function storeServiceDefinition(
       service,
       definition,
       cluster_id: owner.clusterId,
-      types,
     })
     .onConflictDoUpdate({
       target: [data.services.service, data.services.cluster_id],
