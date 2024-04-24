@@ -142,11 +142,11 @@ export const services = pgTable(
       .references(() => clusters.id)
       .notNull(),
     service: varchar("service", { length: 1024 }).notNull(),
-    definition: json("definition").notNull(),
+    definition: json("definition"), // this should be named the live definition
     preferred_deployment_provider: text("preferred_deployment_provider", {
       enum: ["lambda", "mock"],
     }),
-    types: text("types"),
+    json_schema: json("json_schema"),
   },
   (table) => ({
     pk: primaryKey(table.cluster_id, table.service),

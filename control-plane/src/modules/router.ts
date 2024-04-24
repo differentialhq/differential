@@ -16,6 +16,7 @@ import {
   getDeploymentLogs,
   getDeployments,
   releaseDeployment,
+  storeJsonSchema,
   updateDeploymentResult,
 } from "./deployment/deployment";
 import { getDeploymentProvider } from "./deployment/deployment-provider";
@@ -398,26 +399,28 @@ export const router = s.router(contract, {
       body: deployment,
     };
   },
-  getDeployment: async (request) => {
+  storeJsonSchema: async (request) => {
     const access = await routingHelpers.validateManagementRequest(request);
+
     if (!access) {
       return {
         status: 401,
       };
     }
 
-    const { clusterId, deploymentId } = request.params;
-    const deployment = await getDeployment(deploymentId);
+    const { clusterId, serviceName } = request.params;
 
-    if (!deployment || deployment.clusterId !== clusterId) {
-      return {
-        status: 404,
-      };
-    }
+    const { jsonSchema } = request.body;
+
+    await storeJsonSchema({
+      clusterId,
+      serviceName,
+      jsonSchema,
+    });
 
     return {
-      status: 200,
-      body: deployment,
+      status: 204,
+      body: undefined,
     };
   },
   getDeployments: async (request) => {

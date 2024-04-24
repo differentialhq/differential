@@ -417,32 +417,6 @@ export const definition = {
       }),
     },
   },
-  getDeployment: {
-    method: "GET",
-    path: "/clusters/:clusterId/service/:serviceName/deployments/:deploymentId",
-    headers: z.object({
-      authorization: z.string(),
-    }),
-    body: z.undefined(),
-    responses: {
-      401: z.undefined(),
-      404: z.undefined(),
-      200: z.object({
-        id: z.string(),
-        status: z.enum([
-          "uploading",
-          "active",
-          "inactive",
-          "failed",
-          "cancelled",
-        ]),
-        clusterId: z.string(),
-        service: z.string(),
-        provider: z.string(),
-        createdAt: z.date(),
-      }),
-    },
-  },
   getDeployments: {
     method: "GET",
     path: "/clusters/:clusterId/service/:serviceName/deployments",
@@ -711,6 +685,20 @@ export const definition = {
       500: z.object({
         error: z.string(),
       }),
+    },
+  },
+  storeJsonSchema: {
+    method: "PUT",
+    path: "/clusters/:clusterId/service/:serviceName/schema",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      jsonSchema: z.any(),
+    }),
+    responses: {
+      204: z.undefined(),
+      401: z.undefined(),
     },
   },
 } as const;
