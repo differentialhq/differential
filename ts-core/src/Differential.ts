@@ -14,7 +14,6 @@ import { pack, unpack } from "./serialize";
 import { deserializeError, serializeError } from "./serialize-error";
 import { Result, TaskQueue } from "./task-queue";
 import { AsyncFunction } from "./types";
-import { inferTypes } from "./metadata";
 
 const log = debug("differential:client");
 
