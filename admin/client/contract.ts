@@ -50,8 +50,22 @@ export const definition = {
     body: z.object({
       targetFn: z.string(),
       targetArgs: z.string(),
-      service: z.string().default("unknown"),
-      cacheKey: z.string().optional(),
+      service: z.string(),
+      callConfig: z
+        .object({
+          cache: z
+            .object({
+              key: z.string(),
+              ttlSeconds: z.number(),
+            })
+            .optional(),
+          retryCountOnStall: z.number(),
+          predictiveRetriesOnRejection: z.boolean(),
+          timeoutSeconds: z.number(),
+          executionId: z.string().optional(),
+          background: z.boolean().default(false),
+        })
+        .optional(),
     }),
   },
   getJobStatus: {
@@ -402,26 +416,6 @@ export const definition = {
       }),
     },
   },
-  getDeployment: {
-    method: "GET",
-    path: "/clusters/:clusterId/service/:serviceName/deployments/:deploymentId",
-    headers: z.object({
-      authorization: z.string(),
-    }),
-    body: z.undefined(),
-    responses: {
-      401: z.undefined(),
-      404: z.undefined(),
-      200: z.object({
-        id: z.string(),
-        status: z.enum(["uploading", "active", "inactive", "failed"]),
-        clusterId: z.string(),
-        service: z.string(),
-        provider: z.string(),
-        createdAt: z.date(),
-      }),
-    },
-  },
   getDeployments: {
     method: "GET",
     path: "/clusters/:clusterId/service/:serviceName/deployments",
@@ -464,6 +458,32 @@ export const definition = {
         service: z.string(),
         provider: z.string(),
         createdAt: z.date(),
+      }),
+    },
+  },
+  getDeploymentLogs: {
+    method: "GET",
+    path: "/clusters/:clusterId/service/:serviceName/deployments/:deploymentId/logs",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    query: z.object({
+      next: z.string().optional(),
+      filter: z.string().optional(),
+      start: z.coerce.date().optional(),
+      end: z.coerce.date().optional(),
+    }),
+    body: z.undefined(),
+    responses: {
+      401: z.undefined(),
+      404: z.undefined(),
+      200: z.object({
+        events: z.array(
+          z.object({
+            message: z.string(),
+          }),
+        ),
+        next: z.string().optional(),
       }),
     },
   },
@@ -602,6 +622,74 @@ export const definition = {
     responses: {
       200: z.undefined(),
       400: z.undefined(),
+    },
+  },
+  createOrUpdateClusterAccessPoint: {
+    method: "PUT",
+    path: "/clusters/:clusterId/access-point/:name",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      allowedServices: z.string(),
+    }),
+    responses: {
+      200: z.object({
+        token: z.string(),
+      }),
+      401: z.undefined(),
+      404: z.undefined(),
+    },
+  },
+  deleteClusterAccessPoint: {
+    method: "DELETE",
+    path: "/clusters/:clusterId/access-point/:name",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.undefined(),
+    responses: {
+      204: z.undefined(),
+      401: z.undefined(),
+      404: z.undefined(),
+    },
+  },
+  executeJobSync: {
+    method: "POST",
+    path: "/clusters/:clusterId/execute",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      service: z.string(),
+      function: z.string(),
+      args: z.array(z.any()),
+    }),
+    responses: {
+      401: z.undefined(),
+      404: z.undefined(),
+      200: z.object({
+        resultType: z.string(),
+        result: z.any(),
+        status: z.string(),
+      }),
+      500: z.object({
+        error: z.string(),
+      }),
+    },
+  },
+  storeJsonSchema: {
+    method: "PUT",
+    path: "/clusters/:clusterId/service/:serviceName/schema",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      jsonSchema: z.any(),
+    }),
+    responses: {
+      204: z.undefined(),
+      401: z.undefined(),
     },
   },
 } as const;

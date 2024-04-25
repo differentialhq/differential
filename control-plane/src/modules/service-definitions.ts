@@ -98,15 +98,3 @@ export const parseServiceDefinition = (
 
   return input ? serviceDefinitionsSchema.parse(input) : [];
 };
-
-export const functionDefinition = async (
-  owner: { clusterId: string },
-  service: string,
-  targetFn: string,
-): Promise<ServiceDefinitionFunction | undefined> => {
-  const defs = await getServiceDefinitions(owner);
-
-  return defs
-    ?.find((def) => def.name === service)
-    ?.functions?.find((fn) => fn.name === targetFn);
-};

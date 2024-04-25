@@ -698,6 +698,20 @@ export const definition = {
       }),
     },
   },
+  storeJsonSchema: {
+    method: "PUT",
+    path: "/clusters/:clusterId/service/:serviceName/schema",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      jsonSchema: z.any(),
+    }),
+    responses: {
+      204: z.undefined(),
+      401: z.undefined(),
+    },
+  },
 } as const;
 
 export const contract = c.router(definition);

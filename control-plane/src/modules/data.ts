@@ -16,10 +16,6 @@ import { Pool } from "pg";
 import { env } from "../utilities/env";
 import { logger } from "../utilities/logger";
 
-logger.info("Attempting database connection", {
-  sslDisabled: env.DATABASE_SSL_DISABLED,
-});
-
 export const pool = new Pool({
   connectionString: env.DATABASE_URL,
   ssl: env.DATABASE_SSL_DISABLED
@@ -146,10 +142,11 @@ export const services = pgTable(
       .references(() => clusters.id)
       .notNull(),
     service: varchar("service", { length: 1024 }).notNull(),
-    definition: json("definition").notNull(),
+    definition: json("definition"), // this should be named the live definition
     preferred_deployment_provider: text("preferred_deployment_provider", {
       enum: ["lambda", "mock"],
     }),
+    json_schema: json("json_schema"),
   },
   (table) => ({
     pk: primaryKey(table.cluster_id, table.service),

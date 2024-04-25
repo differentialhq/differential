@@ -121,7 +121,7 @@ describe("persistJobResult", () => {
         }),
       }),
     );
-  }, 10000);
+  });
 
   it("should auto retry when a machine is stalled", async () => {
     const owner = await createOwner();

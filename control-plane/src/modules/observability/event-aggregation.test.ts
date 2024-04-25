@@ -176,5 +176,5 @@ describe("event-aggregation", () => {
         totalJobStalled: 0,
       },
     ]);
-  }, 10000);
+  });
 });

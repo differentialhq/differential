@@ -105,6 +105,41 @@ export const createDeployment = async ({
   return deployment[0];
 };
 
+export const storeJsonSchema = async ({
+  clusterId,
+  serviceName,
+  jsonSchema,
+}: {
+  clusterId: string;
+  serviceName: string;
+  jsonSchema: any;
+}): Promise<void> => {
+  logger.info("Storing JSON schema", {
+    clusterId,
+    service: serviceName,
+  });
+
+  await data.db
+    .insert(data.services)
+    .values([
+      {
+        cluster_id: clusterId,
+        service: serviceName,
+        json_schema: jsonSchema,
+      },
+    ])
+    .onConflictDoUpdate({
+      target: [data.services.cluster_id, data.services.service],
+      set: {
+        json_schema: jsonSchema,
+      },
+      where: and(
+        eq(data.services.cluster_id, clusterId),
+        eq(data.services.service, serviceName),
+      ),
+    });
+};
+
 export const getDeployment = async (id: string): Promise<Deployment> => {
   const deployment = await data.db
     .select({

@@ -10,13 +10,13 @@ import { operationalCluster } from "./cluster";
 import { contract } from "./contract";
 import * as data from "./data";
 import {
-  Deployment,
   createDeployment,
   findActiveDeployment,
   getDeployment,
   getDeploymentLogs,
   getDeployments,
   releaseDeployment,
+  storeJsonSchema,
   updateDeploymentResult,
 } from "./deployment/deployment";
 import { getDeploymentProvider } from "./deployment/deployment-provider";
@@ -396,6 +396,30 @@ export const router = s.router(contract, {
     return {
       status: 201,
       body: deployment,
+    };
+  },
+  storeJsonSchema: async (request) => {
+    const access = await routingHelpers.validateManagementRequest(request);
+
+    if (!access) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { clusterId, serviceName } = request.params;
+
+    const { jsonSchema } = request.body;
+
+    await storeJsonSchema({
+      clusterId,
+      serviceName,
+      jsonSchema,
+    });
+
+    return {
+      status: 204,
+      body: undefined,
     };
   },
   getDeployment: async (request) => {
