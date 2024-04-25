@@ -422,6 +422,28 @@ export const router = s.router(contract, {
       body: undefined,
     };
   },
+  getDeployment: async (request) => {
+    const access = await routingHelpers.validateManagementRequest(request);
+    if (!access) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { clusterId, deploymentId } = request.params;
+    const deployment = await getDeployment(deploymentId);
+
+    if (!deployment || deployment.clusterId !== clusterId) {
+      return {
+        status: 404,
+      };
+    }
+
+    return {
+      status: 200,
+      body: deployment,
+    };
+  },
   getDeployments: async (request) => {
     const access = await routingHelpers.validateManagementRequest(request);
     if (!access) {
