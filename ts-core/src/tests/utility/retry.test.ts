@@ -24,7 +24,7 @@ describe("retrying", () => {
         },
       }),
     ).rejects.toThrow(DifferentialError.EXECUTION_DID_NOT_COMPLETE);
-  }, 20_000);
+  });
 
   it("should be able to retry a function", async () => {
     const client = d.client<typeof productService>("product");
@@ -39,5 +39,5 @@ describe("retrying", () => {
     });
 
     expect(result).toBe(true);
-  }, 20_000);
+  });
 });

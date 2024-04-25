@@ -34,7 +34,7 @@ describe("Caching", () => {
     });
 
     expect(result1).toEqual(result2);
-  }, 10000);
+  });
 
   it("should respect cache ttl", async () => {
     const client = d.client<typeof productService>("product");
