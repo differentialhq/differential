@@ -545,8 +545,6 @@ export class Differential {
       });
     }
 
-    const inferredTypes = await inferTypes();
-
     const pollingAgent = new PollingAgent({
       endpoint: this.endpoint,
       machineId: this.machineId,
