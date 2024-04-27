@@ -678,14 +678,14 @@ export const definition = {
       }),
     },
   },
-  storeJsonSchema: {
+  storeSchema: {
     method: "PUT",
     path: "/clusters/:clusterId/service/:serviceName/schema",
     headers: z.object({
       authorization: z.string(),
     }),
     body: z.object({
-      jsonSchema: z.any(),
+      schema: z.string(),
     }),
     responses: {
       204: z.undefined(),
