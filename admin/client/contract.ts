@@ -416,6 +416,26 @@ export const definition = {
       }),
     },
   },
+  getDeployment: {
+    method: "GET",
+    path: "/clusters/:clusterId/service/:serviceName/deployments/:deploymentId",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.undefined(),
+    responses: {
+      401: z.undefined(),
+      404: z.undefined(),
+      200: z.object({
+        id: z.string(),
+        status: z.enum(["uploading", "active", "inactive", "failed"]),
+        clusterId: z.string(),
+        service: z.string(),
+        provider: z.string(),
+        createdAt: z.date(),
+      }),
+    },
+  },
   getDeployments: {
     method: "GET",
     path: "/clusters/:clusterId/service/:serviceName/deployments",
@@ -678,14 +698,14 @@ export const definition = {
       }),
     },
   },
-  storeJsonSchema: {
+  storeSchema: {
     method: "PUT",
     path: "/clusters/:clusterId/service/:serviceName/schema",
     headers: z.object({
       authorization: z.string(),
     }),
     body: z.object({
-      jsonSchema: z.any(),
+      schema: z.string(),
     }),
     responses: {
       204: z.undefined(),

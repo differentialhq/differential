@@ -105,14 +105,14 @@ export const createDeployment = async ({
   return deployment[0];
 };
 
-export const storeJsonSchema = async ({
+export const storeSchema = async ({
   clusterId,
   serviceName,
-  jsonSchema,
+  schema,
 }: {
   clusterId: string;
   serviceName: string;
-  jsonSchema: any;
+  schema: any;
 }): Promise<void> => {
   logger.info("Storing JSON schema", {
     clusterId,
@@ -125,13 +125,13 @@ export const storeJsonSchema = async ({
       {
         cluster_id: clusterId,
         service: serviceName,
-        json_schema: jsonSchema,
+        json_schema: schema,
       },
     ])
     .onConflictDoUpdate({
       target: [data.services.cluster_id, data.services.service],
       set: {
-        json_schema: jsonSchema,
+        json_schema: schema,
       },
       where: and(
         eq(data.services.cluster_id, clusterId),

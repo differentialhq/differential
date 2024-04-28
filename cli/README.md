@@ -70,5 +70,14 @@ This can be useful when working across multiple clusters, for example different 
 To use a named context, provide the `--context` option with your command:
 
 ```
-differential -context-=staging repl
+differential --context=staging repl
+```
+
+## Local Development
+
+All commands can be run with tsx:
+
+```bash
+tsx src/index.ts <cmd>
+tsx src/index.ts auth login
 ```

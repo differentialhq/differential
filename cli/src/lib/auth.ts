@@ -47,7 +47,8 @@ const refreshNpmToken = async () => {
 };
 
 const setNpmConfig = async (key: string, value: string) => {
-  childProcess.execSync(`npm config set ${key}=${value}`);
+  // TODO: commented out due to error in Node v20.
+  // childProcess.execSync(`npm config set ${key}=${value}`);
 };
 
 export const getToken = () => {

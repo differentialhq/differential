@@ -11,6 +11,7 @@ import { ClientLibrary } from "./commands/client-lib";
 import { Repl } from "./commands/repl";
 import { Context } from "./commands/context";
 import { setCurrentContext } from "./lib/context";
+import { Services } from "./commands/services";
 
 const cli = yargs(hideBin(process.argv))
   .scriptName("differential")
@@ -33,7 +34,8 @@ if (authenticated) {
     .command(Clusters)
     .command(ClientLibrary)
     .command(Repl)
-    .command(Context);
+    .command(Context)
+    .command(Services);
 } else {
   console.log(
     "Diffential CLI is not authenticated. Please run `differential auth login` to authenticate.",
