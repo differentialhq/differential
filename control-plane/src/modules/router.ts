@@ -35,6 +35,7 @@ import {
 import { deploymentResultFromNotification } from "./deployment/cfn-manager";
 import { env } from "../utilities/env";
 import { logger } from "../utilities/logger";
+import { executeTaskForCluster } from "./agents/agent";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -939,6 +940,28 @@ export const router = s.router(contract, {
           : null,
         resultType,
       },
+    };
+  },
+  executeTask: async (request) => {
+    const access = await routingHelpers.validateAccessPointOrClusterTokenAccess(
+      request.headers.authorization,
+      request.params.clusterId,
+    );
+
+    if (!access) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { clusterId } = request.params;
+    const { task } = request.body;
+
+    const result = await executeTaskForCluster({ clusterId }, task);
+
+    return {
+      status: 200,
+      body: { result },
     };
   },
 });

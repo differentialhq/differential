@@ -14,6 +14,7 @@ import { pack, unpack } from "./serialize";
 import { deserializeError, serializeError } from "./serialize-error";
 import { Result, TaskQueue } from "./task-queue";
 import { AsyncFunction } from "./types";
+import zodToJsonSchema from "zod-to-json-schema";
 
 const log = debug("differential:client");
 
@@ -148,9 +149,12 @@ class PollingAgent {
     // TODO: cache this
     const functions = Object.entries(functionRegistry)
       .filter(([, { name }]) => name === this.service.name)
-      .map(([functionName]) => ({
+      .map(([functionName, config]) => ({
         name: functionName,
+        schema: JSON.stringify(zodToJsonSchema(config.fn.input)),
       }));
+
+    console.log(functions);
 
     const pollResult = await this.client
       .createJobsRequest({
@@ -261,7 +265,9 @@ class PollingAgent {
               functionExecutionTime: 0,
             });
           } else {
-            const args: Parameters<AsyncFunction> = unpack(job.targetArgs);
+            const args: Parameters<AsyncFunction["func"]> = unpack(
+              job.targetArgs,
+            );
 
             log("Executing fn", {
               id: job.id,
@@ -270,7 +276,7 @@ class PollingAgent {
               args,
             });
 
-            this.taskQueue.addTask(registered.fn, args, onComplete);
+            this.taskQueue.addTask(registered.fn.func, args, onComplete);
           }
         }),
       );
@@ -591,7 +597,7 @@ export class Differential {
     name: string;
     serviceName: string;
   }) {
-    if (typeof fn !== "function") {
+    if (typeof fn.func !== "function") {
       throw new DifferentialError("fn must be a function");
     }
 

@@ -33,24 +33,6 @@ type CallConfig = {
 
 const DEFAULT_RETRY_COUNT_ON_STALL = 1;
 
-export const createSyncJob = async (params: {
-  service: string;
-  targetFn: string;
-  targetArgs: unknown[];
-  owner: { clusterId: string };
-  deploymentId?: string;
-  callConfig?: CallConfig;
-}) => {
-  return createJob({
-    service: params.service,
-    targetFn: params.targetFn,
-    targetArgs: msgpackr.pack(data).toString("base64"), // I don't like this, but this will have to do for now.
-    owner: params.owner,
-    deploymentId: params.deploymentId,
-    callConfig: params.callConfig,
-  });
-};
-
 export const createJob = async (params: {
   service: string;
   targetFn: string;
