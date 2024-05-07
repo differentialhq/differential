@@ -35,7 +35,6 @@ import {
 import { deploymentResultFromNotification } from "./deployment/cfn-manager";
 import { env } from "../utilities/env";
 import { logger } from "../utilities/logger";
-import { executeTaskForCluster } from "./agents/agent";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -956,6 +955,8 @@ export const router = s.router(contract, {
 
     const { clusterId } = request.params;
     const { task } = request.body;
+
+    const { executeTaskForCluster } = require("./agents/agent");
 
     const result = await executeTaskForCluster({ clusterId }, task);
 

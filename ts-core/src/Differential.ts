@@ -20,13 +20,13 @@ const log = debug("differential:client");
 
 type ServiceClient<T extends RegisteredService<any>> = {
   [K in keyof T["definition"]["functions"]]: CallConfiguredFunction<
-    T["definition"]["functions"][K]
+    T["definition"]["functions"][K]["func"]
   >;
 };
 
 type BackgroundServiceClient<T extends RegisteredService<any>> = {
   [K in keyof T["definition"]["functions"]]: CallConfiguredBackgroundFunction<
-    T["definition"]["functions"][K]
+    T["definition"]["functions"][K]["func"]
   >;
 };
 
