@@ -26,6 +26,7 @@ export const definition = {
         .array(
           z.object({
             name: z.string(),
+            schema: z.string(),
           }),
         )
         .optional(),
@@ -394,6 +395,7 @@ export const definition = {
     query: z.object({
       jobId: z.string().optional(),
       deploymentId: z.string().optional(),
+      taskId: z.string().optional(),
     }),
   },
   createDeployment: {
@@ -710,6 +712,27 @@ export const definition = {
     responses: {
       204: z.undefined(),
       401: z.undefined(),
+    },
+  },
+  executeTask: {
+    method: "POST",
+    path: "/clusters/:clusterId/task",
+    headers: z.object({
+      authorization: z.string(),
+    }),
+    body: z.object({
+      task: z.string(),
+    }),
+    responses: {
+      401: z.undefined(),
+      404: z.undefined(),
+      200: z.object({
+        result: z.any(),
+        taskId: z.string(),
+      }),
+      500: z.object({
+        error: z.string(),
+      }),
     },
   },
 } as const;

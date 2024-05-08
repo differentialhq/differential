@@ -35,6 +35,7 @@ import {
 import { deploymentResultFromNotification } from "./deployment/cfn-manager";
 import { env } from "../utilities/env";
 import { logger } from "../utilities/logger";
+import { ulid } from "ulid";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -958,11 +959,12 @@ export const router = s.router(contract, {
 
     const { executeTaskForCluster } = require("./agents/agent");
 
-    const result = await executeTaskForCluster({ clusterId }, task);
+    const taskId = ulid();
+    const result = await executeTaskForCluster({ clusterId }, taskId, task);
 
     return {
       status: 200,
-      body: { result },
+      body: { result, taskId },
     };
   },
 });

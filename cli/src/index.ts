@@ -12,6 +12,7 @@ import { Repl } from "./commands/repl";
 import { Context } from "./commands/context";
 import { setCurrentContext } from "./lib/context";
 import { Services } from "./commands/services";
+import { Task } from "./commands/task";
 
 const cli = yargs(hideBin(process.argv))
   .scriptName("differential")
@@ -35,6 +36,7 @@ if (authenticated) {
     .command(ClientLibrary)
     .command(Repl)
     .command(Context)
+    .command(Task)
     .command(Services);
 } else {
   console.log(

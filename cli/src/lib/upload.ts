@@ -39,6 +39,8 @@ export const uploadAsset = async ({
 
   const { presignedUrl } = upload.body;
 
+  log("Uploading asset to s3", { presignedUrl });
+
   const response = await fetch(presignedUrl, {
     method: "PUT",
     body: readFileSync(path),
@@ -46,6 +48,8 @@ export const uploadAsset = async ({
       "Content-Type": contentType,
     },
   });
+
+  log("Response from S3 put", response);
 
   if (response.status !== 200) {
     throw new Error(
