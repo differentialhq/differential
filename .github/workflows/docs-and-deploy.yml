@@ -57,7 +57,7 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v3
-      - uses: uses: sliteteam/github-action-git-crypt-unlock@1.2.0
+      - uses: sliteteam/github-action-git-crypt-unlock@1.2.0
         env:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
       - uses: superfly/flyctl-actions/setup-flyctl@master
