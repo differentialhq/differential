@@ -43,6 +43,12 @@ export function Navigation({ clusterId }: { clusterId: string }) {
           Client Libraries
         </Link>
       </Button>
+      <Button
+        asChild
+        variant={currentPath.includes("tasks") ? "outline" : "secondary"}
+      >
+        <Link href={`/clusters/${clusterId}/tasks`}>Tasks</Link>
+      </Button>
     </div>
   );
 }

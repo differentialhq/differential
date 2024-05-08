@@ -33,6 +33,7 @@
     "msgpackr": "^1.10.1",
     "next": "14.0.4",
     "react": "^18",
+    "react-animated-dots": "^1.1.0",
     "react-dom": "^18",
     "react-hook-form": "^7.50.1",
     "react-hot-toast": "^2.4.1",
