@@ -6,8 +6,8 @@ import { useAuth } from "@clerk/nextjs";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { formatRelative } from "date-fns";
 import { useEffect, useState } from "react";
-import { Dot } from "react-animated-dots";
 import toast from "react-hot-toast";
+import { ThreeDots } from "react-loader-spinner";
 import { functionStatusToCircle } from "../helpers";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -140,9 +140,13 @@ export default function Page({ params }: { params: { clusterId: string } }) {
         )}
         {data.loading && (
           <div className="flex-grow rounded-md border mb-4 p-4">
-            <Dot>.</Dot>
-            <Dot>.</Dot>
-            <Dot>.</Dot>
+            <ThreeDots
+              visible={true}
+              height="20"
+              width="20"
+              color="#9ca3af"
+              ariaLabel="three-dots-loading"
+            />
           </div>
         )}
         <ScrollArea className="rounded-md border" style={{ height: 400 }}>
