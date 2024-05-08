@@ -10,6 +10,7 @@
     "allowJs": true,
   },
   "include": [
-    "src/index.ts"
+    "src/index.ts",
+    "src/utilities/migrate.ts"
   ]
 }
