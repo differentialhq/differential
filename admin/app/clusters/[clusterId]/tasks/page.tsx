@@ -122,6 +122,8 @@ export default function Page({ params }: { params: { clusterId: string } }) {
                   result: result.body.result,
                   jobs: data.jobs,
                 });
+              } else {
+                toast.error("Failed to issue cluster task");
               }
             }}
           >
