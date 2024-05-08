@@ -957,9 +957,9 @@ export const router = s.router(contract, {
     const { clusterId } = request.params;
     const { task } = request.body;
 
-    const taskId = ulid();
     const { executeTaskForCluster } = require("./agents/agent");
 
+    const taskId = ulid();
     const result = await executeTaskForCluster({ clusterId }, taskId, task);
 
     return {
