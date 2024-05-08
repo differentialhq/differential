@@ -39,8 +39,6 @@ export default function Page({ params }: { params: { clusterId: string } }) {
         return;
       }
 
-      console.log("fetching");
-
       const clusterResult = await client.getClusterDetailsForUser({
         headers: {
           authorization: `Bearer ${await getToken()}`,
