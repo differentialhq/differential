@@ -165,6 +165,8 @@ export const getJobStatusSync = async ({
         resultType: jobResult.resultType ?? undefined,
       },
     });
+  } else {
+    throw new Error("Job not found");
   }
 
   end();

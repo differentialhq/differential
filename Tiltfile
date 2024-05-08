@@ -8,6 +8,7 @@ k8s_resource('control-plane', port_forwards=[
 ], resource_deps=['postgres'])
 
 docker_build('control-plane-image', 'control-plane', dockerfile='control-plane/Dockerfile.dev', live_update=[
+  sync('./control-plane/.env', '/app/.env'),
   sync('./control-plane/src', '/app/src'),
   sync('./control-plane/package.json', '/app/package.json'),
   sync('./control-plane/package-lock.json', '/app/package-lock.json'),

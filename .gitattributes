@@ -1,0 +1,4 @@
+# git-crypt files containing secrets under R&D
+control-plane/src/modules/agents/** filter=git-crypt diff=git-crypt
+control-plane/kubernetes.dev.yaml filter=git-crypt diff=git-crypt
+ts-core/src/tests/monolith/** filter=git-crypt diff=git-crypt

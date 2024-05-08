@@ -11,8 +11,8 @@ export type Result<T = unknown> = {
 };
 
 export const executeFn = async (
-  fn: AsyncFunction,
-  args: Parameters<AsyncFunction>,
+  fn: AsyncFunction["func"],
+  args: Parameters<AsyncFunction["func"]>,
 ): Promise<Result> => {
   const start = Date.now();
   try {
@@ -51,14 +51,14 @@ export const executeFn = async (
 
 export class TaskQueue {
   private tasks: Array<{
-    fn: AsyncFunction;
-    args: Parameters<AsyncFunction>;
+    fn: AsyncFunction["func"];
+    args: Parameters<AsyncFunction["func"]>;
     resolve: (value: Result) => void;
   }> = [];
 
   addTask(
-    fn: AsyncFunction,
-    args: Parameters<AsyncFunction>,
+    fn: AsyncFunction["func"],
+    args: Parameters<AsyncFunction["func"]>,
     resolve: (value: Result) => void,
   ) {
     this.tasks.push({

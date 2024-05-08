@@ -941,4 +941,28 @@ export const router = s.router(contract, {
       },
     };
   },
+  executeTask: async (request) => {
+    const access = await routingHelpers.validateAccessPointOrClusterTokenAccess(
+      request.headers.authorization,
+      request.params.clusterId,
+    );
+
+    if (!access) {
+      return {
+        status: 401,
+      };
+    }
+
+    const { clusterId } = request.params;
+    const { task } = request.body;
+
+    const { executeTaskForCluster } = require("./agents/agent");
+
+    const result = await executeTaskForCluster({ clusterId }, task);
+
+    return {
+      status: 200,
+      body: { result },
+    };
+  },
 });

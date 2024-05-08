@@ -28,14 +28,16 @@ export type $d = {
   $d: CallConfig;
 };
 
-type AddParameters<
-  TFunction extends (...args: any) => any,
-  TParameters extends [...args: any],
-  TResult,
-> = (...args: [...Parameters<TFunction>, ...TParameters]) => TResult;
+type AddParameters<Arg, ReturnType, Parameter> = (
+  ...args: [Arg, Parameter]
+) => ReturnType;
 
-export type CallConfiguredFunction<TFunction extends (...args: any) => any> =
-  AddParameters<TFunction, [$d?], ReturnType<TFunction>>;
+export type CallConfiguredFunction<TFunction extends (args: any) => any> =
+  AddParameters<
+    Parameters<TFunction>[0],
+    ReturnType<TFunction>,
+    $d | undefined
+  >;
 
 export type CallConfiguredBackgroundFunction<
   TFunction extends (...args: any) => any,
