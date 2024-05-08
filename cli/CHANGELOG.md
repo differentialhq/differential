@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.19.0](https://github.com/differentialhq/differential/compare/v3.18.1...v3.19.0) (2024-05-08)
+
+### Bug Fixes
+
+- Expose endpoint to store json schema ([#218](https://github.com/differentialhq/differential/issues/218)) ([81cc21a](https://github.com/differentialhq/differential/commit/81cc21a36b4fcba031915f95d0d211c5d99afa2f))
+- Open cluster on the overview page ([199d692](https://github.com/differentialhq/differential/commit/199d69272ce67ae0b97011f78050f778b94fd8df))
+- Publish schema via CLI ([#220](https://github.com/differentialhq/differential/issues/220)) ([e3f46b9](https://github.com/differentialhq/differential/commit/e3f46b9ce091a9bc3563ac6c6fc94d2cc82cb4de))
+
+### Features
+
+- Add access points to the cluster ([#210](https://github.com/differentialhq/differential/issues/210)) ([827dc3a](https://github.com/differentialhq/differential/commit/827dc3a10dc8dc202a44ac849b0ff2de836be3ba))
+- Add log filtering option ([#207](https://github.com/differentialhq/differential/issues/207)) ([d28e247](https://github.com/differentialhq/differential/commit/d28e247d4dae2bed4fe671d514433b89f944f9d0))
+- Add stalled deployment test ([#217](https://github.com/differentialhq/differential/issues/217)) ([7de6f8d](https://github.com/differentialhq/differential/commit/7de6f8db2f947eb4e13873ecad2c4259b771a5fd))
+- Add time selection to log query ([#206](https://github.com/differentialhq/differential/issues/206)) ([2be0f4d](https://github.com/differentialhq/differential/commit/2be0f4d03baef79d1350ca1c239946ebef0494fd))
+- CLI context ([#213](https://github.com/differentialhq/differential/issues/213)) ([deee54f](https://github.com/differentialhq/differential/commit/deee54f4f00b1283444ffa576cf103b9685280a0))
+- Prompt demo UI and CLI command ([#222](https://github.com/differentialhq/differential/issues/222)) ([4cab4ca](https://github.com/differentialhq/differential/commit/4cab4ca32af2cffcc0190f91a1202bd31fee844e))
+
 ## [3.18.1](https://github.com/differentialhq/differential/compare/v3.18.0...v3.18.1) (2024-03-30)
 
 ### Bug Fixes

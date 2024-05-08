@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.19.0](https://github.com/differentialhq/differential/compare/v3.18.1...v3.19.0) (2024-05-08)
+
+### Bug Fixes
+
+- Expose endpoint to store json schema ([#218](https://github.com/differentialhq/differential/issues/218)) ([81cc21a](https://github.com/differentialhq/differential/commit/81cc21a36b4fcba031915f95d0d211c5d99afa2f))
+- Initial agent comms architecture ([#221](https://github.com/differentialhq/differential/issues/221)) ([52bf177](https://github.com/differentialhq/differential/commit/52bf1779a6e0bdb2957412fd1a3df6bdc8292dd8))
+- Publish schema via CLI ([#220](https://github.com/differentialhq/differential/issues/220)) ([e3f46b9](https://github.com/differentialhq/differential/commit/e3f46b9ce091a9bc3563ac6c6fc94d2cc82cb4de))
+
 # [3.18.0](https://github.com/differentialhq/differential/compare/v3.17.0...v3.18.0) (2024-03-29)
 
 ### Bug Fixes

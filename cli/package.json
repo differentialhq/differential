@@ -1,6 +1,6 @@
 {
   "name": "@differentialhq/cli",
-  "version": "3.18.1",
+  "version": "3.19.0",
   "description": "CLI for differential.dev",
   "bin": {
     "differential": "bin/index.js"
