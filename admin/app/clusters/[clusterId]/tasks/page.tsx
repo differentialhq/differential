@@ -33,6 +33,52 @@ export default function Page({ params }: { params: { clusterId: string } }) {
     jobs: [],
   });
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      callPrompt();
+    }
+  };
+
+  const callPrompt = async () => {
+    setData({
+      loading: true,
+      taskId: null,
+      result: null,
+      jobs: [],
+    });
+
+    const taskPrompt = (document.getElementById("prompt") as HTMLInputElement)
+      .value;
+
+    const result = await client.executeTask({
+      headers: {
+        authorization: `Bearer ${getToken()}`,
+      },
+      params: {
+        clusterId: params.clusterId,
+      },
+      body: {
+        task: taskPrompt,
+      },
+    });
+
+    if (result.status === 200) {
+      setData({
+        loading: false,
+        taskId: result.body.taskId,
+        result: result.body.result,
+        jobs: data.jobs,
+      });
+    } else {
+      setData({
+        loading: false,
+        taskId: null,
+        result: "Failed to execute task",
+        jobs: data.jobs,
+      });
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       if (!data.taskId) {
@@ -85,50 +131,12 @@ export default function Page({ params }: { params: { clusterId: string } }) {
             disabled={data.loading || data.taskId !== null}
             className="flex-grow p-2 rounded-md bg-blue-400 placeholder-blue-200 text-white"
             id="prompt"
+            onKeyDown={handleKeyDown}
           />
           <Button
             size="sm"
             disabled={data.loading || data.taskId !== null}
-            onClick={async () => {
-              setData({
-                loading: true,
-                taskId: null,
-                result: null,
-                jobs: [],
-              });
-
-              const taskPrompt = (
-                document.getElementById("prompt") as HTMLInputElement
-              ).value;
-
-              const result = await client.executeTask({
-                headers: {
-                  authorization: `Bearer ${getToken()}`,
-                },
-                params: {
-                  clusterId: params.clusterId,
-                },
-                body: {
-                  task: taskPrompt,
-                },
-              });
-
-              if (result.status === 200) {
-                setData({
-                  loading: false,
-                  taskId: result.body.taskId,
-                  result: result.body.result,
-                  jobs: data.jobs,
-                });
-              } else {
-                setData({
-                  loading: false,
-                  taskId: null,
-                  result: "Failed to execute task",
-                  jobs: data.jobs,
-                });
-              }
-            }}
+            onClick={callPrompt}
           >
             Execute
           </Button>
