@@ -26,7 +26,7 @@ export const definition = {
         .array(
           z.object({
             name: z.string(),
-            schema: z.string(),
+            schema: z.string().optional(),
           }),
         )
         .optional(),
