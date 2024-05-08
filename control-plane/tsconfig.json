@@ -11,6 +11,7 @@
   },
   "include": [
     "src/index.ts",
-    "src/utilities/migrate.ts"
+    "src/utilities/migrate.ts",
+    "src/modules/agents/agent.ts"
   ]
 }
