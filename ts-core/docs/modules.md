@@ -1,1 +1,1 @@
-# @differentialhq/core
+# @differentialhq/sdk
