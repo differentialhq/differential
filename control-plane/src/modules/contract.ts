@@ -395,6 +395,7 @@ export const definition = {
     query: z.object({
       jobId: z.string().optional(),
       deploymentId: z.string().optional(),
+      taskId: z.string().optional(),
     }),
   },
   createDeployment: {
@@ -727,6 +728,7 @@ export const definition = {
       404: z.undefined(),
       200: z.object({
         result: z.any(),
+        taskId: z.string(),
       }),
       500: z.object({
         error: z.string(),
