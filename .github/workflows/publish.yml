@@ -43,12 +43,12 @@ jobs:
           git config --global user.name "Differential CI"
           git config --global user.email "ci@differential.dev"
 
-      - name: Version packages
-        run: npx lerna version --conventional-commits --yes --no-private --create-release github
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Version packages
+      #   run: npx lerna version --conventional-commits --yes --no-private --create-release github
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish packages
-        run: npx lerna publish from-package --yes --no-private --registry https://registry.npmjs.org
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # - name: Publish packages
+      #   run: npx lerna publish from-package --yes --no-private --registry https://registry.npmjs.org
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -3,11 +3,11 @@
 docs:
 	@echo "Generating docs..."
 
-	cd ts-core && \
+	cd sdk && \
 	npm run docs
 
 	cd docs && \
-	cp -r ../ts-core/docs/* ./api && \
+	cp -r ../sdk/docs/* ./api && \
 	rm ./api/modules.md
 
 	@echo "Done"

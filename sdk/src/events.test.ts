@@ -1,20 +1,20 @@
-import * as osu from 'node-os-utils'
+import * as osu from "node-os-utils";
 import { Events } from "./events";
 
 describe("events", () => {
   beforeAll(() => {
     jest.useFakeTimers();
-  })
+  });
 
   afterAll(() => {
     jest.useRealTimers();
-  })
+  });
 
   it("should flush events when bufferFlushSize is reached", () => {
     const mockFn = jest.fn();
     const events = new Events(mockFn, {
       bufferFlushSize: 2,
-    })
+    });
     expect(mockFn).toHaveBeenCalledTimes(0);
     events.push({ type: "functionInvocation", timestamp: new Date() });
     expect(mockFn).toHaveBeenCalledTimes(0);
@@ -32,7 +32,7 @@ describe("events", () => {
 
     const events = new Events(mockFn, {
       systemProbeInterval: 100,
-    })
+    });
 
     events.startResourceProbe();
     expect(mockFn).toHaveBeenCalledTimes(0);
@@ -46,6 +46,5 @@ describe("events", () => {
     events.stopResourceProbe();
     jest.advanceTimersByTime(100);
     expect(mockFn).toHaveBeenCalledTimes(2);
-  })
+  });
 });
-

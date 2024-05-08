@@ -1,6 +1,6 @@
 export const throttle = <R, A extends any[]>(
   fn: (...args: A) => R,
-  delay: number
+  delay: number,
 ): [(...args: A) => R | undefined, () => void] => {
   let wait = false;
   let timeout: NodeJS.Timeout;

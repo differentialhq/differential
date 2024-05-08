@@ -2,7 +2,7 @@
   "name": "root",
   "private": true,
   "workspaces": [
-    "ts-core",
+    "sdk",
     "control-plane",
     "docs",
     "admin",
