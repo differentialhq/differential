@@ -123,7 +123,12 @@ export default function Page({ params }: { params: { clusterId: string } }) {
                   jobs: data.jobs,
                 });
               } else {
-                toast.error("Failed to issue cluster task");
+                setData({
+                  loading: false,
+                  taskId: null,
+                  result: "Failed to execute task",
+                  jobs: data.jobs,
+                });
               }
             }}
           >
