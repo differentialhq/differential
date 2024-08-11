@@ -14,10 +14,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-cloudformation": "^3.529.1",
+    "@aws-sdk/client-cloudformation": "^3.624.0",
     "@aws-sdk/client-cloudwatch-logs": "^3.540.0",
-    "@aws-sdk/client-lambda": "^3.504.0",
-    "@aws-sdk/client-s3": "^3.496.0",
+    "@aws-sdk/client-lambda": "^3.624.0",
+    "@aws-sdk/client-s3": "^3.627.0",
     "@aws-sdk/client-sns": "^3.529.1",
     "@aws-sdk/s3-request-presigner": "^3.496.0",
     "@babel/preset-env": "^7.22.10",
