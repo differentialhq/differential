@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://cdn.differential.dev/logo.png" width="200" style="border-radius: 10px" />
+  <img src="https://pub-3fdc530288e945febdc979220f1485b3.r2.dev/logo.png" width="200" style="border-radius: 10px" />
 </p>
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/differentialhq/differential/test.yml) ![NPM Downloads](https://img.shields.io/npm/dm/%40differentialhq%2Fcore) ![Libraries.io dependency status for latest release](https://img.shields.io/librariesio/release/npm/%40differentialhq%2Fcore) ![NPM Version](https://img.shields.io/npm/v/%40differentialhq%2Fcore?logo=npm&label=%40differentialhq%2Fcore)
